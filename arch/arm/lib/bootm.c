@@ -143,6 +143,8 @@ static void setup_memory_tags(bd_t *bd)
 	int i;
 
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++) {
+		if (!gd->bd->bi_dram[i].size)
+			continue;
 		params->hdr.tag = ATAG_MEM;
 		params->hdr.size = tag_size (tag_mem32);
 
