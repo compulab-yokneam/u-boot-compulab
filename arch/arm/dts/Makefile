@@ -799,6 +799,8 @@ dtb-$(CONFIG_ARCH_IMX8M) += \
 
 dtb-$(CONFIG_ARCH_IMXRT) += imxrt1050-evk.dtb
 
+dtb-$(CONFIG_TARGET_CL_SOM_IMX8) += cl-som-imx8.dtb
+
 dtb-$(CONFIG_RCAR_GEN2) += \
 	r8a7790-lager-u-boot.dtb \
 	r8a7790-stout-u-boot.dtb \
