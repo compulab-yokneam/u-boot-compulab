@@ -881,8 +881,10 @@ static int do_mem_mtest(cmd_tbl_t *cmdtp, int flag, int argc,
 	const int alt_test = 0;
 #endif
 
-	start = CONFIG_SYS_MEMTEST_START;
-	end = CONFIG_SYS_MEMTEST_END;
+	/* Test only the first bank */
+	start = gd->bd->bi_dram[0].start;
+	end = start + gd->bd->bi_dram[0].size *
+		MEMTEST_NUMERATOR / MEMTEST_DIVIDER;
 
 	if (argc > 1)
 		if (strict_strtoul(argv[1], 16, &start) < 0)
