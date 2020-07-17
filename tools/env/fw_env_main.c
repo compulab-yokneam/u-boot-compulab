@@ -49,6 +49,7 @@ static struct option long_options[] = {
 	{"noheader", no_argument, NULL, 'n'},
 	{"lock", required_argument, NULL, 'l'},
 	{"version", no_argument, NULL, 'v'},
+	{"env", no_argument, NULL, 'e'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -74,6 +75,7 @@ void usage_printenv(void)
 #endif
 		" -n, --noheader       do not repeat variable name in output\n"
 		" -l, --lock           lock node, default:/var/lock\n"
+		" -e, --env            print default fw_env.config\n"
 		"\n");
 }
 
@@ -120,7 +122,7 @@ static void parse_common_args(int argc, char *argv[])
 	env_opts.config_file = CONFIG_FILE;
 #endif
 
-	while ((c = getopt_long(argc, argv, ":a:c:l:h:v", long_options, NULL)) !=
+	while ((c = getopt_long(argc, argv, ":a:c:l:h:v:e", long_options, NULL)) !=
 	       EOF) {
 		switch (c) {
 #ifdef CONFIG_FILE
@@ -137,6 +139,11 @@ static void parse_common_args(int argc, char *argv[])
 			break;
 		case 'v':
 			fprintf(stderr, "Compiled with " U_BOOT_VERSION "\n");
+			exit(EXIT_SUCCESS);
+			break;
+		case 'e':
+			fprintf(stdout, "/dev/mmcblk0boot0 0x%x 0x%x\n", CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE);
+			fprintf(stdout, "/dev/mmcblk1 0x%x 0x%x\n", CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE);
 			exit(EXIT_SUCCESS);
 			break;
 		default:
