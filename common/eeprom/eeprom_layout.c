@@ -14,8 +14,8 @@
 #define NO_LAYOUT_FIELDS	"Unknown layout. Dumping raw data\n"
 
 struct eeprom_field layout_unknown[1] = {
-	{ NO_LAYOUT_FIELDS, 256, NULL, eeprom_field_print_bin,
-				       eeprom_field_update_bin },
+	{ NO_LAYOUT_FIELDS, 256, eeprom_field_print_bin,
+	  eeprom_field_update_bin },
 };
 
 /*
@@ -51,9 +51,10 @@ static void eeprom_layout_print(const struct eeprom_layout *layout)
 {
 	int i;
 	struct eeprom_field *fields = layout->fields;
+	uchar *fbuf = layout->data;
 
-	for (i = 0; i < layout->num_of_fields; i++)
-		fields[i].print(&fields[i]);
+	for (i = 0; i < layout->num_of_fields; fbuf += fields[i++].size)
+		fields[i].print(&fields[i], fbuf);
 }
 
 /*
@@ -69,6 +70,7 @@ static int eeprom_layout_update_field(struct eeprom_layout *layout,
 {
 	int i, err;
 	struct eeprom_field *fields = layout->fields;
+	uchar *fbuf = layout->data;
 
 	if (new_data == NULL)
 		return 0;
@@ -76,14 +78,50 @@ static int eeprom_layout_update_field(struct eeprom_layout *layout,
 	if (field_name == NULL)
 		return -1;
 
-	for (i = 0; i < layout->num_of_fields; i++) {
+	for (i = 0; i < layout->num_of_fields; fbuf += fields[i++].size) {
 		if (fields[i].name == RESERVED_FIELDS ||
 		    strcmp(fields[i].name, field_name))
 			continue;
 
-		err = fields[i].update(&fields[i], new_data);
+		err = fields[i].update(&fields[i], fbuf, new_data);
 		if (err)
 			printf("Invalid data for field %s\n", field_name);
+
+		return err;
+	}
+
+	printf("No such field '%s'\n", field_name);
+
+	return -1;
+}
+
+/*
+ * eeprom_layout_read_field() - read a single field from the layout data
+ * @layout:    A pointer to an existing struct layout.
+ * @field_name:        The name of the field to update.
+ * @buf:       Read data buffer.
+ * @buf_size:  Read data buffer size.
+ *
+ * Returns: 0 on success, negative error value on failure.
+ */
+static int eeprom_layout_read_field(struct eeprom_layout *layout,
+				    char *field_name, uchar *buf, int buf_size)
+{
+       int i, err;
+       struct eeprom_field *fields = layout->fields;
+       uchar *fbuf = layout->data;
+
+       if ((field_name == NULL) || (buf == NULL) || (buf_size <= 0))
+               return -1;
+
+	for (i = 0; i < layout->num_of_fields; fbuf += fields[i++].size) {
+		if (fields[i].name == RESERVED_FIELDS ||
+		    strcmp(fields[i].name, field_name))
+			continue;
+
+		err = fields[i].read(&fields[i], fbuf, buf, buf_size);
+		if (err)
+			printf("Field %s, read error\n", field_name);
 
 		return err;
 	}
@@ -104,8 +142,6 @@ static int eeprom_layout_update_field(struct eeprom_layout *layout,
 void eeprom_layout_setup(struct eeprom_layout *layout, unsigned char *buf,
 			 unsigned int buf_size, int layout_version)
 {
-	int i;
-
 	if (layout_version == LAYOUT_VERSION_AUTODETECT)
 		layout->layout_version = eeprom_layout_detect(buf);
 	else
@@ -113,12 +149,8 @@ void eeprom_layout_setup(struct eeprom_layout *layout, unsigned char *buf,
 
 	eeprom_layout_assign(layout, layout_version);
 	layout->data = buf;
-	for (i = 0; i < layout->num_of_fields; i++) {
-		layout->fields[i].buf = buf;
-		buf += layout->fields[i].size;
-	}
-
 	layout->data_size = buf_size;
 	layout->print = eeprom_layout_print;
 	layout->update = eeprom_layout_update_field;
+	layout->read = eeprom_layout_read_field;
 }
