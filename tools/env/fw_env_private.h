@@ -22,6 +22,7 @@
  * for notes on configuration.
  */
 #define CONFIG_FILE     "/etc/fw_env.config"
+#define CONFIG_DT_NODE  "/sys/firmware/devicetree/base/fw_env"
 
 #ifndef CONFIG_FILE
 #define HAVE_REDUND /* For systems with 2 env sectors */
