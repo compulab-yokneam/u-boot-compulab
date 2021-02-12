@@ -154,6 +154,24 @@ config TARGET_VERDIN_IMX8MM
        select SUPPORT_SPL
        select IMX8M_LPDDR4
 
+config TARGET_UCM_IMX8M_MINI
+	bool "CompuLab ucm-imx8m-mini"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_MCM_IMX8M_MINI
+	bool "CompuLab mcm-imx8m-mini"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_IOT_GATE_IMX8
+	bool "CompuLab iot-gate-imx8"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
 endchoice
 
 source "board/freescale/imx8mq_evk/Kconfig"
@@ -164,5 +182,9 @@ source "board/freescale/imx8mm_val/Kconfig"
 source "board/freescale/imx8mn_evk/Kconfig"
 source "board/freescale/imx8mp_evk/Kconfig"
 source "board/toradex/verdin-imx8mm/Kconfig"
+source "board/compulab/ucm-imx8m-mini/Kconfig"
+source "board/compulab/mcm-imx8m-mini/Kconfig"
+source "board/compulab/iot-gate-imx8/Kconfig"
+source "board/compulab/plat/Kconfig"
 
 endif
