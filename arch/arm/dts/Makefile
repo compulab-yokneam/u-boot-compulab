@@ -806,6 +806,7 @@ dtb-$(CONFIG_ARCH_IMX8M) += \
 dtb-$(CONFIG_TARGET_UCM_IMX8M_MINI) += ucm-imx8m-mini.dtb
 dtb-$(CONFIG_TARGET_MCM_IMX8M_MINI) += mcm-imx8m-mini.dtb
 dtb-$(CONFIG_TARGET_IOT_GATE_IMX8) += iot-gate-imx8.dtb
+dtb-$(CONFIG_TARGET_UCM_IMX8M_PLUS) += ucm-imx8m-plus.dtb
 
 dtb-$(CONFIG_ARCH_IMXRT) += imxrt1050-evk.dtb
 
