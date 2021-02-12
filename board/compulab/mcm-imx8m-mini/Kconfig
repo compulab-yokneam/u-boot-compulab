@@ -1,0 +1,17 @@
+if TARGET_MCM_IMX8M_MINI
+
+config SYS_BOARD
+	default "mcm-imx8m-mini"
+
+config SYS_VENDOR
+	default "compulab"
+
+config SYS_CONFIG_NAME
+	default "mcm-imx8m-mini"
+
+config DEFAULT_DTB
+	string "U-Boot Default Device Tree File"
+	depends on TARGET_MCM_IMX8M_MINI
+	default "sbc-mcm-imx8m-mini.dtb"
+
+endif
