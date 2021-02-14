@@ -107,7 +107,7 @@ int ddr_init(struct dram_timing_info *dram_timing)
 		reg32_write(SRC_DDRC_RCR_ADDR, 0x8F00000F);
 	}
 
-	debug("DDRINFO: cfg clk\n");
+	printf("DDRINFO: cfg clk\n");
 	/* change the clock source of dram_apb_clk_root: source 4 800MHz /4 = 200MHz */
 	clock_set_target_val(DRAM_APB_CLK_ROOT, CLK_ROOT_ON | CLK_ROOT_SOURCE_SEL(4) |
 			     CLK_ROOT_PRE_DIV(CLK_ROOT_PRE_DIV4));
@@ -125,9 +125,9 @@ int ddr_init(struct dram_timing_info *dram_timing)
 	reg32_write(SRC_DDRC_RCR_ADDR, 0x8F000006);
 
 	/* Step2: Program the dwc_ddr_umctl2 registers */
-	debug("DDRINFO: ddrc config start\n");
+	printf("DDRINFO: ddrc config start\n");
 	ddr_cfg_umctl2(dram_timing->ddrc_cfg, dram_timing->ddrc_cfg_num);
-	debug("DDRINFO: ddrc config done\n");
+	printf("DDRINFO: ddrc config done\n");
 
 	/* Step3: De-assert reset signal(core_ddrc_rstn & aresetn_n) */
 	reg32_write(SRC_DDRC_RCR_ADDR, 0x8F000004);
@@ -169,13 +169,13 @@ int ddr_init(struct dram_timing_info *dram_timing)
 	 * Step8 ~ Step13: Start PHY initialization and training by
 	 * accessing relevant PUB registers
 	 */
-	debug("DDRINFO:ddrphy config start\n");
+	printf("DDRINFO:ddrphy config start\n");
 
 	ret = ddr_cfg_phy(dram_timing);
 	if (ret)
 		return ret;
 
-	debug("DDRINFO: ddrphy config done\n");
+	printf("DDRINFO: ddrphy config done\n");
 
 	/*
 	 * step14 CalBusy.0 =1, indicates the calibrator is actively
