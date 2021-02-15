@@ -19,8 +19,8 @@
 
 	memory@40000000 {
 		device_type = "memory";
-		reg = <0x0 0x40000000 0 0xc0000000>,
-		      <0x1 0x00000000 0 0xc0000000>;
+		reg = <0x0 0x40000000 0 0x80000000>,
+		      <0x1 0x00000000 0 0x00000000>;
 	};
 
 	leds {
@@ -74,7 +74,7 @@
 
 	dsi_host: dsi-host {
 		compatible = "samsung,sec-mipi-dsi";
-		status = "okay";
+		status = "disabled";
 	};
 
 	rm67191_panel {
@@ -89,7 +89,7 @@
 					 */
 		panel-width-mm = <68>;
 		panel-height-mm = <121>;
-		status = "okay";
+		status = "disabled";
 
 		port {
 			rm67191_from_dsim: endpoint {
@@ -125,7 +125,7 @@
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy1>;
 	fsl,magic-packet;
-	status = "okay";
+	status = "disabled";
 
 	mdio {
 		#address-cells = <1>;
@@ -279,7 +279,7 @@
 	pinctrl-1 = <&pinctrl_i2c2_gpio>;
 	scl-gpios = <&gpio5 16 GPIO_ACTIVE_HIGH>;
 	sda-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;
-	status = "okay";
+	status = "disabled";
 
 	adv_bridge: adv7535@3d {
 		compatible = "adi,adv7533";
@@ -314,11 +314,11 @@
 };
 
 &lcdif1 {
-	status = "okay";
+	status = "disabled";
 };
 
 &mipi_dsi {
-	status = "okay";
+	status = "disabled";
 
 	port@1 {
 		dsim_to_adv7535: endpoint {
