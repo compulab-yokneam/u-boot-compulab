@@ -100,11 +100,10 @@ static unsigned int lpddr4_get_mr(void)
 
 void spl_dram_init(void)
 {
-	unsigned int ddr_info_mrr = 0xdeadbeef;
+	unsigned int ddr_info = 0;
 	ddr_init(&dram_timing);
-
-	ddr_info_mrr = lpddr4_get_mr();
-	printf("DDRINFO(M): mr5-8 [ 0x%x ] is invalid; reset\n", ddr_info_mrr);
+	ddr_info = lpddr4_get_mr();
+	printf("lpddr4_id [ 0x%x ]\n",ddr_info);
 }
 
 #define I2C_PAD_CTRL (PAD_CTL_DSE6 | PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PE)
