@@ -65,44 +65,11 @@ int ft_board_setup(void *blob, bd_t *bd)
 }
 #endif
 
-#ifdef CONFIG_FEC_MXC
-#define FEC_RST_PAD IMX_GPIO_NR(4, 2)
-static iomux_v3_cfg_t const fec1_rst_pads[] = {
-	MX8MP_PAD_SAI1_RXD0__GPIO4_IO02 | MUX_PAD_CTRL(NO_PAD_CTRL),
-};
-
-static void setup_iomux_fec(void)
-{
-	imx_iomux_v3_setup_multiple_pads(fec1_rst_pads,
-					 ARRAY_SIZE(fec1_rst_pads));
-
-	gpio_request(FEC_RST_PAD, "fec1_rst");
-	gpio_direction_output(FEC_RST_PAD, 0);
-	mdelay(15);
-	gpio_direction_output(FEC_RST_PAD, 1);
-	mdelay(100);
-}
-
-static int setup_fec(void)
-{
-	struct iomuxc_gpr_base_regs *gpr =
-		(struct iomuxc_gpr_base_regs *)IOMUXC_GPR_BASE_ADDR;
-
-	setup_iomux_fec();
-
-	/* Enable RGMII TX clk output */
-	setbits_le32(&gpr->gpr[1], BIT(22));
-
-	//return set_clk_enet(ENET_125MHZ);
-	return 0;
-}
-#endif
-
 #ifdef CONFIG_DWC_ETH_QOS
 
-#define EQOS_RST_PAD IMX_GPIO_NR(4, 22)
+#define EQOS_RST_PAD IMX_GPIO_NR(1, 10)
 static iomux_v3_cfg_t const eqos_rst_pads[] = {
-	MX8MP_PAD_SAI2_RXC__GPIO4_IO22 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX8MP_PAD_GPIO1_IO10__GPIO1_IO10 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 static void setup_iomux_eqos(void)
@@ -130,6 +97,16 @@ static int setup_eqos(void)
 	setbits_le32(&gpr->gpr[1], BIT(19) | BIT(21));
 
 	return set_clk_eqos(ENET_125MHZ);
+}
+
+void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
+{
+	mac[0] = 0x00; mac[1] = 0x01; mac[2] = 0x1C;
+	mac[3] = 0x11; mac[4] = 0x22; mac[5] = 0x33;
+
+	debug("%s: MAC%d: %02x.%02x.%02x.%02x.%02x.%02x\n",
+	      __func__, dev_id, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	return;
 }
 #endif
 
@@ -446,10 +423,6 @@ int board_init(void)
 {
 #ifdef CONFIG_USB_TCPC
 	setup_typec();
-#endif
-
-#ifdef CONFIG_FEC_MXC
-	setup_fec();
 #endif
 
 #ifdef CONFIG_DWC_ETH_QOS

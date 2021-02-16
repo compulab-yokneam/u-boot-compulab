@@ -59,13 +59,11 @@
 /* ENET Config */
 /* ENET1 */
 #if defined(CONFIG_CMD_NET)
-#define CONFIG_ETHPRIME                 "eth1" /* Set eqos to primary since we use its MDIO */
+#define CONFIG_ETHPRIME                 "eth0" /* Set eqos to primary since we use its MDIO */
 
 #define CONFIG_FEC_XCV_TYPE             RGMII
-#define CONFIG_FEC_MXC_PHYADDR          1
 #define FEC_QUIRK_ENET_MAC
 
-#define DWC_NET_PHYADDR			1
 #ifdef CONFIG_DWC_ETH_QOS
 #define CONFIG_SYS_NONCACHED_MEMORY     (1 * SZ_1M)     /* 1M */
 #endif
@@ -94,6 +92,7 @@
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	CONFIG_MFG_ENV_SETTINGS \
 	JAILHOUSE_ENV \
+	"autoload=off\0" \
 	"script=boot.scr\0" \
 	"image=Image\0" \
 	"splashimage=0x50000000\0" \
