@@ -1352,7 +1352,7 @@ void do_error(struct pt_regs *pt_regs, unsigned int esr)
 #endif
 
 #if defined(CONFIG_IMX8MN) || defined(CONFIG_IMX8MP)
-enum env_location env_get_location(enum env_operation op, int prio)
+enum env_location _env_get_location(enum env_operation op, int prio)
 {
 	enum boot_device dev = get_boot_device();
 	enum env_location env_loc = ENVL_UNKNOWN;
