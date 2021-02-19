@@ -451,7 +451,7 @@ int board_late_init(void)
 	board_late_mmc_env_init();
 #endif
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-	env_set("board_name", "EVK");
+	env_set("board_name", "UCM-iMX8M-Plus");
 	env_set("board_rev", "iMX8MP");
 #endif
 
