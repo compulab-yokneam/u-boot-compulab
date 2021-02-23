@@ -16,6 +16,7 @@
 #include <asm/mach-imx/mxc_i2c.h>
 #include <asm/arch/clock.h>
 #include <spl.h>
+#include <led.h>
 #include <asm/mach-imx/dma.h>
 #include <power/pmic.h>
 #include "common/tcpc.h"
@@ -441,6 +442,9 @@ int board_init(void)
 	/* enable the dispmix & mipi phy power domain */
 	call_imx_sip(FSL_SIP_GPC, FSL_SIP_CONFIG_GPC_PM_DOMAIN, DISPMIX, true, 0);
 	call_imx_sip(FSL_SIP_GPC, FSL_SIP_CONFIG_GPC_PM_DOMAIN, MIPI, true, 0);
+
+	if (IS_ENABLED(CONFIG_LED))
+		led_default_state();
 
 	return 0;
 }
