@@ -17,6 +17,7 @@
 #include <asm/arch/clock.h>
 #include <spl.h>
 #include <led.h>
+#include <pwm.h>
 #include <asm/mach-imx/dma.h>
 #include <power/pmic.h>
 #include "common/tcpc.h"
@@ -449,6 +450,11 @@ int board_init(void)
 	return 0;
 }
 
+int pwm_init(int pwm_id, int div, int invert);
+int pwm_config(int pwm_id, int duty_ns, int period_ns);
+int pwm_enable(int pwm_id);
+void pwm_disable(int pwm_id);
+
 int board_late_init(void)
 {
 #ifdef CONFIG_ENV_IS_IN_MMC
@@ -458,6 +464,16 @@ int board_late_init(void)
 	env_set("board_name", "UCM-iMX8M-Plus");
 	env_set("board_rev", "iMX8MP");
 #endif
+
+	/* enable backlight PWM 1 */
+	pwm_init(1, 0, 0);
+
+	/* duty cycle 5000000ns, period: 5000000ns */
+	pwm_config(1, 5000000, 5000000);
+
+	pwm_enable(1);
+
+	pwm_disable(1);
 
 	return 0;
 }

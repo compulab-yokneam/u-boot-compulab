@@ -9,6 +9,8 @@
 
 #include "compulab-imx8m-plus.h"
 
+#define CONFIG_IMX6_PWM_PER_CLK 66000000
+
 #if defined(CONFIG_ANDROID_SUPPORT)
 #include "ucm-imx8m-plus_android.h"
 #endif
