@@ -21,6 +21,7 @@
 #include <asm/mach-imx/dma.h>
 #include <power/pmic.h>
 #include "common/tcpc.h"
+#include "common/fdt.h"
 #include <usb.h>
 #include <dwc3-uboot.h>
 
@@ -63,6 +64,8 @@ int ft_board_setup(void *blob, bd_t *bd)
 	}
 #endif
 
+	fdt_set_env_addr(blob);
+	fdt_set_sn(blob);
 	return 0;
 }
 #endif
