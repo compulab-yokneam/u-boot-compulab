@@ -246,4 +246,6 @@
 #define CONFIG_VIDEO_BMP_LOGO
 #endif
 
+#define CONFIG_SYS_I2C_EEPROM_BUS 0x1
+#define CONFIG_SYS_I2C_EEPROM_ADDR 0x50
 #endif
