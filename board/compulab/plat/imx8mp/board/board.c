@@ -24,6 +24,7 @@
 #include "common/fdt.h"
 #include <usb.h>
 #include <dwc3-uboot.h>
+#include "ddr/ddr.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -34,6 +35,19 @@ static void setup_gpmi_nand(void)
 	init_nand_clk();
 }
 #endif
+
+int board_phys_sdram_size(phys_size_t *size)
+{
+	size_t dramsize;
+	if (!size)
+		return -EINVAL;
+
+	dramsize = lppdr4_get_ramsize();
+
+	*size = ((1L << 20) * dramsize );
+
+	return 0;
+}
 
 #ifdef CONFIG_OF_BOARD_SETUP
 int ft_board_setup(void *blob, bd_t *bd)
