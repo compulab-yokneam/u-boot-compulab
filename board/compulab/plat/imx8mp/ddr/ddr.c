@@ -20,9 +20,6 @@ u32 cl_eeprom_set_ddrinfo(u32 ddrinfo);
 u32 cl_eeprom_get_subind(void);
 u32 cl_eeprom_set_subind(u32 subind);
 
-#ifdef CONFIG_SPL_REPORT_FAKE_MEMSIZE
-u32 cl_eeprom_get_osize(void);
-#endif
 static unsigned int lpddr4_mr_read(unsigned int mr_rank, unsigned int mr_addr)
 {
 	unsigned int tmp;
@@ -69,17 +66,19 @@ struct lpddr4_desc {
 
 #define DEFAULT (('D' << 24) + ('E' << 16 ) + ( 'F' << 8 ) + 'A')
 static const struct lpddr4_desc lpddr4_array[] = {
-#ifdef CONFIG_TARGET_MCM_IMX8M_MINI
+#ifdef CONFIG_VALID_TARGET
 	{ .name = "Nanya",	.id = 0x05000010, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
-#else
 	{ .name = "Nanya",	.id = 0x05000010, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_05000010},
-#endif
 	{ .name = "Samsung",	.id = 0x01061010, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
 	{ .name = "Samsung",	.id = 0x01050008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_01050008},
 	{ .name = "Kingston",	.id = 0xff000010, .subind = 0x04, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},
 	{ .name = "Kingston",	.id = 0xff000010, .subind = 0x02, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
 	{ .name = "Micron",	.id = 0xff020008, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_ff020008},
 	{ .name = "Micron",	.id = 0xff000110, .subind = 0xff, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},
+#else
+	{ .name = "Samsung",	.id = 0xDEADBEEF, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
+	{ .name = "Samsung",	.id = 0x01061010, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
+#endif
 };
 
 static unsigned int lpddr4_get_mr(void)
@@ -117,18 +116,19 @@ static void spl_tcm_fini(struct lpddr4_tcm_desc *lpddr4_tcm_desc) {
     lpddr4_tcm_desc->index = 0;
 }
 
-#define SPL_TCM_DATA 0x7e0000
+static struct lpddr4_tcm_desc spl_tcm_data;
+#define SPL_TCM_DATA &spl_tcm_data
 #define SPL_TCM_INIT spl_tcm_init(lpddr4_tcm_desc)
 #define SPL_TCM_FINI spl_tcm_fini(lpddr4_tcm_desc)
 
-void spl_dram_init(void)
+static int _spl_dram_init(void)
 {
 	unsigned int ddr_info = 0xdeadbeef;
 	unsigned int ddr_info_mrr = 0xdeadbeef;
 	unsigned int ddr_found = 0;
 	int i = 0;
 
-	struct lpddr4_tcm_desc *lpddr4_tcm_desc = (struct lpddr4_tcm_desc *) SPL_TCM_DATA;
+	struct lpddr4_tcm_desc *lpddr4_tcm_desc = SPL_TCM_DATA;
 
 	if (lpddr4_tcm_desc->sign != DEFAULT) {
 		/* get ddr type from the eeprom if not in tcm scan mode */
@@ -174,7 +174,7 @@ void spl_dram_init(void)
 	if (ddr_info_mrr == 0xFFFFFFFF ) {
 		printf("DDRINFO(M): mr5-8 [ 0x%x ] is invalid; reset\n", ddr_info_mrr);
 		SPL_TCM_INIT;
-		do_reset(NULL,0,0,NULL);
+		return 1;
 	}
 
 	printf("DDRINFO(M): mr5-8 [ 0x%x ]\n", ddr_info_mrr);
@@ -182,7 +182,7 @@ void spl_dram_init(void)
 
 	if (ddr_info_mrr != ddr_info) {
 		SPL_TCM_INIT;
-		do_reset(NULL,0,0,NULL);
+		return 1;
 	}
 
 	SPL_TCM_FINI;
@@ -201,18 +201,30 @@ void spl_dram_init(void)
 			printf("DDRINFO(EEPROM): i2c dev 1; i2c md 0x51 0x40 0x50\n");
 		}
 	}
-#ifdef CONFIG_SPL_REPORT_FAKE_MEMSIZE
-	/* Pass the dram size to th U-Boot through the tcm memory */
-	{ /* To figure out what to store into the TCM buffer */
-	  /* For debug purpouse only. To override the real memsize */
-		unsigned int ddr_tcm_size = cl_eeprom_get_osize();
-		if ((ddr_tcm_size == 0) || (ddr_tcm_size == -1))
-			ddr_tcm_size = lpddr4_array[i].size;
 
-		lpddr4_tcm_desc->size = ddr_tcm_size;
-	}
-#else
 	lpddr4_tcm_desc->size = lpddr4_array[i].size;
-#endif
+	return 0;
+}
 
+int cl_eeprom_buffer_write(uint offset, uchar *buf, int len);
+int cl_eeprom_buffer_read(uint offset, uchar *buf, int len);
+
+static inline void lpddr4_data_get(struct lpddr4_tcm_desc *lpddr4_tcm_desc) {
+	cl_eeprom_buffer_read(0, (uchar *)lpddr4_tcm_desc, sizeof(struct lpddr4_tcm_desc));
+}
+
+static inline void lpddr4_data_set(struct lpddr4_tcm_desc *lpddr4_tcm_desc) {
+	cl_eeprom_buffer_write(0, (uchar *)lpddr4_tcm_desc, sizeof(struct lpddr4_tcm_desc));
+}
+
+void spl_dram_init(void)
+{
+	lpddr4_data_get(SPL_TCM_DATA);
+	if (_spl_dram_init()) {
+		lpddr4_data_set(SPL_TCM_DATA);
+		printf("%s Reset ... \n",__func__);
+		do_reset(NULL,0,0,NULL);
+	}
+
+	printf("%s Continue w/out reset ... \n",__func__);
 }

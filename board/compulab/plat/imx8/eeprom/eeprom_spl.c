@@ -172,4 +172,12 @@ u32 cl_eeprom_set_osize(u32 osize)
 };
 #endif //CONFIG_SPL_REPORT_FAKE_MEMSIZE
 
+int cl_eeprom_buffer_write(uint offset, uchar *buf, int len) {
+	return cl_eeprom_write(offset, buf, len);
+}
+
+int cl_eeprom_buffer_read(uint offset, uchar *buf, int len) {
+	return cl_eeprom_read(offset, buf, len);
+}
+
 #endif

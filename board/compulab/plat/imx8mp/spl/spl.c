@@ -23,7 +23,7 @@
 #include <asm/mach-imx/mxc_i2c.h>
 #include <fsl_esdhc_imx.h>
 #include <mmc.h>
-#include <asm/arch/ddr.h>
+#include "ddr/ddr.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -53,59 +53,6 @@ int spl_board_boot_device(enum boot_device boot_dev_spl)
 #endif
 }
 
-static unsigned int lpddr4_mr_read(unsigned int mr_rank, unsigned int mr_addr)
-{
-	unsigned int tmp;
-	reg32_write(DRC_PERF_MON_MRR0_DAT(0), 0x1);
-	do {
-		tmp = reg32_read(DDRC_MRSTAT(0));
-	} while (tmp & 0x1);
-
-	reg32_write(DDRC_MRCTRL0(0), (mr_rank << 4) | 0x1);
-	reg32_write(DDRC_MRCTRL1(0), (mr_addr << 8));
-	reg32setbit(DDRC_MRCTRL0(0), 31);
-	do {
-		tmp = reg32_read(DRC_PERF_MON_MRR0_DAT(0));
-	} while ((tmp & 0x8) == 0);
-	tmp = reg32_read(DRC_PERF_MON_MRR1_DAT(0));
-	reg32_write(DRC_PERF_MON_MRR0_DAT(0), 0x4);
-	while(tmp) { //try to find a significant byte in the word
-		if(tmp & 0xff) {
-			tmp &= 0xff;
-			break;
-		}
-		tmp >>= 8;
-	}
-	return tmp;
-}
-
-static unsigned int lpddr4_get_mr(void)
-{
-	int i = 0, attempts = 5;
-	unsigned int ddr_info = 0;
-	unsigned int regs[] = { 5, 6, 7, 8 };
-
-	do {
-		for ( i = 0 ; i < ARRAY_SIZE(regs) ; i++ ) {
-			unsigned int data = 0;
-			data = lpddr4_mr_read(0xF, regs[i]);
-			ddr_info <<= 8;
-			ddr_info += (data & 0xFF);
-		}
-		if ((ddr_info != 0xFFFFFFFF) && (ddr_info != 0))
-			break; // The attempt was successfull
-	} while ( --attempts );
-	return	ddr_info;
-}
-
-void spl_dram_init(void)
-{
-	unsigned int ddr_info = 0;
-	ddr_init(&dram_timing);
-	ddr_info = lpddr4_get_mr();
-	printf("lpddr4_id [ 0x%x ]\n",ddr_info);
-}
-
 #define I2C_PAD_CTRL (PAD_CTL_DSE6 | PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PE)
 #define PC MUX_PAD_CTRL(I2C_PAD_CTRL)
 struct i2c_pads_info i2c_pad_info1 = {
@@ -121,6 +68,18 @@ struct i2c_pads_info i2c_pad_info1 = {
 	},
 };
 
+struct i2c_pads_info i2c_pad_info2 = {
+	.scl = {
+		.i2c_mode = MX8MP_PAD_I2C2_SCL__I2C2_SCL | PC,
+		.gpio_mode = MX8MP_PAD_I2C2_SCL__GPIO5_IO16 | PC,
+		.gp = IMX_GPIO_NR(5, 16),
+	},
+	.sda = {
+		.i2c_mode = MX8MP_PAD_I2C2_SDA__I2C2_SDA | PC,
+		.gpio_mode = MX8MP_PAD_I2C2_SDA__GPIO5_IO17 | PC,
+		.gp = IMX_GPIO_NR(5, 17),
+	},
+};
 #define USDHC2_CD_GPIO	IMX_GPIO_NR(2, 12)
 #define USDHC2_PWR_GPIO IMX_GPIO_NR(2, 19)
 
@@ -299,6 +258,8 @@ void board_init_f(ulong dummy)
 
 	power_init_board();
 
+	/* Prepare the eeprom i2c for memory detection */
+	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
 	/* DDR initialization */
 	spl_dram_init();
 
