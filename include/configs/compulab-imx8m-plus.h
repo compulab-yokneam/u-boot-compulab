@@ -79,6 +79,9 @@
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	CONFIG_MFG_ENV_SETTINGS \
 	JAILHOUSE_ENV \
+	"stdout=serial,vidconsole\0" \
+	"stderr=serial,vidconsole\0" \
+	"stdin=serial,usbkbd\0" \
 	"autoload=off\0" \
 	"script=boot.scr\0" \
 	"image=Image\0" \
