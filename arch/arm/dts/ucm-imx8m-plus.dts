@@ -130,7 +130,7 @@
 	pinctrl-0 = <&pinctrl_flexspi0>;
 	status = "okay";
 
-	flash0: mt25qu256aba@0 {
+	flash0: w25q64dw@0 {
 		reg = <0>;
 		#address-cells = <1>;
 		#size-cells = <1>;
