@@ -50,6 +50,7 @@ static const struct lpddr4_desc lpddr4_array_3op[] = {
 	{ .name = "Micron", .id = 0xFF020008, .size = 2048, .count = 1, .timing = { &dram_timing_2g_3op } },
 	{ .name = "Micron", .id = 0xFF000110, .size = 4096, .count = 1, .timing = { &dram_timing_ff000110_4g_3op } },
 	{ .name = "Samsung",.id = 0x01050008, .size = 1024, .count = 1, .timing = { &dram_timing_1g_3op } },
+	{ .name = "Samsung",.id = 0x01060008, .size = 1024, .count = 1, .timing = { &dram_timing_1g_3op } },
 	{ .name = "Samsung",.id = 0x01061010, .size = 2048, .count = 1, .timing = { &dram_timing_05_10_2g_3op} },
 	{ .name = "Nanya",  .id = 0x05000008, .size = 1024, .count = 1, .timing = { &dram_timing_1g_3op } },
 	{ .name = "Nanya",  .id = 0x05000010, .size = 2048, .count = 1, .timing = { &dram_timing_05_10_2g_3op} },
