@@ -10,6 +10,7 @@
 #ifndef _EEPROM_
 #define _EEPROM_
 #include <errno.h>
+#include <asm/setup.h>
 
 #define EEPROM_LAYOUT_VER_OFFSET	44
 #define BOARD_SERIAL_OFFSET		20
