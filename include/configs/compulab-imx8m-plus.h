@@ -133,19 +133,38 @@
 			"else " \
 				"echo WARN: Cannot load the DT; " \
 			"fi; " \
-		"fi;\0"
+		"fi;\0" \
+		"root_opt=rootwait rw\0" \
+		"emmc_ul=setenv iface mmc; setenv dev 2; setenv part 1;" \
+		"setenv bootargs console=${console} root=/dev/mmcblk2p2 ${root_opt};\0" \
+		"sd_ul=setenv iface mmc; setenv dev 1; setenv part 1;" \
+			"setenv bootargs console=${console} root=/dev/mmcblk1p2 ${root_opt};\0" \
+		"usb_ul=usb start; setenv iface usb; setenv dev 0; setenv part 1;" \
+			"setenv bootargs console=${console} root=/dev/sda2 ${root_opt};\0" \
+		"ulbootscript=load ${iface} ${dev}:${part} ${loadaddr} ${script};\0" \
+		"ulimage=load ${iface} ${dev}:${part} ${loadaddr} ${image}\0" \
+		"ulfdt=if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
+			"load ${iface} ${dev}:${part} ${fdt_addr} ${fdt_file}; fi;\0" \
+		"bootlist=sd_ul emmc_ul\0"
 
 #define CONFIG_BOOTCOMMAND \
-	   "mmc dev ${mmcdev}; if mmc rescan; then " \
-		   "if run loadbootscript; then " \
-			   "run bootscript; " \
-		   "else " \
-			   "if run loadimage; then " \
-				   "run mmcboot; " \
-			   "else run netboot; " \
-			   "fi; " \
-		   "fi; " \
-	   "fi;"
+	"for src in ${bootlist}; do " \
+		"run ${src}; " \
+		"if run ulbootscript; then " \
+			"run bootscript; " \
+		"else " \
+			"if run ulimage; then " \
+				"if run ulfdt; then " \
+					"booti ${loadaddr} - ${fdt_addr}; " \
+				"else " \
+					"if test ${boot_fdt} != yes; then " \
+						"booti ${loadaddr}; " \
+					"fi; " \
+				"fi; " \
+			"fi; " \
+		"fi; " \
+	"done; " \
+	"usb start; ums 0 mmc ${mmcdev};"
 
 /* Link Definitions */
 #define CONFIG_LOADADDR			0x40480000
