@@ -272,6 +272,13 @@
 		reg = <0x50>;
 		pagesize = <16>;
 	};
+
+        pca9555:pca9555@20 {
+                compatible = "nxp,pca9555";
+                gpio-controller;
+                #gpio-cells = <2>;
+                reg = <0x20>;
+        };
 };
 
 &i2c3 {
@@ -292,13 +299,6 @@
 	scl-gpios = <&gpio3 21 GPIO_ACTIVE_HIGH>;
 	sda-gpios = <&gpio3 25 GPIO_ACTIVE_HIGH>;
 	status = "okay";
-
-        pca9555:pca9555@20 {
-                compatible = "nxp,pca9555";
-                gpio-controller;
-                #gpio-cells = <2>;
-                reg = <0x20>;
-        };
 
 	eeprom@54 {
 		compatible = "atmel,24c08";
