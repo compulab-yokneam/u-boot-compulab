@@ -1,0 +1,11 @@
+menu "Compulab platform features"
+	depends on TARGET_UCM_IMX8M_MINI || TARGET_MCM_IMX8M_MINI || TARGET_IOT_GATE_IMX8
+
+config SPL_REPORT_FAKE_MEMSIZE
+	bool "SPL passes a fake DRAM size to U-Boot"
+	default n
+	help
+	  SPL passes to the U-Boot a value from EEPROM instead of a real memory
+	  size. For debug purposes ONLY!!!
+
+endmenu
