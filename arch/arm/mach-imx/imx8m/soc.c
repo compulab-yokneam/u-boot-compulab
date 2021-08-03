@@ -247,8 +247,7 @@ int dram_init(void)
 
 	return 0;
 }
-
-int dram_init_banksize(void)
+__weak int dram_init_banksize(void)
 {
 	int bank = 0;
 	int ret;

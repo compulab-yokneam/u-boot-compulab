@@ -439,6 +439,15 @@ config VIDEO_LCD_RAYDIUM_RM67191
 	Say Y here if you want to enable support for Raydium RM68200
 	1080x1920 DSI video mode panel.
 
+config VIDEO_LCD_STARTEK_ILI9881C
+	tristate "Startek ILI9881C-based panels"
+	depends on DM_VIDEO
+	select VIDEO_MIPI_DSI
+	default n
+	help
+	  Say Y if you want to enable support for panels based on the
+	  Startek panel with an ILI9881c controller.
+
 config VIDEO_LCD_SSD2828
 	bool "SSD2828 bridge chip"
 	default n

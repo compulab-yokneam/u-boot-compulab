@@ -23,7 +23,7 @@ struct imx_mac_fuse {
 #define MAC_FUSE_MX6_OFFSET	0x620
 #define MAC_FUSE_MX7_OFFSET	0x640
 
-void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
+__weak void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 {
 	struct imx_mac_fuse *fuse;
 	u32 offset;

@@ -201,6 +201,30 @@ config TARGET_PHYCORE_IMX8MP
 	select IMX8MP
         select SUPPORT_SPL
 	select IMX8M_LPDDR4
+
+config TARGET_UCM_IMX8M_MINI
+	bool "CompuLab ucm-imx8m-mini"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_MCM_IMX8M_MINI
+	bool "CompuLab mcm-imx8m-mini"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_IOT_GATE_IMX8
+	bool "CompuLab iot-gate-imx8"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_UCM_IMX8M_PLUS
+	bool "CompuLab ucm-imx8m-plus"
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
 endchoice
 
 source "board/freescale/imx8mq_evk/Kconfig"
@@ -217,5 +241,9 @@ source "board/beacon/imx8mm/Kconfig"
 source "board/beacon/imx8mn/Kconfig"
 source "board/phytec/phycore_imx8mm/Kconfig"
 source "board/phytec/phycore_imx8mp/Kconfig"
+source "board/compulab/ucm-imx8m-mini/Kconfig"
+source "board/compulab/mcm-imx8m-mini/Kconfig"
+source "board/compulab/iot-gate-imx8/Kconfig"
+source "board/compulab/ucm-imx8m-plus/Kconfig"
 
 endif

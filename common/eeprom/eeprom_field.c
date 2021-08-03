@@ -11,7 +11,7 @@
 #include <eeprom_field.h>
 
 static void __eeprom_field_print_bin(const struct eeprom_field *field,
-				     char *delimiter, bool reverse)
+				     uchar *fbuf, char *delimiter, bool reverse)
 {
 	int i;
 	int from = reverse ? field->size - 1 : 0;
@@ -19,12 +19,12 @@ static void __eeprom_field_print_bin(const struct eeprom_field *field,
 
 	printf(PRINT_FIELD_SEGMENT, field->name);
 	for (i = from; i != to; reverse ? i-- : i++)
-		printf("%02x%s", field->buf[i], delimiter);
+		printf("%02x%s", fbuf[i], delimiter);
 
-	printf("%02x\n", field->buf[i]);
+	printf("%02x\n", fbuf[i]);
 }
 
-static int __eeprom_field_update_bin(struct eeprom_field *field,
+static int __eeprom_field_update_bin(struct eeprom_field *field, uchar *fbuf,
 				     const char *value, bool reverse)
 {
 	int len = strlen(value);
@@ -36,7 +36,7 @@ static int __eeprom_field_update_bin(struct eeprom_field *field,
 	if (len > field->size * 2)
 		return -1;
 
-	memset(field->buf, 0, field->size);
+	memset(fbuf, 0, field->size);
 
 	/* i - string iterator, j - buf iterator */
 	for (j = 0; j < field->size; j++) {
@@ -59,7 +59,7 @@ static int __eeprom_field_update_bin(struct eeprom_field *field,
 		if (*endptr != '\0' || byte < 0)
 			return -1;
 
-		field->buf[j] = byte;
+		fbuf[j] = byte;
 		i = reverse ? i - 2 : i + 2;
 	}
 
@@ -67,7 +67,8 @@ static int __eeprom_field_update_bin(struct eeprom_field *field,
 }
 
 static int __eeprom_field_update_bin_delim(struct eeprom_field *field,
-					   char *value, char *delimiter)
+					   uchar *fbuf, char *value,
+					   char *delimiter)
 {
 	int count = 0;
 	int i, val;
@@ -92,7 +93,7 @@ static int __eeprom_field_update_bin_delim(struct eeprom_field *field,
 			return -1;
 
 		/* here we assume that each tok is no more than byte long */
-		field->buf[i] = (unsigned char)val;
+		fbuf[i] = (unsigned char)val;
 		tok = strtok(NULL, delimiter);
 	}
 
@@ -108,21 +109,46 @@ static int __eeprom_field_update_bin_delim(struct eeprom_field *field,
  *      Field Name       0102030405060708090a
  *
  * @field:	an initialized field to print
+ * @fbuf:	field buffer
  */
-void eeprom_field_print_bin(const struct eeprom_field *field)
+void eeprom_field_print_bin(const struct eeprom_field *field, uchar *fbuf)
 {
-	__eeprom_field_print_bin(field, "", false);
+	__eeprom_field_print_bin(field, fbuf, "", false);
 }
 
 /**
  * eeprom_field_update_bin() - Update field with new data in binary form
  *
  * @field:	an initialized field
+ * @fbuf:	field buffer
  * @value:	a string of values (i.e. "10b234a")
  */
-int eeprom_field_update_bin(struct eeprom_field *field, char *value)
+int eeprom_field_update_bin(struct eeprom_field *field, uchar *fbuf,
+			    char *value)
 {
-	return __eeprom_field_update_bin(field, value, false);
+	return __eeprom_field_update_bin(field, fbuf, value, false);
+}
+
+/**
+ * eeprom_field_read_bin() - Read field data in binary form
+ *
+ * @field:     an initialized field
+ * @fbuf:      field buffer
+ * @buf:       read buffer
+ * @buf_size:  read buffer size
+ */
+int eeprom_field_read_bin(const struct eeprom_field *field, uchar *fbuf,
+                         uchar *buf, int buf_size)
+{
+	memset(buf, 0, buf_size);
+	if (field->size <= 0)
+		return 0;
+	if (field->size > buf_size)
+		memcpy(buf, fbuf, buf_size);
+	else
+		memcpy(buf, fbuf, field->size);
+
+	return 0;
 }
 
 /**
@@ -130,11 +156,13 @@ int eeprom_field_update_bin(struct eeprom_field *field, char *value)
  *				    binary form
  *
  * @field:	an initialized field
+ * @fbuf:	field buffer
  * @value:	a space delimited string of byte values (i.e. "1 02 3 0x4")
  */
-int eeprom_field_update_reserved(struct eeprom_field *field, char *value)
+int eeprom_field_update_reserved(struct eeprom_field *field, uchar *fbuf,
+				 char *value)
 {
-	return __eeprom_field_update_bin_delim(field, value, " ");
+	return __eeprom_field_update_bin_delim(field, fbuf, value, " ");
 }
 
 /**
@@ -150,10 +178,11 @@ int eeprom_field_update_reserved(struct eeprom_field *field, char *value)
  *      Field Name      0a090807060504030201
  *
  * @field:	an initialized field to print
+ * @fbuf:	field buffer
  */
-void eeprom_field_print_bin_rev(const struct eeprom_field *field)
+void eeprom_field_print_bin_rev(const struct eeprom_field *field, uchar *fbuf)
 {
-	__eeprom_field_print_bin(field, "", true);
+	__eeprom_field_print_bin(field, fbuf, "", true);
 }
 
 /**
@@ -165,11 +194,34 @@ void eeprom_field_print_bin_rev(const struct eeprom_field *field)
  * "3412" will be written to the field.
  *
  * @field:	an initialized field
+ * @fbuf:	field buffer
  * @value:	a string of byte values
  */
-int eeprom_field_update_bin_rev(struct eeprom_field *field, char *value)
+int eeprom_field_update_bin_rev(struct eeprom_field *field, uchar *fbuf,
+				char *value)
 {
-	return __eeprom_field_update_bin(field, value, true);
+	return __eeprom_field_update_bin(field, fbuf, value, true);
+}
+
+/**
+ * eeprom_field_read_rev() - Read reversed binary data
+ *
+ * @field:     an initialized field
+ * @fbuf:      field buffer
+ * @buf:       read buffer
+ * @buf_size:  read buffer size
+ */
+int eeprom_field_read_rev(const struct eeprom_field *field, uchar *fbuf,
+			  uchar *buf, int buf_size)
+{
+	int i;
+
+	memset(buf, 0, buf_size);
+
+	for (i = field->size - 1; i >= 0; i--, buf++)
+		*buf = fbuf[i];
+
+	return 0;
 }
 
 /**
@@ -181,10 +233,12 @@ int eeprom_field_update_bin_rev(struct eeprom_field *field, char *value)
  *      Field Name     01:02:03:04:05:06
  *
  * @field:	an initialized field to print
+ * @fbuf:	field buffer
  */
-void eeprom_field_print_mac(const struct eeprom_field *field)
+void eeprom_field_print_mac(const struct eeprom_field *field, uchar *fbuf)
+
 {
-	__eeprom_field_print_bin(field, ":", false);
+	__eeprom_field_print_bin(field, fbuf, ":", false);
 }
 
 /**
@@ -192,42 +246,47 @@ void eeprom_field_print_mac(const struct eeprom_field *field)
  *			       data
  *
  * @field:	an initialized field
+ * @fbuf:	field buffer
  * @value:	a colon delimited string of byte values (i.e. "1:02:3:ff")
  */
-int eeprom_field_update_mac(struct eeprom_field *field, char *value)
+int eeprom_field_update_mac(struct eeprom_field *field, uchar *fbuf,
+			    char *value)
 {
-	return __eeprom_field_update_bin_delim(field, value, ":");
+	return __eeprom_field_update_bin_delim(field, fbuf, value, ":");
 }
 
 /**
  * eeprom_field_print_ascii() - print a field which contains ASCII data
  * @field:	an initialized field to print
+ * @fbuf:	field buffer
  */
-void eeprom_field_print_ascii(const struct eeprom_field *field)
+void eeprom_field_print_ascii(const struct eeprom_field *field, uchar *fbuf)
 {
 	char format[8];
 
 	sprintf(format, "%%.%ds\n", field->size);
 	printf(PRINT_FIELD_SEGMENT, field->name);
-	printf(format, field->buf);
+	printf(format, fbuf);
 }
 
 /**
  * eeprom_field_update_ascii() - Update field with new data in ASCII form
  * @field:	an initialized field
+ * @fbuf:	field buffer
  * @value:	the new string data
  *
  * Returns 0 on success, -1 of failure (new string too long).
  */
-int eeprom_field_update_ascii(struct eeprom_field *field, char *value)
+int eeprom_field_update_ascii(struct eeprom_field *field, uchar *fbuf,
+			      char *value)
 {
 	if (strlen(value) >= field->size) {
 		printf("%s: new data too long\n", field->name);
 		return -1;
 	}
 
-	strncpy((char *)field->buf, value, field->size - 1);
-	field->buf[field->size - 1] = '\0';
+	strncpy((char *)fbuf, value, field->size - 1);
+	fbuf[field->size - 1] = '\0';
 
 	return 0;
 }
@@ -241,8 +300,9 @@ int eeprom_field_update_ascii(struct eeprom_field *field, char *value)
  *      Reserved fields              (64 bytes)
  *
  * @field:	an initialized field to print
+ * @fbuf:	field buffer
  */
-void eeprom_field_print_reserved(const struct eeprom_field *field)
+void eeprom_field_print_reserved(const struct eeprom_field *field, uchar *fbuf)
 {
 	printf(PRINT_FIELD_SEGMENT, "Reserved fields\t");
 	printf("(%d bytes)\n", field->size);
