@@ -5,8 +5,10 @@
  */
 
 #include <common.h>
+#include <dm.h>
 #include <i2c.h>
 #include <linux/kernel.h>
+#include <linux/delay.h>
 #include <asm/arch/imx8mq_pins.h>
 #include <asm/mach-imx/gpio.h>
 #include <asm-generic/gpio.h>
@@ -20,8 +22,6 @@
 #ifndef CONFIG_SYS_I2C_EEPROM_BUS
 #define CONFIG_SYS_I2C_EEPROM_BUS	1
 #endif
-
-static int cl_eeprom_bus = CONFIG_SYS_I2C_EEPROM_BUS;
 
 static iomux_v3_cfg_t const eeprom_pads[] = {
 	IMX8MQ_PAD_GPIO1_IO13__GPIO1_IO13 | MUX_PAD_CTRL(NO_PAD_CTRL),
@@ -45,14 +45,57 @@ static void cl_eeprom_we(int enable)
 	done = 1;
 }
 
+struct eeprom_path {
+	int bus;
+	uint8_t chip;
+};
+
+static const struct eeprom_path eeprom_som = {
+	CONFIG_SYS_I2C_EEPROM_BUS,
+	CONFIG_SYS_I2C_EEPROM_ADDR_P1,
+};
+
+static const struct eeprom_path *working_eeprom;
+
+static struct udevice *g_dev = NULL;
+
+static int cpl_eeprom_init(void) {
+
+	struct udevice *bus, *dev;
+	int ret;
+
+	if (!g_dev) {
+
+		working_eeprom = &eeprom_som;
+		ret = uclass_get_device_by_seq(UCLASS_I2C, working_eeprom->bus, &bus);
+		if (ret) {
+			printf("%s: No bus %d\n", __func__, working_eeprom->bus);
+			return ret;
+		}
+
+		ret = dm_i2c_probe(bus, working_eeprom->chip, 0, &dev);
+		if (ret) {
+			printf("%s: Can't find device id=0x%x, on bus %d\n",
+				__func__, working_eeprom->chip, working_eeprom->bus);
+			return ret;
+		}
+
+		/* Init */
+		g_dev = dev;
+	}
+
+	return 0;
+}
+
 static int cl_eeprom_read(uint offset, uchar *buf, int len)
 {
 	int res;
 
-	i2c_set_bus_num(cl_eeprom_bus);
+	res = cpl_eeprom_init();
+	if (res < 0)
+		return res;
 
-	res = i2c_read(CONFIG_SYS_I2C_EEPROM_ADDR_P1, offset,
-			CONFIG_SYS_I2C_EEPROM_ADDR_LEN, buf, len);
+	res  = dm_i2c_read(g_dev, offset, buf, len);
 
 	return res;
 }
@@ -61,14 +104,13 @@ static int cl_eeprom_write(uint offset, uchar *buf, int len)
 {
 	int res;
 
+	res = cpl_eeprom_init();
+	if (res < 0)
+		return res;
+
 	cl_eeprom_we(1);
 
-	i2c_set_bus_num(cl_eeprom_bus);
-
-	res = i2c_write(CONFIG_SYS_I2C_EEPROM_ADDR_P1, offset,
-			CONFIG_SYS_I2C_EEPROM_ADDR_LEN, buf, len);
-
-	/*cl_eeprom_we(0);*/
+	res  = dm_i2c_write(g_dev, offset, buf, len);
 
 	return res;
 }
