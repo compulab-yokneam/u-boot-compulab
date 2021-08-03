@@ -12,6 +12,7 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/clock.h>
 #include <asm/mach-imx/gpio.h>
+#include <linux/delay.h>
 #include "ddr.h"
 
 /* Forward declarations */
@@ -19,6 +20,9 @@ u32 cl_eeprom_get_ddrinfo(void);
 u32 cl_eeprom_set_ddrinfo(u32 ddrinfo);
 u32 cl_eeprom_get_subind(void);
 u32 cl_eeprom_set_subind(u32 subind);
+void reset_misc(void);
+
+static void do_reset_spl(void) { reset_misc(); }
 
 #define DEFAULT (('D' << 24) + ('E' << 16 ) + ( 'F' << 8 ) + 'A')
 
@@ -89,7 +93,7 @@ static int _spl_dram_init(void)
 
 	if (ddr_init(lpddr4_array[i].timing)) {
 		SPL_TCM_INIT;
-		do_reset(NULL,0,0,NULL);
+		do_reset_spl();
 	}
 
 	ddr_info_mrr = lpddr4_get_mr();
@@ -173,7 +177,7 @@ void spl_dram_init(void)
 	if (_spl_dram_init()) {
 		lpddr4_data_set(SPL_TCM_DATA);
 		printf("%s Reset ... \n",__func__);
-		do_reset(NULL,0,0,NULL);
+		do_reset_spl();
 	}
 
 	printf("%s Continue w/out reset ... \n",__func__);

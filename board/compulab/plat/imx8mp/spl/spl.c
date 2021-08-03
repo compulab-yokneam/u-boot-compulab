@@ -278,11 +278,7 @@ void board_init_f(ulong dummy)
 	board_init_r(NULL, 0);
 }
 
-int do_reset(struct cmd_tbl *cmdtp, int flag, int argc, char * const argv[])
-{
+void reset_misc(void) {
 	puts("resetting ...\n");
-
 	reset_cpu(WDOG1_BASE_ADDR);
-
-	return 0;
 }
