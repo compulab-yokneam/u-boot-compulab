@@ -228,7 +228,7 @@ static struct dwc3_device dwc3_device_data = {
 	.maximum_speed = USB_SPEED_SUPER,
 #endif
 	.base = USB1_BASE_ADDR,
-	.dr_mode = USB_DR_MODE_HOST,
+	.dr_mode = USB_DR_MODE_PERIPHERAL,
 	.index = 0,
 	.power_down_scale = 2,
 };
