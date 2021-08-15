@@ -308,6 +308,20 @@ static void setup_usbmux(void)
 	setup_iomux_usbmux();
 }
 
+
+static void setup_pcie_vph(void)
+{
+#define GPR_PCIE_VPH_EN BIT(12)
+	struct iomuxc_gpr_base_regs *gpr =
+		(struct iomuxc_gpr_base_regs *)IOMUXC_GPR_BASE_ADDR;
+
+	/* Enable Internale regulator */
+	clrbits_le32(&gpr->gpr[14], GPR_PCIE_VPH_EN);
+	clrbits_le32(&gpr->gpr[16], GPR_PCIE_VPH_EN);
+
+}
+
+
 int board_init(void)
 {
 
@@ -323,6 +337,7 @@ int board_init(void)
 #if defined(CONFIG_USB_DWC3) || defined(CONFIG_USB_XHCI_IMX8M)
 	init_usb_clk();
 #endif
+	setup_pcie_vph();
 	return 0;
 }
 
