@@ -139,17 +139,40 @@
 				"echo WARN: Cannot load the DT; " \
 			"fi; " \
 		"fi;\0" \
+		"emmc_root=/dev/mmcblk2p2\0" \
+		"sd_root=/dev/mmcblk1p2\0" \
+		"usb_root=/dev/sda2\0" \
+		"usb_dev=0\0" \
+		"boot_part=1\0" \
+		"root_opt=rootwait rw\0" \
+		"emmc_ul=setenv iface mmc; setenv dev ${emmc_dev}; setenv part ${boot_part};" \
+		"setenv bootargs console=${console} root=${emmc_root} ${root_opt};\0" \
+		"sd_ul=setenv iface mmc; setenv dev ${sd_dev}; setenv part ${boot_part};" \
+			"setenv bootargs console=${console} root=${sd_root} ${root_opt};\0" \
+		"usb_ul=usb start; setenv iface usb; setenv dev ${usb_dev}; setenv part ${boot_part};" \
+			"setenv bootargs console=${console} root=${usb_root} ${root_opt};\0" \
+		"ulbootscript=load ${iface} ${dev}:${part} ${loadaddr} ${script};\0" \
+		"ulimage=load ${iface} ${dev}:${part} ${loadaddr} ${image}\0" \
+		"ulfdt=if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
+			"load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; fi;\0" \
+		"bootlist=sd_ul emmc_ul\0" \
 	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
-		"mmc dev ${mmcdev}; if mmc rescan; then " \
-		   "if run loadbootscript; then " \
-			   "run bootscript; " \
-		   "else " \
-			   "if run loadimage; then " \
-				   "run mmcboot; " \
-			   "else run netboot; " \
-			   "fi; " \
-		   "fi; " \
-	   "fi;"
+		"for src in ${bootlist}; do " \
+			"run ${src}; " \
+			"if run ulbootscript; then " \
+				"run bootscript; " \
+			"else " \
+				"if run ulimage; then " \
+					"if run ulfdt; then " \
+						"booti ${loadaddr} - ${fdt_addr_r}; " \
+					"else " \
+						"if test ${boot_fdt} != yes; then " \
+							"booti ${loadaddr}; " \
+						"fi; " \
+					"fi; " \
+				"fi; " \
+			"fi; " \
+		"done; "
 #endif
 
 /* Link Definitions */
