@@ -85,6 +85,10 @@
 	CONFIG_MFG_ENV_SETTINGS \
 	JAILHOUSE_ENV \
 	BOOTENV \
+	"stdout=serial,vidconsole\0" \
+	"stderr=serial,vidconsole\0" \
+	"stdin=serial,usbkbd\0" \
+	"autoload=off\0" \
 	"scriptaddr=0x43500000\0" \
 	"kernel_addr_r=" __stringify(CONFIG_LOADADDR) "\0" \
 	"bsp_script=boot.scr\0" \
