@@ -133,6 +133,38 @@ int ft_board_setup(void *blob, bd_t *bd)
 }
 #endif
 
+#ifdef CONFIG_FEC_MXC
+#define FEC_RST_PAD IMX_GPIO_NR(4, 24)
+static iomux_v3_cfg_t const fec1_rst_pads[] = {
+	MX8MP_PAD_SAI2_TXFS__GPIO4_IO24 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
+
+static void setup_iomux_fec(void)
+{
+	imx_iomux_v3_setup_multiple_pads(fec1_rst_pads,
+					 ARRAY_SIZE(fec1_rst_pads));
+
+	gpio_request(FEC_RST_PAD, "fec1_rst");
+	gpio_direction_output(FEC_RST_PAD, 0);
+	mdelay(15);
+	gpio_direction_output(FEC_RST_PAD, 1);
+	mdelay(100);
+}
+
+static int setup_fec(void)
+{
+	struct iomuxc_gpr_base_regs *gpr =
+		(struct iomuxc_gpr_base_regs *)IOMUXC_GPR_BASE_ADDR;
+
+	setup_iomux_fec();
+
+	/* Enable RGMII TX clk output */
+	setbits_le32(&gpr->gpr[1], BIT(22));
+
+	return 0;
+}
+#endif
+
 #ifdef CONFIG_DWC_ETH_QOS
 
 #define EQOS_RST_PAD IMX_GPIO_NR(1, 10)
@@ -166,14 +198,6 @@ static int setup_eqos(void)
 
 	return set_clk_eqos(ENET_125MHZ);
 }
-
-void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
-{
-	cl_eeprom_read_mac_addr(mac, CONFIG_SYS_I2C_EEPROM_BUS);
-	debug("%s: MAC%d: %02x.%02x.%02x.%02x.%02x.%02x\n",
-	      __func__, dev_id, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-	return;
-}
 #endif
 
 #if defined(CONFIG_FEC_MXC) || defined(CONFIG_DWC_ETH_QOS)
@@ -182,6 +206,14 @@ int board_phy_config(struct phy_device *phydev)
 	if (phydev->drv->config)
 		phydev->drv->config(phydev);
 	return 0;
+}
+
+void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
+{
+	cl_eeprom_read_mac_addr(mac, CONFIG_SYS_I2C_EEPROM_BUS);
+	debug("%s: MAC%d: %02x.%02x.%02x.%02x.%02x.%02x\n",
+	      __func__, dev_id, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	return;
 }
 #endif
 
@@ -485,10 +517,19 @@ int board_typec_get_mode(int index)
 #define DISPMIX				13
 #define MIPI				15
 
+__weak void board_vendor_init(void) {
+	return;
+}
+
 int board_init(void)
 {
+	board_vendor_init();
 #ifdef CONFIG_USB_TCPC
 	setup_typec();
+#endif
+
+#ifdef CONFIG_FEC_MXC
+	setup_fec();
 #endif
 
 #ifdef CONFIG_DWC_ETH_QOS
@@ -525,7 +566,7 @@ int board_late_init(void)
 	board_late_mmc_env_init();
 #endif
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-	env_set("board_name", "UCM-iMX8M-Plus");
+	env_set("board_name", CONFIG_SYS_BOARD);
 	env_set("board_rev", "iMX8MP");
 #endif
 
