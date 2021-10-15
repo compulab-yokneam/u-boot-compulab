@@ -14,6 +14,14 @@ config DEFAULT_DTB
 	depends on TARGET_UCM_IMX8M_PLUS
 	default "sbc-ucm-imx8m-plus.dtb"
 
+config SYS_I2C_EEPROM_BUS
+	int "SOM eeprom bus address"
+	default 1
+
+config SYS_I2C_EEPROM_ADDR
+	hex "SOM eeprom dev address"
+	default 0x50
+
 config SYS_I2C_EEPROM_BUS_SB
 	hex "SB eeprom bus address"
 	default 0x4

@@ -15,8 +15,8 @@ config DEFAULT_DTB
 	default "sbc-som-imx8m-plus.dtb"
 
 config SYS_I2C_EEPROM_BUS
-	hex "SOM eeprom bus address"
-	default 0x1
+	int "SOM eeprom bus address"
+	default 1
 
 config SYS_I2C_EEPROM_ADDR
 	hex "SOM eeprom dev address"
