@@ -172,7 +172,9 @@ static int setup_eqos(void)
 
 	return set_clk_eqos(ENET_125MHZ);
 }
+#endif
 
+#if defined(CONFIG_FEC_MXC) || defined(CONFIG_DWC_ETH_QOS)
 void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 {
 	cl_eeprom_read_mac_addr(mac, CONFIG_SYS_I2C_EEPROM_BUS);
@@ -180,9 +182,7 @@ void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 	      __func__, dev_id, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 	return;
 }
-#endif
 
-#if defined(CONFIG_FEC_MXC) || defined(CONFIG_DWC_ETH_QOS)
 int board_phy_config(struct phy_device *phydev)
 {
 	if (phydev->drv->config)
@@ -491,9 +491,16 @@ int board_typec_get_mode(int index)
 #define DISPMIX				13
 #define MIPI				15
 
+__weak void board_vendor_init(void) {
+	return;
+}
+
 int board_init(void)
 {
 	struct arm_smccc_res res;
+
+	board_vendor_init();
+
 #ifdef CONFIG_USB_TCPC
 	setup_typec();
 #endif
@@ -529,7 +536,7 @@ int board_late_init(void)
 	board_late_mmc_env_init();
 #endif
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-	env_set("board_name", "UCM-iMX8M-Plus");
+	env_set("board_name", CONFIG_SYS_BOARD);
 	env_set("board_rev", "iMX8MP");
 #endif
 
