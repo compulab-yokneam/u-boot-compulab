@@ -225,6 +225,13 @@ config TARGET_UCM_IMX8M_PLUS
 	select IMX8MP
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
+
+config TARGET_SOM_IMX8M_PLUS
+	bool "CompuLab som-imx8m-plus"
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
 endchoice
 
 source "board/freescale/imx8mq_evk/Kconfig"
@@ -245,5 +252,6 @@ source "board/compulab/ucm-imx8m-mini/Kconfig"
 source "board/compulab/mcm-imx8m-mini/Kconfig"
 source "board/compulab/iot-gate-imx8/Kconfig"
 source "board/compulab/ucm-imx8m-plus/Kconfig"
+source "board/compulab/som-imx8m-plus/Kconfig"
 
 endif
