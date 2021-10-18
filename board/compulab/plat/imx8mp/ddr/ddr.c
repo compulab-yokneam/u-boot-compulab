@@ -144,6 +144,7 @@ static inline void lpddr4_data_set(struct lpddr4_tcm_desc *lpddr4_tcm_desc) {
 }
 
 #define MNG_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_ODE | PAD_CTL_PUE | PAD_CTL_PE)
+#define MNG_PAD IMX_GPIO_NR(5, 11)
 static iomux_v3_cfg_t const mng_pads[] = {
 	MX8MP_PAD_ECSPI2_MOSI__GPIO5_IO11  | MUX_PAD_CTRL(MNG_PAD_CTRL),
 };
@@ -151,7 +152,8 @@ static iomux_v3_cfg_t const mng_pads[] = {
 static int get_mng_gpio(void)
 {
     imx_iomux_v3_setup_multiple_pads(mng_pads, ARRAY_SIZE(mng_pads));
-    return gpio_get_value(IMX_GPIO_NR(5, 11));
+    gpio_request(MNG_PAD, "mng_pad");
+    return gpio_get_value(MNG_PAD);
 }
 
 static void spl_dram_eclean(void)
