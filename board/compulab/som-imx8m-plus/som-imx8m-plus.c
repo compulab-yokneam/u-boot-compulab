@@ -79,9 +79,24 @@ static int setup_fec(void)
 }
 #endif
 
+#define WIFI_PD IMX_GPIO_NR(1, 0)
+static iomux_v3_cfg_t const wifi_pd_pads[] = {
+	MX8MP_PAD_GPIO1_IO00__GPIO1_IO00 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
+
+static void setup_wifi_pd(void)
+{
+	imx_iomux_v3_setup_multiple_pads(wifi_pd_pads,
+					 ARRAY_SIZE(wifi_pd_pads));
+
+	gpio_request(WIFI_PD, "wifi_pd");
+	gpio_direction_output(WIFI_PD, 0);
+}
+
 void board_vendor_init(void) {
 	setup_3v3_exp();
 
+	setup_wifi_pd();
 #ifdef CONFIG_FEC_MXC
 	setup_fec();
 #endif
