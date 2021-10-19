@@ -36,20 +36,6 @@
 #define CONFIG_FASTBOOT_USB_DEV 0
 
 #define CONFIG_REMAKE_ELF
-/* ENET Config */
-/* ENET1 */
-
-#if defined(CONFIG_CMD_NET)
-#define CONFIG_ETHPRIME                 "eth1" /* Set eqos to primary since we use its MDIO */
-
-#define CONFIG_FEC_XCV_TYPE             RGMII
-#define CONFIG_FEC_MXC_PHYADDR          1
-
-#define DWC_NET_PHYADDR	                0
-
-#define PHY_ANEG_TIMEOUT 20000
-
-#endif
 
 #ifdef CONFIG_DISTRO_DEFAULTS
 #define BOOT_TARGET_DEVICES(func) \

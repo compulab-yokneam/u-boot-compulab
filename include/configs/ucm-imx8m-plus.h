@@ -11,6 +11,19 @@
 
 #define CONFIG_IMX6_PWM_PER_CLK 66000000
 
+#if defined(CONFIG_CMD_NET)
+#define CONFIG_ETHPRIME                 "eth0" /* Set eqos to primary since we use its MDIO */
+
+#define CONFIG_FEC_XCV_TYPE             RGMII
+#define FEC_QUIRK_ENET_MAC
+
+#ifdef CONFIG_DWC_ETH_QOS
+#define CONFIG_SYS_NONCACHED_MEMORY     (1 * SZ_1M)     /* 1M */
+#endif
+
+#define PHY_ANEG_TIMEOUT 20000
+
+#endif
 #if defined(CONFIG_ANDROID_SUPPORT)
 #include "ucm-imx8m-plus_android.h"
 #endif
