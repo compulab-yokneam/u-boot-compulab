@@ -148,6 +148,7 @@
 	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
 		"for src in ${bootlist}; do " \
 			"run ${src}; " \
+			"env exist boot_opt && env exists bootargs && setenv bootargs ${bootargs} ${boot_opt}; " \
 			"if run ulbootscript; then " \
 				"run bootscript; " \
 			"else " \
