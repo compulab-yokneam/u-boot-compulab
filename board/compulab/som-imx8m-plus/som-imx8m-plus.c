@@ -73,9 +73,9 @@ static int setup_fec(void)
 	setup_iomux_fec();
 
 	/* Enable RGMII TX clk output */
-	setbits_le32(&gpr->gpr[1], BIT(22));
+	setbits_le32(&gpr->gpr[1], BIT(22) | BIT(13));
 
-	return 0;
+	return set_clk_enet(ENET_125MHZ);
 }
 #endif
 
