@@ -79,6 +79,17 @@ static int setup_fec(void)
 }
 #endif
 
+#if defined(CONFIG_FEC_MXC) || defined(CONFIG_DWC_ETH_QOS)
+#include "../common/eeprom.h"
+void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
+{
+	cl_eeprom_read_n_mac_addr(mac, dev_id, CONFIG_SYS_I2C_EEPROM_BUS);
+	debug("%s: MAC%d: %02x.%02x.%02x.%02x.%02x.%02x\n",
+	      __func__, dev_id, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	return;
+}
+#endif
+
 #define WIFI_PD IMX_GPIO_NR(1, 0)
 static iomux_v3_cfg_t const wifi_pd_pads[] = {
 	MX8MP_PAD_GPIO1_IO00__GPIO1_IO00 | MUX_PAD_CTRL(NO_PAD_CTRL),
