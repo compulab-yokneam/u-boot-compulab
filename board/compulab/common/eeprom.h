@@ -24,10 +24,12 @@
 #define PRODUCT_OPTION_SIZE		16
 #define PRODUCT_OPTION_NUM		5
 #define MAC_ADDR_OFFSET			4
+#define MAC1_ADDR_OFFSET		10
 #define MAC_ADDR_OFFSET_LEGACY		0
 
 #if (defined(CONFIG_SYS_I2C) || defined(CONFIG_DM_I2C))
 int cl_eeprom_read_mac_addr(uchar *buf, uint eeprom_bus);
+int cl_eeprom_read_n_mac_addr(uchar *buf, uint iface_number, uint eeprom_bus);
 u32 cl_eeprom_get_som_revision(void);
 u32 cl_eeprom_get_sb_revision(void);
 int cl_eeprom_get_product_name(uchar *buf, uint eeprom_bus);
@@ -40,6 +42,10 @@ void cpl_get_som_serial(struct tag_serialnr *serialnr);
 void cpl_get_sb_serial(struct tag_serialnr *serialnr);
 #else
 static inline int cl_eeprom_read_mac_addr(uchar *buf, uint eeprom_bus)
+{
+	return 1;
+}
+static int cl_eeprom_read_n_mac_addr(uchar *buf, uint iface_number, uint eeprom_bus)
 {
 	return 1;
 }

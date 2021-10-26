@@ -173,6 +173,24 @@ int cl_eeprom_read_mac_addr(uchar *buf, uint eeprom_bus __attribute__((unused)))
 	return cl_eeprom_read(offset, buf, 6);
 }
 
+/*
+ * Routine: cl_eeprom_read_n_mac_addr
+ * Description: read iface_number mac address and store it in buf.
+ */
+int cl_eeprom_read_n_mac_addr(uchar *buf, uint iface_number, uint eeprom_bus __attribute__((unused)))
+{
+	uint offset;
+	int err;
+
+	err = cl_eeprom_setup(&eeprom_som);
+	if (err)
+		return err;
+
+	offset = (iface_number == 0) ? MAC_ADDR_OFFSET : MAC1_ADDR_OFFSET;
+
+	return cl_eeprom_read(offset, buf, 6);
+}
+
 static u32 board_rev;
 
 /*
