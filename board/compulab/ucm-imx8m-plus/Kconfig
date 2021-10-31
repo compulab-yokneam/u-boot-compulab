@@ -30,4 +30,6 @@ config SYS_I2C_EEPROM_ADDR_SB
 	hex "SB eeprom dev address"
 	default 0x54
 
+source "board/compulab/plat/imx8mp/Kconfig"
+
 endif

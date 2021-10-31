@@ -1,0 +1,11 @@
+if TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS
+
+config ATF_LOAD_ADDR
+	hex "bl31.bin load address"
+	default 0x00970000
+
+config TEE_LOAD_ADDR
+	hex "tee.bin load address"
+	default 0x56000000
+
+endif

@@ -1410,6 +1410,9 @@ else
 SPL_PAYLOAD := u-boot.bin
 endif
 
+export ATF_LOAD_ADDR=$(CONFIG_ATF_LOAD_ADDR)
+export TEE_LOAD_ADDR=$(CONFIG_TEE_LOAD_ADDR)
+
 SPL_IMAGE := $(CONFIG_SPL_IMAGE:"%"=%)
 
 OBJCOPYFLAGS_u-boot-with-spl.bin = -I binary -O binary \
