@@ -730,3 +730,11 @@
 		>;
 	};
 };
+
+&cpu_alert0 {
+    temperature = <125000>;
+};
+
+&cpu_crit0 {
+    temperature = <155000>;
+};
