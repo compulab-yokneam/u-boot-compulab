@@ -140,30 +140,10 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 #endif
 
 #ifdef CONFIG_DWC_ETH_QOS
-
-#define EQOS_RST_PAD IMX_GPIO_NR(1, 10)
-static iomux_v3_cfg_t const eqos_rst_pads[] = {
-	MX8MP_PAD_GPIO1_IO10__GPIO1_IO10 | MUX_PAD_CTRL(NO_PAD_CTRL),
-};
-
-static void setup_iomux_eqos(void)
-{
-	imx_iomux_v3_setup_multiple_pads(eqos_rst_pads,
-					 ARRAY_SIZE(eqos_rst_pads));
-
-	gpio_request(EQOS_RST_PAD, "eqos_rst");
-	gpio_direction_output(EQOS_RST_PAD, 0);
-	mdelay(15);
-	gpio_direction_output(EQOS_RST_PAD, 1);
-	mdelay(100);
-}
-
 static int setup_eqos(void)
 {
 	struct iomuxc_gpr_base_regs *gpr =
 		(struct iomuxc_gpr_base_regs *)IOMUXC_GPR_BASE_ADDR;
-
-	setup_iomux_eqos();
 
 	/* set INTF as RGMII, enable RGMII TXC clock */
 	clrsetbits_le32(&gpr->gpr[1],
