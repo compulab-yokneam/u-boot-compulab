@@ -166,6 +166,19 @@ int board_mmc_getcd(struct mmc *mmc)
 }
 
 #if CONFIG_IS_ENABLED(DM_PMIC_PCA9450)
+/* Forward declarations */
+u8 cl_eeprom_get_ldo4(void);
+static void power_init_ldo4(struct udevice *dev) {
+	u8 ldo4;
+	ldo4 = cl_eeprom_get_ldo4();
+	if (( ldo4 >= 0x80 ) && ( ldo4 <= 0x9F )) {
+		pmic_reg_write(dev, PCA9450_LDO4CTRL, ldo4);
+		ldo4 &= ~0x80; ldo4 += 8;
+		ldo4 = (( ldo4 > 33 ) ? 33 : ldo4);
+		printf("pca9450@25 [ldo4] = %dv%d\n", (ldo4/10) , (ldo4%10));
+	}
+}
+
 int power_init_board(void)
 {
 	struct udevice *dev;
@@ -178,6 +191,8 @@ int power_init_board(void)
 	}
 	if (ret != 0)
 		return ret;
+
+	power_init_ldo4(dev);
 
 	/* BUCKxOUT_DVS0/1 control BUCK123 output */
 	pmic_reg_write(dev, PCA9450_BUCK123_DVS, 0x29);
