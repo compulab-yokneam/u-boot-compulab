@@ -619,3 +619,45 @@ static int mx8_rgmii_rework(struct phy_device *phydev)
 
 	return 0;
 }
+
+#include <common.h>
+#include <command.h>
+
+static char ldo4_help_text[] =
+	"value[8-33] - set 0x24 register value; voltage range: [0.80-3.30]\n"
+	"ldo4 value[0] - disable ldo4\n";
+
+/* Forward declaration */
+u8 cl_eeprom_get_ldo4(void);
+u8 cl_eeprom_set_ldo4(u8 ldo4);
+int do_ldo4(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
+{
+    u8 ldo4 = 0xDA;
+    if (argc == 2) {
+        ldo4 = (u8) simple_strtoul(argv[1], NULL, 10);
+        if (( ldo4 >= 0x8 ) && ( ldo4 <= 0x21 )) {
+            ldo4 -= 0x8; ldo4 |= 0x80;
+	    } else if ( ldo4 == 0 )
+            ldo4 = 0;
+        else
+            return CMD_RET_USAGE;
+        ldo4 = cl_eeprom_set_ldo4(ldo4);
+        return 0;
+    }
+
+    ldo4 = cl_eeprom_get_ldo4();
+    if (( ldo4 >= 0x80 ) && ( ldo4 <= 0x9F )) {
+        ldo4 &= ~0x80; ldo4 += 8;
+        ldo4 = (( ldo4 > 33 ) ? 33 : ldo4);
+        printf("pca9450@25 [ldo4] = %dv%d\n", (ldo4/10) , (ldo4%10));
+    } else
+        printf("pca9450@25 [ldo4] = 0x%x\n", ldo4);
+
+    return 0;
+}
+
+U_BOOT_CMD(
+	ldo4,	2,	1,	do_ldo4,
+	"get/set ldo4 value",
+	ldo4_help_text
+);
