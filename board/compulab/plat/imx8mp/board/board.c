@@ -630,6 +630,25 @@ static char ldo4_help_text[] =
 /* Forward declaration */
 u8 cl_eeprom_get_ldo4(void);
 u8 cl_eeprom_set_ldo4(u8 ldo4);
+
+static void do_pmic_ldo4(u8 ldo4) {
+    const char *name = "pca9450@25";
+    static struct udevice *currdev = NULL;
+    int ret;
+    if (currdev == NULL) {
+        ret = pmic_get(name, &currdev);
+        if (ret) {
+            printf("Can't get PMIC: %s!\n", name);
+            return;
+        }
+    }
+    ret = pmic_reg_write(currdev, 0x24, ldo4);
+    if (ret) {
+        printf("Can't set PMIC: %s; register 0x%x\n", name, 0x24);
+        return;
+    }
+}
+
 int do_ldo4(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 {
     u8 ldo4 = 0xDA;
@@ -642,6 +661,7 @@ int do_ldo4(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
         else
             return CMD_RET_USAGE;
         ldo4 = cl_eeprom_set_ldo4(ldo4);
+        do_pmic_ldo4(ldo4);
         return 0;
     }
 
