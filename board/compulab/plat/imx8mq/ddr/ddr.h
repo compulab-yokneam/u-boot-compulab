@@ -11,6 +11,7 @@ extern struct dram_timing_info dram_timing_2g_3op;
 extern struct dram_timing_info dram_timing_1g_3op;
 extern struct dram_timing_info dram_timing_05_10_2g_3op;
 extern struct dram_timing_info dram_timing_ff000110_4g_3op;
+extern struct dram_timing_info dram_timing_ff000010_4g_3op;
 
 void spl_dram_init(void);
 
