@@ -169,14 +169,27 @@ int board_mmc_getcd(struct mmc *mmc)
 /* Forward declarations */
 u8 cl_eeprom_get_ldo4(void);
 static void power_init_ldo4(struct udevice *dev) {
-	u8 ldo4;
-	ldo4 = cl_eeprom_get_ldo4();
-	if (( ldo4 >= 0x80 ) && ( ldo4 <= 0x9F )) {
+	u8 ldo4 = cl_eeprom_get_ldo4();
+	int mode = 0;
+
+	if ( ldo4 == 0 ) {
 		pmic_reg_write(dev, PCA9450_LDO4CTRL, ldo4);
-		ldo4 &= ~0x80; ldo4 += 8;
-		ldo4 = (( ldo4 > 33 ) ? 33 : ldo4);
-		printf("pca9450@25 [ldo4] = %dv%d\n", (ldo4/10) , (ldo4%10));
+		printf("pca9450@25 [ldo4] is off\n");
+		return;
+	};
+
+	if (( ldo4 >= 0x80 ) && ( ldo4 <= 0x9F )) {
+		/* user mode; eeprom value  */
+		mode = 1;
+	} else {
+		/* default 1v8 mode */
+		ldo4 = 0x8A;
 	}
+
+	pmic_reg_write(dev, PCA9450_LDO4CTRL, ldo4);
+	ldo4 &= ~0x80; ldo4 += 8;
+	ldo4 = (( ldo4 > 33 ) ? 33 : ldo4);
+	printf("pca9450@25 [ldo4][%s] = %dv%d\n", ( mode ? "u" : "d" ), (ldo4/10) , (ldo4%10));
 }
 
 int power_init_board(void)
