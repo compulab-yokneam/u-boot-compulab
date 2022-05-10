@@ -16,6 +16,7 @@
 #include <eeprom_field.h>
 #include <linux/kernel.h>
 #include <asm/setup.h>
+#include <net.h>
 #include "eeprom.h"
 
 #ifndef CONFIG_SYS_I2C_EEPROM_ADDR
@@ -201,7 +202,15 @@ int cl_eeprom_read_n_mac_addr(uchar *buf, uint iface_number, uint eeprom_bus __a
 
 	offset = (iface_number == 0) ? MAC_ADDR_OFFSET : MAC1_ADDR_OFFSET;
 
-	return cl_eeprom_read(offset, buf, 6);
+	err = cl_eeprom_read(offset, buf, 6);
+	{ /* generate a random address if the som eeprom is empty */
+		u32 mac0, mac2;
+		mac0 = (u32) buf[0];
+		mac2 = (u32) buf[2];
+		if ( mac0 == mac2 )
+			net_random_ethaddr(buf);
+	}
+	return err;
 }
 
 static u32 board_rev;
