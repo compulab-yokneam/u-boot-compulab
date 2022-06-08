@@ -30,6 +30,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+static int fec_phyaddr = -1;
 #ifdef CONFIG_BOARD_POSTCLK_INIT
 int board_postclk_init(void)
 {
@@ -84,8 +85,21 @@ int dram_init(void)
 }
 
 #ifdef CONFIG_OF_BOARD_SETUP
+#define FDT_PHYADDR "/soc@0/bus@30800000/ethernet@30be0000/mdio/ethernet-phy@0"
+#define FLIP_32B(val) (((val>>24)&0xff) | ((val<<8)&0xff0000) | ((val>>8)&0xff00) | ((val<<24)&0xff000000))
+static int fdt_set_fec_phy_addr(void *blob)
+{
+	if(0 > fec_phyaddr)
+		return -EINVAL;
+
+	u32 val = FLIP_32B(fec_phyaddr);
+	return fdt_find_and_setprop
+		(blob, FDT_PHYADDR, "reg", (const void*)&val, sizeof(val), 0);
+}
+
 int ft_board_setup(void *blob, bd_t *bd)
 {
+	fdt_set_fec_phy_addr(blob);
 	return 0;
 }
 #endif
@@ -184,23 +198,82 @@ static int setup_fec(void)
 	return set_clk_enet(ENET_125MHZ);
 }
 
-int board_phy_config(struct phy_device *phydev)
+static int board_phy_config_atheros(struct phy_device *phydev)
 {
-
-#ifdef CPL_NET_DISC_LOGICS
-	if (!get_fec_status(1))
-		env_set("ethprime" , "");
-#endif
-
+#define PHY_ID_ATHEROS 0
+	phydev->addr = PHY_ID_ATHEROS;
+	printf("phy: AR803x@%x\t", phydev->addr);
 	/* enable rgmii rxc skew and phy mode select to RGMII copper */
 	phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x1f);
 	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x8);
 
 	phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x05);
 	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x100);
+	return 0;
+}
+
+static int board_phy_config_realtek(struct phy_device *phydev)
+{
+#define PHY_ID_REALTEK 4
+	unsigned short val;
+	phydev->addr = PHY_ID_REALTEK;
+	printf("phy: RTL8211E@%x\t", phydev->addr);
+
+	/** RTL8211E-VB-CG - add TX and RX delay */
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x07);
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0xa4);
+	val = phy_read(phydev, MDIO_DEVAD_NONE, 0x1c);
+	val |= (0x1 << 13) | (0x1 << 12) | (0x1 << 11);
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1c, val);
+	/*LEDs:*/
+	/* set to extension page */
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x0007);
+	/* extension Page44 */
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x002c);
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1c, 0x0430);//LCR
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1a, 0x0010);//LACR
+	/* To disable EEE LED mode (blinking .4s/2s) */
+	/* extension Page5 */
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x0005);
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x05, 0x8b82);//magic const
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x06, 0x052b);//magic const
+
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x00);// Back to Page0
+	return 0;
+}
+
+int board_phy_config(struct phy_device *phydev)
+{
+
+#define PHY_VENDOR_ID_MASK (( 1<<5 ) - 1 )
+#define PHY_ATEROS_ID  0x7
+#define PHY_REALTEK_ID 0x11
+	unsigned short val = phy_read(phydev, MDIO_DEVAD_NONE, 0x3);
+
+#ifdef CPL_NET_DISC_LOGICS
+	if (!get_fec_status(1))
+		env_set("ethprime" , "");
+#endif
+
+	val = (( val >> 4 ) & PHY_VENDOR_ID_MASK);
+
+	switch (val) {
+	case PHY_ATEROS_ID:
+		board_phy_config_atheros(phydev);
+		break;
+	case PHY_REALTEK_ID:
+		board_phy_config_realtek(phydev);
+		break;
+	default:
+		break;
+	}
+
+	fec_phyaddr = phydev->addr;
 
 	if (phydev->drv->config)
 		phydev->drv->config(phydev);
+
+	setup_mac_address();
 
 	return 0;
 }
