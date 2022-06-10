@@ -13,8 +13,13 @@
 	compatible = "compulab,ucm-imx8m-plus", "fsl,imx8mp";
 
 	chosen {
+#ifdef CONFIG_COMPULAB_DEBUG_UART1
+		bootargs = "console=ttymxc1,115200 earlycon=ec_imx6q,0x30860000,115200 console=tty0";
+		stdout-path = &uart1;
+#else
 		bootargs = "console=ttymxc1,115200 earlycon=ec_imx6q,0x30890000,115200 console=tty0";
 		stdout-path = &uart2;
+#endif
 	};
 
 	memory@40000000 {
@@ -334,12 +339,22 @@
 	status = "okay";
 };
 
+
+#ifdef CONFIG_COMPULAB_DEBUG_UART1
+&uart1 {
+	/* console */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart1>;
+	status = "okay";
+};
+#else
 &uart2 {
 	/* console */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart2>;
 	status = "okay";
 };
+#endif
 
 &usb3_phy0 {
 	status = "okay";
@@ -517,6 +532,13 @@
 	pinctrl_reg_usdhc2_vmmc: regusdhc2vmmc {
 		fsl,pins = <
 			MX8MP_IOMUXC_SD2_RESET_B__GPIO2_IO19	0x41
+		>;
+	};
+
+	pinctrl_uart1: uart1grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_CMD__UART1_DCE_RX	0x49
+			MX8MP_IOMUXC_SAI2_RXFS__UART1_DCE_TX	0x49
 		>;
 	};
 
