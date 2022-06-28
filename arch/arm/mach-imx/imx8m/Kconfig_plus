@@ -178,6 +178,12 @@ config TARGET_UCM_IMX8M_PLUS
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
 
+config TARGET_IOT_GATE_IMX8PLUS
+	bool "CompuLab iot-gate-imx8plus"
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
 endchoice
 
 source "board/freescale/imx8mq_evk/Kconfig"
@@ -192,6 +198,7 @@ source "board/compulab/ucm-imx8m-mini/Kconfig"
 source "board/compulab/mcm-imx8m-mini/Kconfig"
 source "board/compulab/iot-gate-imx8/Kconfig"
 source "board/compulab/ucm-imx8m-plus/Kconfig"
+#source "board/compulab/iot-gate-imx8plus/Kconfig"
 source "board/compulab/plat/Kconfig"
 
 endif
