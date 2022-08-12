@@ -775,3 +775,64 @@ u8 cl_eeprom_set_ldo4(u8 ldo4)
 
 	return board_ldo4;
 };
+
+#ifndef CONFIG_SPL_BUILD
+#define BOARD_DDRINFO_OFFSET 0x40
+#define BOARD_DDRINFO_SIZE 4
+static u32 board_ddrinfo = 0xdeadbeef;
+
+u32 cl_eeprom_get_ddrinfo(void)
+{
+	g_dev = NULL;
+	working_eeprom = &eeprom_51;
+		if (cl_eeprom_read(BOARD_DDRINFO_OFFSET, (uchar *)&board_ddrinfo, BOARD_DDRINFO_SIZE))
+			return 0;
+	return board_ddrinfo;
+};
+
+u32 cl_eeprom_set_ddrinfo(u32 ddrinfo)
+{
+	g_dev = NULL;
+	working_eeprom = &eeprom_51;
+	if (cl_eeprom_write(BOARD_DDRINFO_OFFSET, (uchar *)&ddrinfo, BOARD_DDRINFO_SIZE))
+		return 0;
+
+	board_ddrinfo = ddrinfo;
+
+	return board_ddrinfo;
+};
+
+void cl_eeprom_clr_ddrinfo(void)
+{
+	u32 ddrinfo[2] = { 0xFFFFFFFF , 0xFFFFFFFF };
+	g_dev = NULL;
+	working_eeprom = &eeprom_51;
+	cl_eeprom_write(BOARD_DDRINFO_OFFSET, (uchar *)ddrinfo, (BOARD_DDRINFO_SIZE<<1));
+	return;
+};
+
+#define BOARD_DDRSUBIND_OFFSET 0x44
+#define BOARD_DDRSUBIND_SIZE 1
+static u8 board_ddrsubind = 0xff;
+u8 cl_eeprom_get_subind(void)
+{
+	g_dev = NULL;
+	working_eeprom = &eeprom_51;
+	if (cl_eeprom_read(BOARD_DDRSUBIND_OFFSET, (uchar *)&board_ddrsubind, BOARD_DDRSUBIND_SIZE))
+		return 0xff;
+
+	return board_ddrsubind;
+};
+
+u8 cl_eeprom_set_subind(u8 ddrsubind)
+{
+	g_dev = NULL;
+	working_eeprom = &eeprom_51;
+	if (cl_eeprom_write(BOARD_DDRSUBIND_OFFSET, (uchar *)&ddrsubind, BOARD_DDRSUBIND_SIZE))
+		return 0xff;
+
+	board_ddrsubind = ddrsubind;
+
+	return board_ddrsubind;
+};
+#endif
