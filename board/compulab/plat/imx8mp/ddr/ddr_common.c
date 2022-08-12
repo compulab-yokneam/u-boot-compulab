@@ -60,6 +60,12 @@ const struct lpddr4_desc *lpddr4_get_desc_by_id(unsigned int id) {
 	return NULL;
 }
 
+#ifdef SHARED_DDR_INFO
+size_t lppdr4_get_ramsize() {
+	struct lpddr4_tcm_desc *lpddr4_tcm_desc = (void *) SHARED_DDR_INFO;
+	return lpddr4_tcm_desc->size;
+}
+#else
 size_t lppdr4_get_ramsize() {
 	size_t ramsize = 0;
 	unsigned int id = lpddr4_get_mr();
@@ -68,3 +74,4 @@ size_t lppdr4_get_ramsize() {
 		ramsize = desc->size;
 	return ramsize;
 }
+#endif

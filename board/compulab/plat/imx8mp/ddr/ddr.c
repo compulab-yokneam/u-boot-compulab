@@ -143,6 +143,13 @@ static inline void lpddr4_data_set(struct lpddr4_tcm_desc *lpddr4_tcm_desc) {
 	cl_eeprom_buffer_write(0, (uchar *)lpddr4_tcm_desc, sizeof(struct lpddr4_tcm_desc));
 }
 
+static inline void spl_dram_share_info(void) {
+#ifdef SHARED_DDR_INFO
+    struct lpddr4_tcm_desc *lpddr4_tcm_desc = (void *) SHARED_DDR_INFO;
+    memcpy(lpddr4_tcm_desc, SPL_TCM_DATA, sizeof(struct lpddr4_tcm_desc));
+#endif
+}
+
 void spl_dram_init(void)
 {
     int rc=0;
@@ -153,4 +160,5 @@ void spl_dram_init(void)
         printf("%s Reset ... \n",__func__);
         do_reset_spl();
     }
+    spl_dram_share_info();
 }
