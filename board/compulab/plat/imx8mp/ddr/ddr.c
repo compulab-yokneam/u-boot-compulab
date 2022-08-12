@@ -88,7 +88,7 @@ static int _spl_dram_init(void)
 		ddr_info = lpddr4_array[i].id;
 	} else
 
-	printf("DDRINFO(%s): %s %dG @ %d MHz\n", (ddr_found ? "D" : "?" ), lpddr4_array[i].name,
+	printf("DDRINFO(%s): %s %dMB @ %d MHz\n", (ddr_found ? "D" : "?" ), lpddr4_array[i].name,
 			lpddr4_array[i].size, lpddr4_array[i].timing->fsp_table[0]);
 
 	if (ddr_init(lpddr4_array[i].timing)) {
