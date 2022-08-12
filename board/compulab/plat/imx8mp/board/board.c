@@ -620,6 +620,7 @@ static int mx8_rgmii_rework(struct phy_device *phydev)
 	return 0;
 }
 
+#ifndef CONFIG_SPL_BUILD
 #include <common.h>
 #include <command.h>
 
@@ -681,3 +682,52 @@ U_BOOT_CMD(
 	"get/set ldo4 value",
 	ldo4_help_text
 );
+
+static char ddr_help_text[] =
+	"rdmr -- read mr[5-8] registers\n"
+	"ddr read -- read eeprom values [ mrs, subid, size ]\n"
+	"ddr clear -- clean up eeprom\n";
+
+unsigned int lpddr4_get_mr(void);
+void do_ddr_rdmr(void) {
+   unsigned int data = lpddr4_get_mr();
+   printf("mr[5-8]: [0x%x]\n", data);
+}
+
+u32 cl_eeprom_get_ddrinfo(void);
+u8 cl_eeprom_get_subind(void);
+void do_ddr_read(void) {
+   u32 ddrinfo = cl_eeprom_get_ddrinfo();
+   u8 subind = cl_eeprom_get_subind();
+   printf("eeprom: [0x%x][0x%x]\n", ddrinfo, subind);
+}
+
+void cl_eeprom_clr_ddrinfo(void);
+void do_ddr_clear(void) {
+   cl_eeprom_clr_ddrinfo();
+}
+
+int do_ddr(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
+{
+    if (argc != 2) {
+        return CMD_RET_USAGE;
+    }
+
+	if (strcmp(argv[1], "rdmr") == 0) {
+		do_ddr_rdmr();
+	} else if (strcmp(argv[1], "read") == 0 ) {
+		do_ddr_read();
+	} else if (strcmp(argv[1], "clear") == 0 ) {
+		do_ddr_clear();
+    } else
+        return CMD_RET_USAGE;
+
+   return 0;
+}
+
+U_BOOT_CMD(
+	ddr,	2,	1,	do_ddr,
+	"rdmr/read/clear value",
+	ddr_help_text
+);
+#endif
