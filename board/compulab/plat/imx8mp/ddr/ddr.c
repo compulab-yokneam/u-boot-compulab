@@ -93,7 +93,7 @@ static int _spl_dram_init(void)
 
 	if (ddr_init(lpddr4_array[i].timing)) {
 		SPL_TCM_INIT;
-		do_reset_spl();
+		return 1;
 	}
 
 	ddr_info_mrr = lpddr4_get_mr();
@@ -145,12 +145,12 @@ static inline void lpddr4_data_set(struct lpddr4_tcm_desc *lpddr4_tcm_desc) {
 
 void spl_dram_init(void)
 {
+    int rc=0;
     lpddr4_data_get(SPL_TCM_DATA);
-    if (_spl_dram_init()) {
-        lpddr4_data_set(SPL_TCM_DATA);
+    rc=_spl_dram_init();
+    lpddr4_data_set(SPL_TCM_DATA);
+    if (rc) {
         printf("%s Reset ... \n",__func__);
         do_reset_spl();
     }
-
-    printf("%s Continue w/out reset ... \n",__func__);
 }
