@@ -19,7 +19,7 @@ struct lpddr4_tcm_desc {
 	unsigned int size;
 	unsigned int sign;
 	unsigned int index;
-	unsigned int count;
+	unsigned int ddr_init_status;
 };
 
 struct lpddr4_desc {
