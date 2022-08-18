@@ -8,6 +8,10 @@
 #define __DDR_H__
 
 #ifdef CONFIG_SPL_BUILD
+#ifdef CONFIG_DRAM_SEC_SUBSET
+extern struct dram_timing_info ucm_dram_timing_01061010_4G;
+extern struct dram_timing_info ucm_dram_timing_01061010_1G;
+#endif
 extern struct dram_timing_info ucm_dram_timing_01061010_2G;
 extern struct dram_timing_info ucm_dram_timing_ff000010;
 extern struct dram_timing_info ucm_dram_timing_ff060018;
@@ -46,6 +50,13 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_01061010_2G
 #endif
 	},
+#ifdef CONFIG_DRAM_SEC_SUBSET
+	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+#endif
 	{ .name = "Nanya",	.id = 0x05000010, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_2G
@@ -56,6 +67,14 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_01061010_2G
 #endif
 	},
+#ifdef CONFIG_DRAM_SEC_SUBSET
+	{ .name = "Samsung",	.id = 0x01050008, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_1G
+#endif
+	},
+#endif
+#ifndef CONFIG_DRAM_SEC_SUBSET
 	{ .name = "Micron",	.id = 0xff000010, .subind = 0x4, .size = 4096, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_ff000010
@@ -66,6 +85,7 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_ff060018
 #endif
 	},
+#endif
 };
 
 unsigned int lpddr4_get_mr(void);

@@ -1,5 +1,11 @@
 if TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_IOT_GATE_IMX8PLUS
 
+config DRAM_SEC_SUBSET
+	bool "Enable Second DRAM subset"
+	default n
+	help
+	  This option enables Samsung 1G and 4G dram support
+
 config ATF_LOAD_ADDR
 	hex "bl31.bin load address"
 	default 0x00970000
