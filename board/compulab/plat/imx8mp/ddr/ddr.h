@@ -11,6 +11,7 @@
 #ifdef CONFIG_DRAM_SEC_SUBSET
 extern struct dram_timing_info ucm_dram_timing_01061010_4G;
 extern struct dram_timing_info ucm_dram_timing_01061010_1G;
+extern struct dram_timing_info ucm_dram_timing_01061010_1G_4000;
 #endif
 extern struct dram_timing_info ucm_dram_timing_01061010_2G;
 extern struct dram_timing_info ucm_dram_timing_ff000010;
@@ -71,6 +72,11 @@ static const struct lpddr4_desc lpddr4_array[] = {
 	{ .name = "Samsung",	.id = 0x01050008, .subind = 0x1, .size = 1024, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_1G
+#endif
+	},
+	{ .name = "Samsung",	.id = 0x01060008, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_1G_4000
 #endif
 	},
 #endif
