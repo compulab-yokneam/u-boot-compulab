@@ -84,6 +84,10 @@
 	u-boot,dm-spl;
 };
 
+&pinctrl_gpio4_20_hog {
+	u-boot,dm-spl;
+};
+
 &gpio1 {
 	u-boot,dm-spl;
 };

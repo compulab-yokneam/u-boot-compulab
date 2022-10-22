@@ -149,6 +149,16 @@
 	};
 };
 
+&gpio4 {
+	gpio4_20_hog {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio4_20_hog>;
+		gpio-hog;
+		gpios = <20 GPIO_ACTIVE_HIGH>;
+		output-high;
+	};
+};
+
 &i2c1 {
 	clock-frequency = <400000>;
 	pinctrl-names = "default", "gpio";
@@ -523,7 +533,7 @@
 		>;
 	};
 
-	pinctrl_typec_mux: typec1muxgrp {
+	pinctrl_gpio4_20_hog: gpio420hoggrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_MCLK__GPIO4_IO20	0x16
 		>;
