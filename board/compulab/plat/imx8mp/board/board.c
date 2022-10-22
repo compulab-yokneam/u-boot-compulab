@@ -515,6 +515,11 @@ int board_late_init(void)
 	env_set("board_rev", "iMX8MP");
 #endif
 
+#ifdef CONFIG_DRAM_SEC_SUBSET
+	env_set("dram_subset", "2");
+#else
+	env_set("dram_subset", "1");
+#endif
 	return 0;
 }
 
