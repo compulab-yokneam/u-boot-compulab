@@ -730,9 +730,15 @@ int do_ddr(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
    return 0;
 }
 
+#ifdef CONFIG_DRAM_SEC_SUBSET
+#define VERSION "2"
+#else
+#define VERSION "1"
+#endif
+
 U_BOOT_CMD(
 	ddr,	2,	1,	do_ddr,
-	"rdmr/read/clear value",
+	"rdmr/read/clear\nversion : [ "VERSION" ]" ,
 	ddr_help_text
 );
 #endif
