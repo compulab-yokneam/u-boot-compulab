@@ -515,10 +515,10 @@ int board_late_init(void)
 	env_set("board_rev", "iMX8MP");
 #endif
 
-#ifdef CONFIG_DRAM_SEC_SUBSET
-	env_set("dram_subset", "2");
+#ifdef CONFIG_DRAM_D2D4
+	env_set("dram_subset", "d2d4");
 #else
-	env_set("dram_subset", "1");
+	env_set("dram_subset", "d1d8");
 #endif
 	return 0;
 }
@@ -730,15 +730,15 @@ int do_ddr(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
    return 0;
 }
 
-#ifdef CONFIG_DRAM_SEC_SUBSET
-#define VERSION "2"
+#ifdef CONFIG_DRAM_D2D4
+#define SUPPORTED_CONF "D2,D4"
 #else
-#define VERSION "1"
+#define SUPPORTED_CONF "D1,D8"
 #endif
 
 U_BOOT_CMD(
 	ddr,	2,	1,	do_ddr,
-	"rdmr/read/clear\nversion : [ "VERSION" ]" ,
+	"rdmr/read/clear\nSupported configurations : [ "SUPPORTED_CONF" ]" ,
 	ddr_help_text
 );
 #endif

@@ -8,13 +8,13 @@
 #define __DDR_H__
 
 #ifdef CONFIG_SPL_BUILD
-#ifdef CONFIG_DRAM_SEC_SUBSET
-extern struct dram_timing_info ucm_dram_timing_01061010_4G;
-extern struct dram_timing_info ucm_dram_timing_01061010_1G;
-extern struct dram_timing_info ucm_dram_timing_01061010_1G_4000;
-#endif
+#ifdef CONFIG_DRAM_D2D4
 extern struct dram_timing_info ucm_dram_timing_01061010_2G;
 extern struct dram_timing_info ucm_dram_timing_ff000010;
+extern struct dram_timing_info ucm_dram_timing_01061010_4G;
+#endif
+extern struct dram_timing_info ucm_dram_timing_01061010_1G;
+extern struct dram_timing_info ucm_dram_timing_01061010_1G_4000;
 extern struct dram_timing_info ucm_dram_timing_ff060018;
 #endif
 
@@ -46,18 +46,22 @@ struct lpddr4_desc {
 };
 
 static const struct lpddr4_desc lpddr4_array[] = {
-	{ .name = "Samsung",	.id = 0xDEADBEEF, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_DRAM_D2D4
+	{ .name = "deadbeaf",	.id = 0xdeadbeef, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_2G
 #endif
 	},
-#ifdef CONFIG_DRAM_SEC_SUBSET
 	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x4, .size = 4096, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_4G
 #endif
 	},
+	{ .name = "Micron",	.id = 0xff000010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff000010
 #endif
+	},
 	{ .name = "Nanya",	.id = 0x05000010, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_2G
@@ -68,7 +72,12 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_01061010_2G
 #endif
 	},
-#ifdef CONFIG_DRAM_SEC_SUBSET
+#else
+	{ .name = "deadbeaf",	.id = 0xdeadbeaf, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_1G
+#endif
+	},
 	{ .name = "Samsung",	.id = 0x01050008, .subind = 0x1, .size = 1024, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_1G
@@ -77,13 +86,6 @@ static const struct lpddr4_desc lpddr4_array[] = {
 	{ .name = "Samsung",	.id = 0x01060008, .subind = 0x1, .size = 1024, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_1G_4000
-#endif
-	},
-#endif
-#ifndef CONFIG_DRAM_SEC_SUBSET
-	{ .name = "Micron",	.id = 0xff000010, .subind = 0x4, .size = 4096, .count = 1,
-#ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_ff000010
 #endif
 	},
 	{ .name = "Micron",	.id = 0xff060018, .subind = 0x8, .size = 8192, .count = 1,
