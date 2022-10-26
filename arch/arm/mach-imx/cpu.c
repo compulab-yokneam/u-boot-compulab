@@ -231,6 +231,7 @@ int print_cpuinfo(void)
 		mxc_get_clock(MXC_ARM_CLK) / 1000000);
 #endif
 
+#ifdef ENABLE_TMU_MESSAGE
 #if defined(CONFIG_IMX_THERMAL) || defined(CONFIG_IMX_TMU)
 	puts("CPU:   ");
 	switch (get_cpu_temp_grade(&minc, &maxc)) {
@@ -260,6 +261,7 @@ int print_cpuinfo(void)
 		debug(" - invalid sensor device\n");
 	}
 	puts("\n");
+#endif
 #endif
 
 #if defined(CONFIG_DBG_MONITOR)
