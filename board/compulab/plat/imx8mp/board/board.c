@@ -470,6 +470,10 @@ __weak void board_vendor_init(void) {
 	return;
 }
 
+__weak void board_vendor_late_init(void) {
+	return;
+}
+
 int board_init(void)
 {
 	struct arm_smccc_res res;
@@ -520,6 +524,8 @@ int board_late_init(void)
 #else
 	env_set("dram_subset", "d1d8");
 #endif
+	board_vendor_late_init();
+
 	return 0;
 }
 
