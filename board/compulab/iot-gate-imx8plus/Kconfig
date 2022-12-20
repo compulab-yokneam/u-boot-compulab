@@ -24,7 +24,7 @@ config SYS_I2C_EEPROM_ADDR
 
 config SYS_I2C_EEPROM_BUS_SB
 	hex "SB eeprom bus address"
-	default 0x4
+	default 1
 
 config SYS_I2C_EEPROM_ADDR_SB
 	hex "SB eeprom dev address"
