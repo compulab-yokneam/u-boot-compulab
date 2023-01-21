@@ -1,0 +1,33 @@
+if TARGET_IOT_GATE_IMX8PLUS
+
+config SYS_BOARD
+	default "iot-gate-imx8plus"
+
+config SYS_VENDOR
+	default "compulab"
+
+config SYS_CONFIG_NAME
+	default "iot-gate-imx8plus"
+
+config DEFAULT_DTB
+	string "U-Boot Default Device Tree File"
+	depends on TARGET_IOT_GATE_IMX8PLUS
+	default "iot-gate-imx8plus.dtb"
+
+config SYS_I2C_EEPROM_BUS
+	int "SOM eeprom bus address"
+	default 1
+
+config SYS_I2C_EEPROM_ADDR
+	hex "SOM eeprom dev address"
+	default 0x50
+
+config SYS_I2C_EEPROM_BUS_SB
+	hex "SB eeprom bus address"
+	default 1
+
+config SYS_I2C_EEPROM_ADDR_SB
+	hex "SB eeprom dev address"
+	default 0x54
+
+endif

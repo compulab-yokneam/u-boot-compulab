@@ -120,24 +120,6 @@ config TARGET_IMX8MM_DDR4_EVK
 	select ARCH_MISC_INIT
 	select SPL_CRYPTO if SPL
 
-config TARGET_IMX8MM_AB2
-	bool "imx8mm LPDDR4 Audio board 2.0"
-	select IMX8MM
-	select SUPPORT_SPL
-	select IMX8M_LPDDR4
-	select FSL_CAAM
-	select FSL_BLOB
-	select SPL_CRYPTO if SPL
-
-config TARGET_IMX8MM_DDR4_AB2
-	bool "imx8mm DDR4 Audio board 2.0"
-	select IMX8MM
-	select SUPPORT_SPL
-	select IMX8M_DDR4
-	select FSL_CAAM
-	select FSL_BLOB
-	select SPL_CRYPTO if SPL
-
 config TARGET_IMX8MM_ICORE_MX8MM
 	bool "Engicam i.Core MX8M Mini SOM"
 	select IMX8MM
@@ -190,33 +172,6 @@ config TARGET_IMX8MN_DDR4_EVK
 
 config TARGET_IMX8MN_DDR3_EVK
 	bool "imx8mn 11x11 DDR3 EVK board"
-	select IMX8MN
-	select SUPPORT_SPL
-	select IMX8M_DDR3L
-	select FSL_CAAM
-	select FSL_BLOB
-	select SPL_CRYPTO if SPL
-
-config TARGET_IMX8MN_AB2
-	bool "imx8mn LPDDR4 Audio board 2.0"
-	select IMX8MN
-	select SUPPORT_SPL
-	select IMX8M_LPDDR4
-	select FSL_CAAM
-	select FSL_BLOB
-	select SPL_CRYPTO if SPL
-
-config TARGET_IMX8MN_DDR4_AB2
-	bool "imx8mn DDR4 Audio board 2.0"
-	select IMX8MN
-	select SUPPORT_SPL
-	select IMX8M_DDR4
-	select FSL_CAAM
-	select FSL_BLOB
-	select SPL_CRYPTO if SPL
-
-config TARGET_IMX8MN_DDR3L_AB2
-	bool "imx8mn DDR3L Audio board 2.0"
 	select IMX8MN
 	select SUPPORT_SPL
 	select IMX8M_DDR3L
@@ -341,6 +296,49 @@ config TARGET_IMX8MP_RSB3720A1_6G
 	select IMX8MP
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
+
+config TARGET_UCM_IMX8M_MINI
+	bool "CompuLab ucm-imx8m-mini"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_MCM_IMX8M_MINI
+	bool "CompuLab mcm-imx8m-mini"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_IOT_GATE_IMX8
+	bool "CompuLab iot-gate-imx8"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_UCM_IMX8M_PLUS
+	bool "CompuLab ucm-imx8m-plus"
+	select BINMAN
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select SUPPORT_EXTENSION_SCAN
+
+config TARGET_SOM_IMX8M_PLUS
+	bool "CompuLab som-imx8m-plus"
+	select BINMAN
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select SUPPORT_EXTENSION_SCAN
+
+config TARGET_IOT_GATE_IMX8PLUS
+	bool "CompuLab iot-gate-imx8plus"
+	select BINMAN
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select SUPPORT_EXTENSION_SCAN
+
 endchoice
 
 source "board/advantech/imx8mp_rsb3720a1/Kconfig"
@@ -350,7 +348,6 @@ source "board/compulab/imx8mm-cl-iot-gate/Kconfig"
 source "board/engicam/imx8mm/Kconfig"
 source "board/freescale/imx8mq_evk/Kconfig"
 source "board/freescale/imx8mq_val/Kconfig"
-source "board/freescale/imx8mm_ab2/Kconfig"
 source "board/freescale/imx8mm_evk/Kconfig"
 source "board/freescale/imx8mm_val/Kconfig"
 source "board/freescale/imx8mn_evk/Kconfig"
@@ -366,5 +363,12 @@ source "board/technexion/pico-imx8mq/Kconfig"
 source "board/variscite/imx8mn_var_som/Kconfig"
 source "board/toradex/verdin-imx8mm/Kconfig"
 source "board/toradex/verdin-imx8mp/Kconfig"
+source "board/compulab/ucm-imx8m-mini/Kconfig"
+source "board/compulab/mcm-imx8m-mini/Kconfig"
+source "board/compulab/iot-gate-imx8/Kconfig"
+source "board/compulab/ucm-imx8m-plus/Kconfig"
+source "board/compulab/som-imx8m-plus/Kconfig"
+source "board/compulab/iot-gate-imx8plus/Kconfig"
+source "board/compulab/plat/imx8mp/Kconfig"
 
 endif

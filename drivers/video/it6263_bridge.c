@@ -184,7 +184,6 @@ static int it6263_set_backlight(struct udevice *dev, int percent)
 static int it6263_probe(struct udevice *dev)
 {
 	struct it6263_priv *priv = dev_get_priv(dev);
-
 	debug("%s\n", __func__);
 
 	priv->addr  = dev_read_addr(dev);

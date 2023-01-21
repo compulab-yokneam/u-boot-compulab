@@ -257,7 +257,7 @@ int dram_init(void)
 	return 0;
 }
 
-int dram_init_banksize(void)
+__weak int dram_init_banksize(void)
 {
 	int bank = 0;
 	int ret;
@@ -1704,7 +1704,7 @@ void do_error(struct pt_regs *pt_regs, unsigned int esr)
 #endif
 #endif
 
-#if defined(CONFIG_IMX8MN) || defined(CONFIG_IMX8MP)
+#if defined(CONFIG_IMX8MN) /*|| defined(CONFIG_IMX8MP)*/
 enum env_location env_get_location(enum env_operation op, int prio)
 {
 	enum boot_device dev = get_boot_device();

@@ -41,7 +41,6 @@
 		usb0 = &usb_dwc3_0;
 		usb1 = &usb_dwc3_1;
 		spi0 = &flexspi;
-		video0 = &lcdif1;
 	};
 
 	cpus {
@@ -350,6 +349,14 @@
 			domain-index = <18>;
 			domain-name = "hdmi_phy";
 			parent-domains = <&hdmimix_pd>;
+		};
+
+		lvds_phy_pd: lvdsphy-pd {
+			compatible = "fsl,imx8m-pm-domain";
+			#power-domain-cells = <0>;
+			domain-index = <19>;
+			domain-name = "lvds_phy";
+			parent-domains = <&mediamix_pd>;
 		};
 	};
 
@@ -979,7 +986,7 @@
 				#address-cells = <1>;
 				#size-cells = <0>;
 				compatible = "fsl,imx8mp-fspi-nand";
-				reg = <0x30bb0000 0x10000>, <0x08000000 0x10000000>;
+				reg = <0 0x30bb0000 0 0x10000>, <0 0x08000000 0 0x10000000>;
 				reg-names = "FlexSPI", "FlexSPI-memory";
 				status = "disabled";
 			};
@@ -1351,3 +1358,6 @@
 		status = "disabled";
 	};
 };
+
+#include "imx8mp-lcdif2.dtsi"
+#include "imx8mp-lcdif3.dtsi"

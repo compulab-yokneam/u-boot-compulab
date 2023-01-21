@@ -11,6 +11,7 @@ obj-$(CONFIG_CONSOLE_NORMAL) += console_normal.o
 obj-$(CONFIG_CONSOLE_ROTATION) += console_rotate.o
 obj-$(CONFIG_CONSOLE_TRUETYPE) += console_truetype.o fonts/
 obj-$(CONFIG_DISPLAY) += display-uclass.o
+obj-$(CONFIG_DISPLAY_DETECT) += display-detect-uclass.o
 obj-$(CONFIG_VIDEO_MIPI_DSI) += dsi-host-uclass.o
 obj-$(CONFIG_DM_VIDEO) += video-uclass.o vidconsole-uclass.o
 obj-$(CONFIG_DM_VIDEO) += video_bmp.o
@@ -22,6 +23,7 @@ obj-$(CONFIG_VIDEO_LOGO) += u_boot_logo.o
 
 obj-$(CONFIG_VIDEO_LINK) += video_link.o
 endif
+obj-$(CONFIG_DRM_SCDC_HELPER) += drm_scdc_helper.o
 
 obj-${CONFIG_EXYNOS_FB} += exynos/
 obj-${CONFIG_VIDEO_ROCKCHIP} += rockchip/
@@ -59,10 +61,10 @@ obj-$(CONFIG_VIDEO_LCD_HITACHI_TX18D42VM) += hitachi_tx18d42vm_lcd.o
 obj-$(CONFIG_VIDEO_LCD_ORISETECH_OTM8009A) += orisetech_otm8009a.o
 obj-$(CONFIG_VIDEO_LCD_RAYDIUM_RM68200) += raydium-rm68200.o
 obj-$(CONFIG_VIDEO_LCD_RAYDIUM_RM67191) += raydium-rm67191.o
+obj-$(CONFIG_VIDEO_LCD_STARTEK_ILI9881C) += startek-ili9881c.o
 obj-$(CONFIG_VIDEO_LCD_ROCKTECH_HIMAX8394F) += rocktech-hx8394f.o
 obj-$(CONFIG_VIDEO_LCD_SSD2828) += ssd2828.o
 obj-$(CONFIG_VIDEO_LCD_TDO_TL070WSH30) += tdo-tl070wsh30.o
-obj-$(CONFIG_VIDEO_LCD_USMP_RM67162) += usmp-rm67162.o
 obj-$(CONFIG_VIDEO_MCDE_SIMPLE) += mcde_simple.o
 obj-$(CONFIG_VIDEO_ADV7535) += adv7535.o
 obj-${CONFIG_VIDEO_MESON} += meson/

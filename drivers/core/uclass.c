@@ -554,6 +554,17 @@ int uclass_get_device_by_phandle_id(enum uclass_id id, uint phandle_id,
 	return -ENODEV;
 }
 
+int uclass_device_by_phandle(enum uclass_id id, ofnode np,
+				 const char *name, struct udevice **devp)
+{
+	struct udevice *dev;
+	int ret;
+
+	*devp = NULL;
+	ret = uclass_find_by_phandle(id, np, name, &dev);
+	return uclass_get_device_tail(dev, ret, devp);
+}
+
 int uclass_get_device_by_phandle(enum uclass_id id, struct udevice *parent,
 				 const char *name, struct udevice **devp)
 {
@@ -563,6 +574,26 @@ int uclass_get_device_by_phandle(enum uclass_id id, struct udevice *parent,
 	*devp = NULL;
 	ret = uclass_find_device_by_phandle(id, parent, name, &dev);
 	return uclass_get_device_tail(dev, ret, devp);
+}
+
+int uclass_get_device_by_ofnode_prop(enum uclass_id id, ofnode node,
+		const char *prop, struct udevice **devp)
+{
+	ofnode base;
+	int ret;
+
+	ret = ofnode_parse_phandle(node, prop, &base);
+	if (ret) {
+		debug("%s: Warning: cannot get %s: ret=%d\n", __func__,
+				prop, ret);
+		return ret;
+	}
+	ret = uclass_get_device_by_ofnode(id, base, devp);
+	if (ret) {
+		debug("%s: Error: cannot get %s: ret=%d\n", __func__,
+				prop, ret);
+	}
+	return ret;
 }
 #endif
 

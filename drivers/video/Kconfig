@@ -446,14 +446,15 @@ config VIDEO_LCD_RAYDIUM_RM67191
 	Say Y here if you want to enable support for Raydium RM68200
 	1080x1920 DSI video mode panel.
 
-config VIDEO_LCD_USMP_RM67162
-	bool "RM67162 DSI LCD panel support"
+config VIDEO_LCD_STARTEK_ILI9881C
+	tristate "Startek ILI9881C-based panels"
 	depends on DM_VIDEO
 	select VIDEO_MIPI_DSI
 	default n
 	help
-	Say Y here if you want to enable support for USMP RM67162
-	400x400 DSI video mode panel.
+	  Say Y if you want to enable support for panels based on the
+	  Startek panel with an ILI9881c controller.
+
 
 config VIDEO_LCD_ROCKTECH_HIMAX8394F
 	bool "Rocktech Himax8394f 720x1280 DSI video mode panel"
@@ -578,6 +579,11 @@ config DISPLAY
 	   DisplayPort) and HDMI (High Definition Multimedia Interface).
 	   The devices provide a simple interface to start up the display,
 	   read display information and enable it.
+
+config DISPLAY_DETECT
+	bool "Enable Display Detection support"
+	depends on DISPLAY
+	default n
 
 config NXP_TDA19988
 	bool "Enable NXP TDA19988 support"

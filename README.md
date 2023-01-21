@@ -1,0 +1,47 @@
+# Disclaimer
+
+| !IMPORTANT! | This is a development branch, that is not relelased by CompuLab officially yet|
+|---|---|
+
+# Configuring the build
+
+## Setup U-Boot environment
+
+* WorkDir:
+```
+mkdir -p clab-uboot-build/build && cd clab-uboot-build
+export BUILD=$(pwd)/build
+```
+* Set a CompuLab machine:
+
+| Machine | Command Line |
+|---|---|
+|ucm-imx8m-plus|```export MACHINE=ucm-imx8m-plus```|
+|som-imx8m-plus|```export MACHINE=som-imx8m-plus```|
+|iot-gate-imx8plus|```export MACHINE=iot-gate-imx8plus```|
+
+* Clone the source code:
+```
+git clone https://github.com/compulab-yokneam/u-boot-clab.git
+cd u-boot-clab
+```
+
+## Create U-boot binary
+
+* Config
+```
+make O=${BUILD} ${MACHINE}_defconfig
+make O=${BUILD} menuconfig
+
+```
+
+* Build
+```
+make O=${BUILD} -C board/compulab/plat/imx8mp/firmware all
+nice make -j`nproc` O=${BUILD} flash.bin
+```
+
+* Result
+```
+ls -al ${BUILD}/flash.bin
+```

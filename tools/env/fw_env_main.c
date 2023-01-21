@@ -49,6 +49,8 @@ static struct option long_options[] = {
 	{"noheader", no_argument, NULL, 'n'},
 	{"lock", required_argument, NULL, 'l'},
 	{"version", no_argument, NULL, 'v'},
+	{"env", no_argument, NULL, 'e'},
+	{"viadt", no_argument, NULL, 'E'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -74,6 +76,10 @@ void usage_printenv(void)
 #endif
 		" -n, --noheader       do not repeat variable name in output\n"
 		" -l, --lock           lock node, default:/var/lock\n"
+		" -e, --env            print default fw_env.config\n"
+#ifdef CONFIG_DT_NODE
+		" -E, --viadt      print environment passed via devicetree\n"
+#endif
 		"\n");
 }
 
@@ -112,6 +118,61 @@ void usage_env_set(void)
 		"\n");
 }
 
+
+#if defined(CONFIG_DT_NODE)
+
+#define GET_PROP_i(NAME) int NAME = read_dt_prop_int( CONFIG_DT_NODE "/" #NAME, NULL )
+#define GET_PROP_s(NAME) char* NAME = NULL; read_dt_prop_int( CONFIG_DT_NODE "/" #NAME , &NAME)
+#define CLEAR_s(NAME) if(NAME) free(NAME)
+
+static int read_dt_prop_int(const char *name, char** str)
+{
+	FILE *fp;
+	int retval;
+	char *buf = NULL;
+	size_t count = 0;
+
+	fp = fopen(name, "r");
+	if(fp == NULL) {
+		fprintf(stderr, "Can't open property %s %m\n", name);
+		return -1;
+	}
+
+	retval = getline(&buf, &count, fp);
+	fclose(fp);
+	if(0 < retval) {
+		if(str) { //extract a string property
+			*str = buf;
+			return 0;
+		}
+		else { //extract a integer property
+			retval = strtoul(buf, NULL, 0);
+		}
+	}
+
+	CLEAR_s(buf);
+
+	return retval;
+}
+
+int get_config_via_dt(void)
+{
+	GET_PROP_i(env_size);
+	GET_PROP_i(env_off);
+	GET_PROP_s(env_dev);
+
+	if( !env_dev || 0 >= env_size || 0>= env_off) {
+		fprintf(stderr, "Valid DT node %s not found\n", CONFIG_DT_NODE);
+		return -1;
+	}
+
+	printf("%s\t0x%x\t0x%x\n", env_dev, env_off, env_size);
+
+	CLEAR_s(env_dev);
+
+	return 0;
+}
+#endif
 static void parse_common_args(int argc, char *argv[])
 {
 	int c;
@@ -120,7 +181,7 @@ static void parse_common_args(int argc, char *argv[])
 	env_opts.config_file = CONFIG_FILE;
 #endif
 
-	while ((c = getopt_long(argc, argv, ":a:c:l:h:v", long_options, NULL)) !=
+	while ((c = getopt_long(argc, argv, ":a:c:l:h:veE", long_options, NULL)) !=
 	       EOF) {
 		switch (c) {
 #ifdef CONFIG_FILE
@@ -139,6 +200,16 @@ static void parse_common_args(int argc, char *argv[])
 			fprintf(stderr, "Compiled with " U_BOOT_VERSION "\n");
 			exit(EXIT_SUCCESS);
 			break;
+		case 'e':
+			fprintf(stdout, "/dev/mmcblk2boot0 0x%x 0x%x\n", CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE);
+			fprintf(stdout, "/dev/mmcblk1 0x%x 0x%x\n", CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE);
+			exit(EXIT_SUCCESS);
+			break;
+#if defined(CONFIG_DT_NODE)
+		case 'E':
+			exit(get_config_via_dt());
+			break;
+#endif
 		default:
 			/* ignore unknown options */
 			break;

@@ -532,6 +532,20 @@ int ofnode_parse_phandle_with_args(ofnode node, const char *list_name,
 	return 0;
 }
 
+int ofnode_parse_phandle(ofnode np, const char *propname, ofnode *ph)
+{
+	struct ofnode_phandle_args phandle;
+	int ret;
+
+	ret = ofnode_parse_phandle_with_args(np, propname, NULL, 0, 0, &phandle);
+	if (ret) {
+		debug("Can't find %s property (%d)\n", propname, ret);
+		return ret;
+	}
+	*ph = phandle.node;
+	return 0;
+}
+
 int ofnode_count_phandle_with_args(ofnode node, const char *list_name,
 				   const char *cells_name, int cell_count)
 {
@@ -1161,4 +1175,20 @@ const char *ofnode_conf_read_str(const char *prop_name)
 		return NULL;
 
 	return ofnode_read_string(node, prop_name);
+}
+
+int ofnode_generic_phy_get_by_name(ofnode np, const char *phy_name,
+			    struct phy *phy)
+{
+	int index;
+
+	debug("%s:%s, name=%s, phy=%p)\n", __func__, ofnode_get_name(np),
+			phy_name, phy);
+	index = ofnode_stringlist_search(np, "phy-names", phy_name);
+	if (index < 0) {
+		debug("dev_read_stringlist_search() failed: %d\n", index);
+		return index;
+	}
+
+	return generic_phy_get_by_index_nodev(np, index, phy);
 }
