@@ -19,4 +19,6 @@
 	status = "disabled";
 };
 
+#ifndef CONFIG_VIDEOCONSOLE_NONE
 #include "ucm-imx8m-plus-lcdif3.dtsi"
+#endif
