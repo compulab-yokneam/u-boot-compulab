@@ -194,44 +194,14 @@
 };
 
 &lcdif1 {
-    u-boot,dm-spl;
+	u-boot,dm-spl;
 	/delete-property/ assigned-clocks;
 	/delete-property/ assigned-clock-parents;
 	/delete-property/ assigned-clock-rates;
 };
 
-&lcdif2 {
-    u-boot,dm-spl;
-    /delete-property/ assigned-clocks;
-    /delete-property/ assigned-clock-parents;
-    /delete-property/ assigned-clock-rates;
-};
-
-&ldb {
-    u-boot,dm-spl;
-    /delete-property/ assigned-clocks;
-    /delete-property/ assigned-clock-parents;
-    /delete-property/ assigned-clock-rates;
-};
-
-&ldb_phy {
-    u-boot,dm-spl;
-    /delete-property/ assigned-clocks;
-    /delete-property/ assigned-clock-parents;
-    /delete-property/ assigned-clock-rates;
-};
-
-&pwm2 {
-    u-boot,dm-spl;
-};
-
-&lvds_backlight {
-	compatible = "clab,fake-backlight";
-    u-boot,dm-spl;
-};
-
 &mipi_dsi {
-    u-boot,dm-spl;
+	u-boot,dm-spl;
 	/delete-property/ assigned-clocks;
 	/delete-property/ assigned-clock-parents;
 	/delete-property/ assigned-clock-rates;
