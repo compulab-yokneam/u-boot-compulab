@@ -205,7 +205,7 @@ static int imx8mp_ldb_probe(struct udevice *dev)
 			}
 		}
 	}
-    printf("imx8mp_ldb_probe\n");
+    debug("imx8mp_ldb_probe\n");
 
 	return 0;
 
