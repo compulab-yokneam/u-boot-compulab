@@ -58,24 +58,6 @@ config COMPULAB_IMX8MP_HDMI
 	default y
 	select VIDEO_IMX8MP_HDMI
 
-choice
-	prompt "CompuLab i.MX8MP videoconsole"
-	default VIDEOCONSOLE_MIPI
-
-config VIDEOCONSOLE_MIPI
-	bool "MIPI Output"
-
-config VIDEOCONSOLE_LVDS
-	bool "LVDS Output"
-
-config VIDEOCONSOLE_HDMI
-	bool "HDMI Output"
-
-config VIDEOCONSOLE_NONE
-	bool "NONE Output"
-
-endchoice
-
 endmenu
 
 endif
