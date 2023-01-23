@@ -670,30 +670,17 @@
     temperature = <155000>;
 };
 
-&lcdif1 {
-	status = "disabled";
-};
-
-&lcdif2 {
-	status = "disabled";
-};
-
-#ifdef CONFIG_VIDEOCONSOLE_MIPI
-&lcdif1 {
-	status = "okay";
-};
-#endif
-
-#ifdef CONFIG_VIDEOCONSOLE_LVDS
 #include "ucm-imx8m-plus-lcdif2.dtsi"
+#include "ucm-imx8m-plus-lcdif3.dtsi"
+&lcdif1 {
+	status = "okay";
+};
+
 &lcdif2 {
 	status = "okay";
 };
-#endif
 
-#ifdef CONFIG_VIDEOCONSOLE_HDMI
-#include "ucm-imx8m-plus-lcdif3.dtsi"
 &lcdif3 {
 	status = "okay";
 };
-#endif
+
