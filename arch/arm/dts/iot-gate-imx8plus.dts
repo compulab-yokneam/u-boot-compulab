@@ -5,6 +5,7 @@
 
 #include "ucm-imx8m-plus.dtsi"
 #include "sb-iotgimx8plus.dtsi"
+#include "ucm-imx8m-plus-lcdif3.dtsi"
 
 / {
 	model = "CompuLab IOT-GATE-IMX8PLUS";
@@ -19,6 +20,6 @@
 	status = "disabled";
 };
 
-#ifndef CONFIG_VIDEOCONSOLE_NONE
-#include "ucm-imx8m-plus-lcdif3.dtsi"
-#endif
+&lcdif3 {
+	status = "okay";
+};
