@@ -68,7 +68,6 @@
 
 &reg_usdhc2_vmmc {
 	u-boot,dm-spl;
-	u-boot,off-on-delay-us = <20000>;
 };
 
 &pinctrl_uart2 {
@@ -189,6 +188,14 @@
 	u-boot,dm-spl;
 };
 
+&pinctrl_pwm2 {
+	u-boot,dm-spl;
+};
+
+&pca9555 {
+	u-boot,dm-spl;
+};
+
 &eqos {
 	compatible = "fsl,imx-eqos";
 	/delete-property/ assigned-clocks;
@@ -213,12 +220,14 @@
 };
 
 &lcdif1 {
+	u-boot,dm-spl;
 	/delete-property/ assigned-clocks;
 	/delete-property/ assigned-clock-parents;
 	/delete-property/ assigned-clock-rates;
 };
 
 &mipi_dsi {
+	u-boot,dm-spl;
 	/delete-property/ assigned-clocks;
 	/delete-property/ assigned-clock-parents;
 	/delete-property/ assigned-clock-rates;

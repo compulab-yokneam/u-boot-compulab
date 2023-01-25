@@ -15,9 +15,9 @@
 #define CONFIG_ETHPRIME                 "eth0"
 
 #define CONFIG_FEC_XCV_TYPE             RGMII
-#define CONFIG_FEC_MXC_PHYADDR          1
+#define CONFIG_FEC_MXC_PHYADDR         	5
 
-#define DWC_NET_PHYADDR	                0
+#define DWC_NET_PHYADDR	               	4
 
 #define PHY_ANEG_TIMEOUT 20000
 
