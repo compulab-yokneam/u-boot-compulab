@@ -670,8 +670,8 @@
     temperature = <155000>;
 };
 
-#include "ucm-imx8m-plus-lcdif2.dtsi"
-#include "ucm-imx8m-plus-lcdif3.dtsi"
+#include "compulab-imx8m-plus-lcdif2.dtsi"
+#include "compulab-imx8m-plus-lcdif3.dtsi"
 &lcdif1 {
 	status = "okay";
 };
