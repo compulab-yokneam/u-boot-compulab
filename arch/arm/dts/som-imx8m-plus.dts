@@ -17,6 +17,11 @@
 		stdout-path = &uart2;
 	};
 
+	aliases {
+		ethphy0 = &ethphy0;
+		ethphy1 = &ethphy1;
+	};
+
 	memory@40000000 {
 		device_type = "memory";
 		reg = <0x0 0x40000000 0 0x80000000>,
@@ -134,7 +139,7 @@
 
 		ethphy0: ethernet-phy@0 {
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <0>;
+			reg = <4>;
 			eee-broken-1000t;
 		};
 	};
@@ -158,7 +163,7 @@
 
 		ethphy1: ethernet-phy@1 {
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <1>;
+			reg = <5>;
 			eee-broken-1000t;
 		};
 	};
