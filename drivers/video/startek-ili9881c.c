@@ -416,7 +416,11 @@ static int ili9881c_panel_enable_backlight(struct udevice *dev)
 	if (ret < 0)
 		return ret;
 
-	return ili9881c_enable(dev);
+	ret = ili9881c_enable(dev);
+	if (ret) {
+		video_link_shut_down();
+		return ret;
+	}
 }
 
 static int ili9881c_panel_get_display_timing(struct udevice *dev,
