@@ -146,7 +146,7 @@
 		"ulimage=load ${iface} ${dev}:${part} ${loadaddr} ${image}\0" \
 		"ulfdt=if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
 			"load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; fi;\0" \
-		"bootlist=sd_ul usb_ul emmc_ul\0" \
+		"bootlist=usb_ul sd_ul emmc_ul\0" \
 	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
 		"for src in ${bootlist}; do " \
 			"run ${src}; " \
