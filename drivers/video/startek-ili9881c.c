@@ -14,6 +14,7 @@
 #include <dm/device-internal.h>
 #include <dm/device_compat.h>
 #include <linux/delay.h>
+#include <video_link.h>
 
 #define   LCD_XSIZE_TFT   720
 #define   LCD_YSIZE_TFT   1280
@@ -416,7 +417,12 @@ static int ili9881c_panel_enable_backlight(struct udevice *dev)
 	if (ret < 0)
 		return ret;
 
-	return ili9881c_enable(dev);
+	ret = ili9881c_enable(dev);
+	if (ret) {
+		video_link_shut_down();
+		return ret;
+	}
+	return 0;
 }
 
 static int ili9881c_panel_get_display_timing(struct udevice *dev,
