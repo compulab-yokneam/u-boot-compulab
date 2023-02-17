@@ -57,6 +57,14 @@ int board_phys_sdram_size(phys_size_t *size)
 }
 
 #ifdef CONFIG_OF_BOARD_SETUP
+__weak int fdt_board_vendor_setup(void *blob) {
+	return 0;
+}
+
+__weak void board_save_phyaddr(int phy_addr) {
+	return;
+}
+
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
 #ifdef CONFIG_IMX8M_DRAM_INLINE_ECC
@@ -87,6 +95,7 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 
 	fdt_set_env_addr(blob);
 	fdt_set_sn(blob);
+	fdt_board_vendor_setup(blob);
 	return 0;
 }
 #endif
@@ -613,6 +622,7 @@ static int mx8_rgmii_rework(struct phy_device *phydev)
 		break;
 	}
 
+	board_save_phyaddr(phydev->addr);
 	return 0;
 }
 
