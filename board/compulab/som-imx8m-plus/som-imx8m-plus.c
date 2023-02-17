@@ -94,3 +94,53 @@ void board_vendor_init(void) {
 #endif
 	return;
 }
+
+#define ETHPHY0 "/soc@0/bus@30800000/ethernet@30be0000/mdio/ethernet-phy@0"
+#define ETHPHY1 "/soc@0/bus@30800000/ethernet@30bf0000/mdio/ethernet-phy@1"
+
+struct phy_node {
+    char *node;
+    unsigned int addr;
+};
+
+static struct phy_node phy_nodes[] = {
+    { .node = ETHPHY0, .addr = -1 },
+    { .node = ETHPHY1, .addr = -1 },
+};
+
+void board_save_phyaddr(int phy_addr) {
+    debug("[*] %s:%d addr [ %d ]\n",__func__,__LINE__,phy_addr);
+    if ((phy_addr == 4) || (phy_addr == 5)) {
+        /* rev1.1 */
+        phy_nodes[0].addr = 5;
+        phy_nodes[1].addr = 4;
+    } else {
+        phy_nodes[0].addr = 1;
+        phy_nodes[1].addr = 0;
+    }
+    return;
+}
+
+static int fdt_update_phy_address(void *blob, const char *node, unsigned int phy_address) {
+    debug("[*] %s:%d [ %s = %d ]\n",__func__,__LINE__,node,phy_address);
+    int offs = fdt_path_offset(blob, node);
+    if (offs < 0) {
+        printf("Node %s not found.\n", node);
+        return -EINVAL;
+    }
+    fdt_delprop(blob, offs, "reg");
+    phy_address = cpu_to_fdt32(phy_address);
+    return fdt_setprop(blob, offs , "reg", &phy_address, sizeof(u32));
+}
+
+int fdt_board_vendor_setup(void *blob) {
+    int rc, i;
+    for ( i = 0; i < ARRAY_SIZE(phy_nodes); i++ ) {
+        rc = fdt_update_phy_address(blob, phy_nodes[i].node, phy_nodes[i].addr);
+        if (rc) {
+            printf("Node %s update failed rc %d\n", phy_nodes[i].node, rc);
+            return rc;
+        }
+    }
+    return 0;
+}
