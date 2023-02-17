@@ -522,6 +522,42 @@ unsigned long spl_mmc_get_uboot_raw_sector(struct mmc *mmc)
 }
 #endif
 
+#define PHY_VENDOR_ID_MASK (( 1<<5 ) - 1 )
+#define PHY_ATEROS_ID  0x7
+#define PHY_REALTEK_ID 0x11
+
+int get_phy_id(struct mii_dev *bus, int addr, int devad, u32 *phy_id)
+{
+	int phy_reg;
+
+	/*
+	 * Grab the bits from PHYIR1, and put them
+	 * in the upper half
+	 */
+	phy_reg = bus->read(bus, addr, devad, MII_PHYSID1);
+
+	if (phy_reg < 0)
+		return -EIO;
+
+	*phy_id = (phy_reg & 0xffff) << 16;
+
+	/* Grab the bits from PHYIR2, and put them in the lower half */
+	phy_reg = bus->read(bus, addr, devad, MII_PHYSID2);
+
+	if (phy_reg < 0)
+		return -EIO;
+
+	*phy_id |= (phy_reg & 0xffff);
+
+	/* Specical case for REALTEK */
+	phy_reg = (( phy_reg >> 4 ) & PHY_VENDOR_ID_MASK);
+	if ((addr ==  0) &&  (phy_reg == PHY_REALTEK_ID)) {
+		return -ENODEV;
+	}
+
+	return 0;
+}
+
 static int mx8_rgmii_rework_realtek(struct phy_device *phydev)
 {
 #define TXDLY_MASK ((1 << 13) | (1 << 12))
@@ -563,9 +599,6 @@ static int mx8_rgmii_rework_realtek(struct phy_device *phydev)
 
 static int mx8_rgmii_rework(struct phy_device *phydev)
 {
-#define PHY_VENDOR_ID_MASK (( 1<<5 ) - 1 )
-#define PHY_ATEROS_ID  0x7
-#define PHY_REALTEK_ID 0x11
 	unsigned short val = phy_read(phydev, MDIO_DEVAD_NONE, 0x3);
 
 	val = (( val >> 4 ) & PHY_VENDOR_ID_MASK);
