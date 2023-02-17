@@ -33,10 +33,4 @@
 #if defined(CONFIG_ANDROID_SUPPORT)
 #include "ucm-imx8m-plus_android.h"
 #endif
-
-#ifdef CONFIG_SYS_PROMPT
-#undef CONFIG_SYS_PROMPT
-#endif
-#define CONFIG_SYS_PROMPT "ucm-imx8m-plus=> "
-
 #endif

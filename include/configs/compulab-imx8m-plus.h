@@ -247,3 +247,7 @@
 #define CONFIG_VIDEO_BMP_LOGO
 #endif
 
+#ifdef CONFIG_SYS_PROMPT
+#undef CONFIG_SYS_PROMPT
+#define CONFIG_SYS_PROMPT CONFIG_SYS_BOARD"=> "
+#endif

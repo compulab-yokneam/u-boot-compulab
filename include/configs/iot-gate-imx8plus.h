@@ -25,9 +25,4 @@
 
 #endif
 
-#ifdef CONFIG_SYS_PROMPT
-#undef CONFIG_SYS_PROMPT
-#endif
-#define CONFIG_SYS_PROMPT "iot-gate-imx8plus=> "
-
 #endif
