@@ -10,9 +10,13 @@ config SYS_CONFIG_NAME
 	default "ucm-imx8m-plus"
 
 config DEFAULT_DTB
-	string "U-Boot Default Device Tree File"
-	depends on TARGET_UCM_IMX8M_PLUS
 	default "sbc-ucm-imx8m-plus.dtb"
+
+config DEFAULT_FDT_FILE
+	default "ucm-imx8m-plus.dtb"
+
+config DEFAULT_DEVICE_TREE
+	default "ucm-imx8m-plus"
 
 config SYS_I2C_EEPROM_BUS
 	int "SOM eeprom bus address"
