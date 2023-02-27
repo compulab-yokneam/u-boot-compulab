@@ -559,12 +559,13 @@ int get_phy_id(struct mii_dev *bus, int addr, int devad, u32 *phy_id)
 
 	*phy_id |= (phy_reg & 0xffff);
 
+#ifdef CONFIG_TARGET_SOM_IMX8M_PLUS
 	/* Specical case for REALTEK */
 	phy_reg = (( phy_reg >> 4 ) & PHY_VENDOR_ID_MASK);
 	if ((addr ==  0) &&  (phy_reg == PHY_REALTEK_ID)) {
 		return -ENODEV;
 	}
-
+#endif
 	return 0;
 }
 
