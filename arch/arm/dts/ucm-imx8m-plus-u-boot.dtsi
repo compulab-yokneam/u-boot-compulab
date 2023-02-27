@@ -5,6 +5,7 @@
  */
 
 #include "compulab-imx8mp-binman.dtsi"
+#include "compulab-imx8mp-u-boot.dtsi"
 
 / {
 	wdt-reboot {
