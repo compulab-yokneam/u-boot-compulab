@@ -1,9 +1,17 @@
 # Disclaimer
 
-| !IMPORTANT! | This is a development branch, that is not relelased by CompuLab officially yet|
+| !IMPORTANT! | This is a development branch, that is not relelased by CompuLab yet|
 |---|---|
 
+
 # Configuring the build
+
+## Prerequisites
+It is up to developers to prepare the host machine; it requires:
+
+* [Setup Cross Compiler](https://github.com/compulab-yokneam/meta-bsp-imx8mp/blob/kirkstone/Documentation/toolchain.md#linaro-toolchain-how-to)
+* Install these packages: ``shareutils, swing``
+
 
 ## Setup U-Boot environment
 
@@ -32,7 +40,6 @@ cd u-boot-clab
 ```
 make O=${BUILD} ${MACHINE}_defconfig
 make O=${BUILD} menuconfig
-
 ```
 
 * Build
