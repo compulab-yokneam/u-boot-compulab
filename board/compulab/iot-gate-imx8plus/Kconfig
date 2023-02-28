@@ -11,7 +11,6 @@ config SYS_CONFIG_NAME
 
 config DEFAULT_DTB
 	string "U-Boot Default Device Tree File"
-	depends on TARGET_IOT_GATE_IMX8PLUS
 	default "iot-gate-imx8plus.dtb"
 
 config SYS_I2C_EEPROM_BUS
@@ -24,15 +23,11 @@ config SYS_I2C_EEPROM_ADDR
 
 config SYS_I2C_EEPROM_BUS_SB
 	hex "SB eeprom bus address"
-	default 1
+	default 0x1
 
 config SYS_I2C_EEPROM_ADDR_SB
 	hex "SB eeprom dev address"
 	default 0x54
-
-config COMPULAB_DEBUG_UART1
-	bool "System Debug UART1"
-	default false
 
 source "board/compulab/plat/imx8mp/Kconfig"
 
