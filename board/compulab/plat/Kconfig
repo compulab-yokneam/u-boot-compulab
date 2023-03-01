@@ -1,4 +1,45 @@
-menu "Compulab platform features"
+choice
+	prompt  "CompuLab i.MX8M select"
+
+config TARGET_UCM_IMX8M_MINI
+	bool "CompuLab ucm-imx8m-mini"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_MCM_IMX8M_MINI
+	bool "CompuLab mcm-imx8m-mini"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_IOT_GATE_IMX8
+	bool "CompuLab iot-gate-imx8"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_UCM_IMX8M_PLUS
+	bool "CompuLab ucm-imx8m-plus"
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_SOM_IMX8M_PLUS
+	bool "CompuLab som-imx8m-plus"
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_IOT_GATE_IMX8PLUS
+	bool "CompuLab iot-gate-imx8plus"
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+endchoice
+
+menu "Compulab i.MX8MM platform features"
 	depends on TARGET_UCM_IMX8M_MINI || TARGET_MCM_IMX8M_MINI || TARGET_IOT_GATE_IMX8
 
 config SPL_REPORT_FAKE_MEMSIZE
@@ -9,3 +50,30 @@ config SPL_REPORT_FAKE_MEMSIZE
 	  size. For debug purposes ONLY!!!
 
 endmenu
+
+menu  "Compulab i.MX8MP platform features"
+	depends on TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_IOT_GATE_IMX8PLUS
+
+config DRAM_D2D4
+	bool "Enable D2D4 or D1D8 dram support"
+	default y
+	help
+	  If 'Y' then support for D2 and D4 configuration is enabled
+	  else support for D1 and D8 configuration is enabled
+
+config ATF_LOAD_ADDR
+	hex
+	default 0x00970000
+
+config TEE_LOAD_ADDR
+	hex
+	default 0x56000000
+
+endmenu
+
+source "board/compulab/ucm-imx8m-mini/Kconfig"
+source "board/compulab/mcm-imx8m-mini/Kconfig"
+source "board/compulab/iot-gate-imx8/Kconfig"
+source "board/compulab/ucm-imx8m-plus/Kconfig"
+source "board/compulab/som-imx8m-plus/Kconfig"
+source "board/compulab/iot-gate-imx8plus/Kconfig"
