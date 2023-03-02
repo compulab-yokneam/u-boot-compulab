@@ -17,7 +17,7 @@ It is up to developers to prepare the host machine; it requires:
 
 * WorkDir:
 ```
-mkdir -p clab-uboot-build/build && cd clab-uboot-build
+mkdir -p compulab-bootloader/build && cd compulab-bootloader
 export BUILD=$(pwd)/build
 ```
 * Set a CompuLab machine:
@@ -30,8 +30,8 @@ export BUILD=$(pwd)/build
 
 * Clone the source code:
 ```
-git clone https://github.com/compulab-yokneam/u-boot-clab.git
-cd u-boot-clab
+git clone https://github.com/compulab-yokneam/u-boot-compulab.git
+cd u-boot-compulab
 ```
 
 ## Create U-boot binary
