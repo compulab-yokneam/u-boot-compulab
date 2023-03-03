@@ -1090,7 +1090,7 @@ endef
 PHONY += inputs
 inputs: $(INPUTS-y)
 
-all: .binman_stamp inputs
+all: .binman_stamp inputs firmware
 ifeq ($(CONFIG_BINMAN),y)
 	$(call if_changed,binman)
 endif
@@ -1529,6 +1529,9 @@ tpl/u-boot-with-tpl.bin: tpl/u-boot-tpl.bin u-boot.bin FORCE
 
 SPL: spl/u-boot-spl.bin FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
+
+firmware:
+	make -C $(srctree)/board/compulab/plat/imx8mp/firmware all
 
 ifeq ($(CONFIG_ARCH_IMX8M)$(CONFIG_ARCH_IMX8), y)
 ifeq ($(CONFIG_SPL_LOAD_IMX_CONTAINER), y)
