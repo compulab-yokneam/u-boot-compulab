@@ -1,7 +1,13 @@
-all: bl31.bin lpddr4_pmu_train_1d_dmem_202006.bin lpddr4_pmu_train_1d_dmem.bin lpddr4_pmu_train_1d_imem_202006.bin lpddr4_pmu_train_1d_imem.bin lpddr4_pmu_train_2d_dmem_202006.bin lpddr4_pmu_train_2d_dmem.bin lpddr4_pmu_train_2d_imem_202006.bin lpddr4_pmu_train_2d_imem.bin tee.bin
+files := bl31.bin lpddr4_pmu_train_1d_dmem.bin lpddr4_pmu_train_1d_imem.bin lpddr4_pmu_train_2d_dmem.bin lpddr4_pmu_train_2d_imem.bin tee.bin
 
-bl31.bin lpddr4_pmu_train_1d_dmem_202006.bin lpddr4_pmu_train_1d_dmem.bin lpddr4_pmu_train_1d_imem_202006.bin lpddr4_pmu_train_1d_imem.bin lpddr4_pmu_train_2d_dmem_202006.bin lpddr4_pmu_train_2d_dmem.bin lpddr4_pmu_train_2d_imem_202006.bin lpddr4_pmu_train_2d_imem.bin tee.bin:
-	uudecode --output-file $@ $@.uue
+all: $(files)
+
+$(files):
+	for file in $(files); do \
+		uudecode --output-file $(O)/$$file $$file.uue; \
+	done;
 
 clean:
-	rm -rf *.bin
+	for file in $(files); do \
+		rm -rf $(O)/$$file; \
+	done;
