@@ -13,6 +13,15 @@ config DEFAULT_DTB
 	string
 	default "ucm-imx8m-plus.dtb"
 
+
+config DEFAULT_FDT_FILE
+	string
+	default "ucm-imx8m-plus.dtb"
+
+config DEFAULT_DEVICE_TREE
+	string
+	default "ucm-imx8m-plus"
+
 config SYS_I2C_EEPROM_BUS
 	int
 	default 1
