@@ -1473,6 +1473,9 @@ tpl/u-boot-with-tpl.bin: tpl/u-boot-tpl.bin u-boot.bin FORCE
 SPL: spl/u-boot-spl.bin FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 
+firmware:
+	$(MAKE) -C $(srctree)/board/compulab/plat/imx8mp/firmware all
+
 ifeq ($(CONFIG_ARCH_IMX8M)$(CONFIG_ARCH_IMX8), y)
 ifeq ($(CONFIG_SPL_LOAD_IMX_CONTAINER), y)
 u-boot.cnt: u-boot.bin FORCE
@@ -1481,7 +1484,7 @@ u-boot.cnt: u-boot.bin FORCE
 flash.bin: spl/u-boot-spl.bin u-boot.cnt FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 else
-flash.bin: spl/u-boot-spl.bin u-boot.itb FORCE
+flash.bin: spl/u-boot-spl.bin u-boot.itb firmware FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 endif
 endif
