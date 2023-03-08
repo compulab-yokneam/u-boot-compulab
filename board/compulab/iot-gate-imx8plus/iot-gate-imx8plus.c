@@ -95,6 +95,7 @@ static void iotg_imx8plus_detect_ext(void)
 			iotg_imx8plus_ext_id = type;
 			debug("%s: detected module type_idx = %d, type_name = %s\n", __func__, type,
 				iotg_imx8plus_ext_type_name[type]);
+			printf("Add-on Board:   %s\n", iotg_imx8plus_ext_type_name[type]);
 			return;
 		}
 	}
@@ -107,7 +108,8 @@ static void iotg_imx8plus_detect_ext(void)
  */
 static void iotg_imx8plus_select_dtb(void)
 {
-	char *env_fdt_file = env_get(IOTG_IMX8PLUS_ENV_FDT_FILE);
+	if (!env_get_yesno("ie_smart_setup"))
+		return;
 
 	debug("%s: set %s = %s\n", __func__, IOTG_IMX8PLUS_ENV_FDT_FILE,
 		iotg_imx8plus_dtb[iotg_imx8plus_ext_id]);
@@ -116,8 +118,19 @@ static void iotg_imx8plus_select_dtb(void)
 }
 
 void board_vendor_late_init(void) {
+#ifdef CONFIG_IE_SMART_SETUP
+	/* Check feature strategy and set to default if not defined explicitly */
+	if (env_get_yesno("ie_smart_setup") == -1) {
+	#ifdef CONFIG_IE_SMART_SETUP_DEFAULT_ON
+		env_set("ie_smart_setup", "yes");
+	#else
+		env_set("ie_smart_setup", "no");
+	#endif
+	}
+
 	/* Detect extension module in M.2 expantion connector */
 	iotg_imx8plus_detect_ext();
 	/* Apply an appropriate dtb */
 	iotg_imx8plus_select_dtb();
+#endif
 }
