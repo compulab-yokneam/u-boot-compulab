@@ -279,10 +279,12 @@ efi_status_t efi_init_obj_list(void)
 	if (ret != EFI_SUCCESS)
 		goto out;
 #endif
+#if 0
 #ifdef CONFIG_NET
 	ret = efi_net_register();
 	if (ret != EFI_SUCCESS)
 		goto out;
+#endif
 #endif
 #ifdef CONFIG_GENERATE_ACPI_TABLE
 	ret = efi_acpi_register();
