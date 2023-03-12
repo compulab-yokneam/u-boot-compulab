@@ -74,7 +74,7 @@ config DRAM_D2D4
 	  If 'Y' then support for D2 and D4 configuration is enabled
 	  else support for D1 and D8 configuration is enabled
 
-config IE_SMART_SETUP
+config ADDON_SMART_SETUP
         bool "CompuLab i.MX8M-Plus Add-on Board Smart Setup"
         default y
         help
@@ -84,25 +84,25 @@ config IE_SMART_SETUP
 choice
         prompt "Select Add-on Board Smart Setup default strategy"
 
-        depends on IE_SMART_SETUP
+        depends on ADDON_SMART_SETUP
         help
           Choose a default strategy for CompuLab i.MX8M-Plus Add-on Board Smart Setup: either Enabled or Disabled.
-          The default strategy can be overriden by "ie_smart_setup" environment variable
+          The default strategy can be overriden by "addon_smart_setup" environment variable
 
-config IE_SMART_SETUP_DEFAULT_OFF
+config ADDON_SMART_SETUP_DEFAULT_OFF
         bool "Disabled"
         default y
 	help
           Do not enable add-on boards in Linux kernel by default.
-          Can be overriden by setting "ie_smart_setup" environment variable
+          Can be overriden by setting "addon_smart_setup" environment variable
 	  to the true value (1/Y/y/T/t)
 
-config IE_SMART_SETUP_DEFAULT_ON
+config ADDON_SMART_SETUP_DEFAULT_ON
         bool "Enabled"
         default n
 	help
           Detect an add-on board type and enaible it in Linux kernel by default.
-          Can be overriden by setting "ie_smart_setup" environment variable
+          Can be overriden by setting "addon_smart_setup" environment variable
 	  to the false value (neither one of following: 1/Y/y/T/t)
 
 endchoice
