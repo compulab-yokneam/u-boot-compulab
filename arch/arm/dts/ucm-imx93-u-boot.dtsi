@@ -196,3 +196,7 @@
 	assigned-clock-parents = <&clk IMX93_CLK_SYS_PLL_PFD1>, <&clk IMX93_CLK_SYS_PLL_PFD1_DIV2>;
 	assigned-clock-rates = <400000000>, <133333334>;
 };
+
+&dphy {
+	/delete-property/ power-domains;
+};
