@@ -497,8 +497,19 @@ static const struct panel_ops ili9881c_panel_ops = {
 	.get_display_timing = ili9881c_panel_get_display_timing,
 };
 
+struct ili_platform_data {
+	int (*enable)(struct udevice *dev);
+};
+
+static int ili_enable(struct udevice *dev) {
+	return 0;
+}
+
+static const struct ili_platform_data ili_data = {
+	.enable = &ili_enable,
+};
 static const struct udevice_id ili9881c_panel_ids[] = {
-	{ .compatible = "startek,ili9881c" },
+	{ .compatible = "startek,ili9881c", .data = (ulong)&ili_data },
 	{ }
 };
 
@@ -509,5 +520,6 @@ U_BOOT_DRIVER(ili9881c_panel) = {
 	.ops			  = &ili9881c_panel_ops,
 	.probe			  = ili9881c_panel_probe,
 	.remove			  = ili9881c_panel_disable,
+	.plat_auto		= sizeof(struct mipi_dsi_panel_plat),
 	.priv_auto		= sizeof(struct ili9881c_panel_priv),
 };
