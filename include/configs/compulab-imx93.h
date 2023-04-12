@@ -70,9 +70,6 @@
 	CONFIG_MFG_ENV_SETTINGS \
 	BOOTENV \
 	AHAB_ENV \
-	"stdout=serial,vidconsole\0" \
-	"stderr=serial,vidconsole\0" \
-	"stdin=serial,usbkbd\0" \
 	"autoload=off\0" \
 	"scriptaddr=0x83500000\0" \
 	"kernel_addr_r=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
