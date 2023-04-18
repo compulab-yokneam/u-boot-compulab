@@ -631,6 +631,7 @@ static int mx8_rgmii_rework(struct phy_device *phydev)
 #include <common.h>
 #include <command.h>
 
+#ifdef TARGET_UCM_IMX8M_PLUS
 static char ldo4_help_text[] =
 	"value[8-33] - set 0x24 register value; voltage range: [0.80-3.30]\n"
 	"ldo4 value[0] - disable ldo4\n";
@@ -689,6 +690,7 @@ U_BOOT_CMD(
 	"get/set ldo4 value",
 	ldo4_help_text
 );
+#endif
 
 static char ddr_help_text[] =
 	"rdmr -- read mr[5-8] registers\n"
