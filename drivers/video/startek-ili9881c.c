@@ -18,7 +18,7 @@
 
 #define   LCD_XSIZE_TFT   720
 #define   LCD_YSIZE_TFT   1280
-#define   PCLOCK          62000
+#define   PCLOCK          62000000
 #define   LCD_VBPD        20
 #define   LCD_VFPD        10
 #define   LCD_VSPW        10
@@ -260,13 +260,14 @@ static const struct ili9881c_instr ili9881c_init[] = {
 
 struct ili9881c_panel_priv {
 	struct gpio_desc reset;
+	struct display_timing timing;
 	unsigned int lanes;
 	enum mipi_dsi_pixel_format format;
 	unsigned long mode_flags;
 };
 
-static const struct display_timing default_timing = {
-	.pixelclock.typ		= ( 61776000 << 1 ),
+static struct display_timing default_timing = {
+	.pixelclock.typ		= PCLOCK,
 	.hactive.typ		= LCD_XSIZE_TFT,
 	.hfront_porch.typ	= LCD_HFPD,
 	.hback_porch.typ	= LCD_HBPD,
@@ -425,6 +426,43 @@ static int ili9881c_panel_enable_backlight(struct udevice *dev)
 	return 0;
 }
 
+static void ili9881c_panel_show_display_timing(struct display_timing *timing) {
+	printf("\n");
+	printf("LCD: %dx%d, bpp=%d, clk=%d Hz\n",
+		timing->hactive.typ, timing->vactive.typ,
+		24, timing->pixelclock.typ);
+	printf("     hbp=%d, hfp=%d, hsw=%d\n",
+		timing->hback_porch.typ, timing->hfront_porch.typ,
+		timing->hsync_len.typ);
+	printf("     vbp=%d, vfp=%d, vsw=%d\n",
+		timing->vback_porch.typ, timing->vfront_porch.typ,
+		timing->vsync_len.typ);
+	return;
+}
+
+static int ili9881c_panel_of_to_plat(struct udevice *dev)
+{
+	struct ili9881c_panel_priv *priv = dev_get_priv(dev);
+	ofnode node;
+	int err;
+
+	printf("\ndriver: timing");
+	ili9881c_panel_show_display_timing(&default_timing);
+
+	err = ofnode_decode_display_timing(dev_ofnode(dev), 0, &priv->timing);
+	if (err) {
+		dev_warn(dev, "dtb: no display timings provided\n");
+		return 0;
+	}
+
+	memcpy(&default_timing, &priv->timing, sizeof(struct display_timing));
+
+	printf("\ndevice-tree: timing");
+	ili9881c_panel_show_display_timing(&default_timing);
+
+	return 0;
+}
+
 static int ili9881c_panel_get_display_timing(struct udevice *dev,
 					    struct display_timing *timings)
 {
@@ -518,6 +556,7 @@ U_BOOT_DRIVER(ili9881c_panel) = {
 	.id			  = UCLASS_PANEL,
 	.of_match		  = ili9881c_panel_ids,
 	.ops			  = &ili9881c_panel_ops,
+	.of_to_plat		  = ili9881c_panel_of_to_plat,
 	.probe			  = ili9881c_panel_probe,
 	.remove			  = ili9881c_panel_disable,
 	.plat_auto		= sizeof(struct mipi_dsi_panel_plat),
