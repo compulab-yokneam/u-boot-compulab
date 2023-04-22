@@ -18,13 +18,13 @@
 
 #define   LCD_XSIZE_TFT   720
 #define   LCD_YSIZE_TFT   1280
-#define   PCLOCK          62000000
-#define   LCD_VBPD        20
+#define   PCLOCK          60000000
+#define   LCD_VBPD        30
 #define   LCD_VFPD        10
-#define   LCD_VSPW        10
-#define   LCD_HBPD        30
-#define   LCD_HFPD        10
-#define   LCD_HSPW        20
+#define   LCD_VSPW        20
+#define   LCD_HBPD        10
+#define   LCD_HFPD        20
+#define   LCD_HSPW        10
 
 enum ili9881c_op {
     ILI9881C_SWITCH_PAGE,
@@ -276,9 +276,6 @@ static struct display_timing default_timing = {
 	.vfront_porch.typ	= LCD_VFPD,
 	.vback_porch.typ	= LCD_VBPD,
 	.vsync_len.typ		= LCD_VSPW,
-	.flags = DISPLAY_FLAGS_HSYNC_LOW |
-		 DISPLAY_FLAGS_VSYNC_LOW |
-		 DISPLAY_FLAGS_DE_LOW,
 };
 
 static u8 color_format_from_dsi_format(enum mipi_dsi_pixel_format format)
