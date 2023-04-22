@@ -57,9 +57,20 @@
 		compatible = "synopsys,dw-mipi-dsi";
 		status = "okay";
 	};
+};
 
-	ili9881c_panel {
+&dphy {
+	status = "okay";
+};
+
+&dsi {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	panel@0 {
 		compatible = "startek,ili9881c";
+		reg = <0>;
 		reset-gpio = <&pca9555 4 GPIO_ACTIVE_LOW>;
 		dsi-lanes = <4>;
 		panel-width-mm = <63>;
@@ -68,16 +79,22 @@
 
 		display-timings {
 			native-mode = <&timing1>;
-			timing1: timing1 {
-				clock-frequency = <62000000>;
-				hactive = <1280>;
-				vactive = <720>;
-				hfront-porch = <30>;
-				hback-porch = <10>;
-				hsync-len = <20>;
-				vback-porch = <20>;
+				timing1: timing1 {
+				clock-frequency = <60000000>;
+				/*x*/
+				hsync-len    = <10>;
+				hback-porch  = <10>;
+				hactive      = <720>;
+				hfront-porch  = <20>;
+				/*y*/
+				vsync-len    = <20>;
+				vback-porch  = <30>;
+				vactive      = <1280>;
 				vfront-porch = <10>;
-				vsync-len = <10>;
+				/*polarity*/
+				vsync-active = <1>;
+				hsync-active = <1>;
+				de-active = <1>;
 			};
 		};
 		port {
@@ -86,15 +103,6 @@
 			};
 		};
 	};
-};
-
-&dphy {
-	status = "okay";
-};
-
-&dsi {
-	status = "okay";
-
 	ports {
 		port@1 {
 			dsi_out: endpoint {
