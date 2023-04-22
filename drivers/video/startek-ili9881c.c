@@ -423,15 +423,15 @@ static int ili9881c_panel_enable_backlight(struct udevice *dev)
 	return 0;
 }
 
-static void ili9881c_panel_show_display_timing(struct display_timing *timing) {
-	printf("\n");
-	printf("LCD: %dx%d, bpp=%d, clk=%d Hz\n",
+static void ili9881c_panel_show_display_timing(struct udevice *dev, struct display_timing *timing) {
+	dev_dbg(dev,"\n");
+	dev_dbg(dev,"LCD: %dx%d, bpp=%d, clk=%d Hz\n",
 		timing->hactive.typ, timing->vactive.typ,
 		24, timing->pixelclock.typ);
-	printf("     hbp=%d, hfp=%d, hsw=%d\n",
+	dev_dbg(dev,"     hbp=%d, hfp=%d, hsw=%d\n",
 		timing->hback_porch.typ, timing->hfront_porch.typ,
 		timing->hsync_len.typ);
-	printf("     vbp=%d, vfp=%d, vsw=%d\n",
+	dev_dbg(dev,"     vbp=%d, vfp=%d, vsw=%d\n",
 		timing->vback_porch.typ, timing->vfront_porch.typ,
 		timing->vsync_len.typ);
 	return;
@@ -440,11 +440,10 @@ static void ili9881c_panel_show_display_timing(struct display_timing *timing) {
 static int ili9881c_panel_of_to_plat(struct udevice *dev)
 {
 	struct ili9881c_panel_priv *priv = dev_get_priv(dev);
-	ofnode node;
 	int err;
 
-	printf("\ndriver: timing");
-	ili9881c_panel_show_display_timing(&default_timing);
+	dev_dbg(dev,"\ndriver: timing");
+	ili9881c_panel_show_display_timing(dev, &default_timing);
 
 	err = ofnode_decode_display_timing(dev_ofnode(dev), 0, &priv->timing);
 	if (err) {
@@ -454,8 +453,8 @@ static int ili9881c_panel_of_to_plat(struct udevice *dev)
 
 	memcpy(&default_timing, &priv->timing, sizeof(struct display_timing));
 
-	printf("\ndevice-tree: timing");
-	ili9881c_panel_show_display_timing(&default_timing);
+	dev_dbg(dev,"\ndevice-tree: timing");
+	ili9881c_panel_show_display_timing(dev, &default_timing);
 
 	return 0;
 }
