@@ -77,6 +77,7 @@
 	"splashimage=0x90000000\0" \
 	"console=ttyLP0,115200 earlycon\0" \
 	"fdt_addr_r=0x83000000\0"			\
+	"fdto_addr_r=0x83800000\0"			\
 	"fdt_addr=0x83000000\0"			\
 	"fdt_high=0xffffffffffffffff\0"		\
 	"cntr_addr=0x98000000\0"			\
@@ -145,24 +146,49 @@
 				"fi; " \
 			"fi;" \
 		"fi;\0" \
+		"emmc_root=/dev/mmcblk0p2\0" \
+		"sd_root=/dev/mmcblk1p2\0" \
+		"usb_root=/dev/sda2\0" \
+		"usb_dev=0\0" \
+		"boot_part=1\0" \
+		"root_opt=rootwait rw\0" \
+		"emmc_ul=setenv iface mmc; setenv dev ${emmc_dev}; setenv part ${boot_part};" \
+		"setenv bootargs console=${console} root=${emmc_root} ${root_opt};\0" \
+		"sd_ul=setenv iface mmc; setenv dev ${sd_dev}; setenv part ${boot_part};" \
+			"setenv bootargs console=${console} root=${sd_root} ${root_opt};\0" \
+		"usb_ul=usb start; setenv iface usb; setenv dev ${usb_dev}; setenv part ${boot_part};" \
+			"setenv bootargs console=${console} root=${usb_root} ${root_opt};\0" \
+		"ulbootscript=load ${iface} ${dev}:${part} ${loadaddr} ${script};\0" \
+		"ulimage=load ${iface} ${dev}:${part} ${loadaddr} ${image}\0" \
+		"ulfdt=if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
+			"echo load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; " \
+			"load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; " \
+				"if itest.s x != x${fdtofile}; then" \
+				    "load ${iface} ${dev}:${part} ${fdto_addr_r} ${fdtofile};"\
+				    "fdt addr ${fdt_addr_r}; fdt resize 0x8000; fdt apply ${fdto_addr_r};" \
+				"else" \
+				    "true;" \
+				"fi;" \
+			"fi;\0" \
+		"bootlist=sd_ul usb_ul emmc_ul\0" \
 	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
-		"mmc dev ${mmcdev}; if mmc rescan; then " \
-		   "if run loadbootscript; then " \
-			   "run bootscript; " \
-		   "else " \
-			   "if test ${sec_boot} = yes; then " \
-				   "if run loadcntr; then " \
-					   "run mmcboot; " \
-				   "else run netboot; " \
-				   "fi; " \
-			    "else " \
-				   "if run loadimage; then " \
-					   "run mmcboot; " \
-				   "else run netboot; " \
-				   "fi; " \
+		"for src in ${bootlist}; do " \
+			"run ${src}; " \
+			"env exist boot_opt && env exists bootargs && setenv bootargs ${bootargs} ${boot_opt}; " \
+			"if run ulbootscript; then " \
+				"run bootscript; " \
+			"else " \
+				"if run ulimage; then " \
+					"if run ulfdt; then " \
+						"booti ${loadaddr} - ${fdt_addr_r}; " \
+					"else " \
+						"if test ${boot_fdt} != yes; then " \
+							"booti ${loadaddr}; " \
+						"fi; " \
+					"fi; " \
 				"fi; " \
-		   "fi; " \
-	   "fi;"
+			"fi; " \
+		"done; "
 
 /* Link Definitions */
 
