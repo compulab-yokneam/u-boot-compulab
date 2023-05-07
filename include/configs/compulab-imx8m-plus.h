@@ -83,6 +83,7 @@
 	"splashimage=0x50000000\0" \
 	"console=ttymxc1,115200 console=tty1\0" \
 	"fdt_addr_r=0x43000000\0"			\
+	"fdto_addr_r=0x43800000\0"			\
 	"fdt_addr=0x43000000\0"			\
 	"boot_fdt=try\0" \
 	"fdt_high=0xffffffffffffffff\0"		\
@@ -145,9 +146,16 @@
 		"ulbootscript=load ${iface} ${dev}:${part} ${loadaddr} ${script};\0" \
 		"ulimage=load ${iface} ${dev}:${part} ${loadaddr} ${image}\0" \
 		"ulfdt=if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; fi;\0" \
+			"load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; " \
+			"if itest.s x != x${fdtofile}; then " \
+			    "load ${iface} ${dev}:${part} ${fdto_addr_r} ${fdtofile};" \
+			    "fdt addr ${fdt_addr_r}; fdt resize 0x8000; fdt apply ${fdto_addr_r};" \
+			"else " \
+			    "true;" \
+			"fi;" \
+		"fi;\0" \
 		"bootlist=usb_ul sd_ul emmc_ul\0" \
-	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
+		"bsp_bootcmd=echo Running BSP bootcmd ...; " \
 		"for src in ${bootlist}; do " \
 			"run ${src}; " \
 			"env exist boot_opt && env exists bootargs && setenv bootargs ${bootargs} ${boot_opt}; " \
