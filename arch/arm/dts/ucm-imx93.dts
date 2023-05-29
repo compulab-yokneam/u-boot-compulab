@@ -125,13 +125,6 @@
 	pinctrl-0 = <&pinctrl_lpi2c1>;
 	pinctrl-1 = <&pinctrl_lpi2c1>;
 	status = "okay";
-
-        pca9555:pca9555@20 {
-                compatible = "nxp,pca9555";
-                gpio-controller;
-                #gpio-cells = <2>;
-                reg = <0x20>;
-        };
 };
 
 &lpi2c2 {
@@ -244,6 +237,14 @@
 	pinctrl-0 = <&pinctrl_lpi2c3>;
 	pinctrl-1 = <&pinctrl_lpi2c3>;
 	status = "okay";
+
+        pca9555:pca9555@20 {
+                compatible = "nxp,pca9555";
+                gpio-controller;
+                #gpio-cells = <2>;
+                reg = <0x20>;
+        };
+
 };
 
 &lpuart1 { /* console */
@@ -265,8 +266,10 @@
 	hnp-disable;
 	srp-disable;
 	adp-disable;
-	/*usb-role-switch;*/
+	usb-role-switch;
 	disable-over-current;
+	samsung,picophy-pre-emp-curr-control = <3>;
+	samsung,picophy-dc-vol-level-adjust = <7>;
 	status = "okay";
 };
 
@@ -275,7 +278,7 @@
 	hnp-disable;
 	srp-disable;
 	adp-disable;
-	/*usb-role-switch;*/
+	usb-role-switch;
 	disable-over-current;
 	samsung,picophy-pre-emp-curr-control = <3>;
 	samsung,picophy-dc-vol-level-adjust = <7>;
