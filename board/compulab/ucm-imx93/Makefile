@@ -14,7 +14,3 @@ else
 obj-$(CONFIG_UCM_IMX93_LPDDR4X) += lpddr4x_timing.o
 endif
 endif
-
-ifndef CONFIG_SPL_BUILD
-obj-$(CONFIG_USB_TCPC) += ../../freescale/common/tcpc.o
-endif
