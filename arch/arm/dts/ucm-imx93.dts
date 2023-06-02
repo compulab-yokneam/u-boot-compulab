@@ -83,12 +83,12 @@
 				clock-frequency = <60000000>;
 				/*x*/
 				hsync-len    = <10>;
-				hback-porch  = <10>;
+				hback-porch  = <30>;
 				hactive      = <720>;
 				hfront-porch  = <20>;
 				/*y*/
-				vsync-len    = <20>;
-				vback-porch  = <30>;
+				vsync-len    = <10>;
+				vback-porch  = <20>;
 				vactive      = <1280>;
 				vfront-porch = <10>;
 				/*polarity*/
@@ -114,7 +114,7 @@
 
 &lcdif {
 	status = "okay";
-	assigned-clock-rates = <484000000>, <121000000>, <400000000>, <133333333>;
+	assigned-clock-rates = <300000000>, <121000000>, <400000000>, <133333333>;
 };
 
 &lpi2c1 {
