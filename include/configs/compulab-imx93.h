@@ -163,10 +163,10 @@
 		"ulfdt=if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
 			"echo load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; " \
 			"load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; " \
-				"if itest.s x != x${fdtofile}; then" \
+				"if itest.s x != x${fdtofile}; then " \
 				    "load ${iface} ${dev}:${part} ${fdto_addr_r} ${fdtofile};"\
 				    "fdt addr ${fdt_addr_r}; fdt resize 0x8000; fdt apply ${fdto_addr_r};" \
-				"else" \
+				"else " \
 				    "true;" \
 				"fi;" \
 			"fi;\0" \
