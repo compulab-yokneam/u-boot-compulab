@@ -128,6 +128,17 @@ static void board_gpio_init(void)
 	dm_gpio_set_value(&desc, 1);
 }
 
+#if defined(CONFIG_FEC_MXC) || defined(CONFIG_DWC_ETH_QOS)
+static void board_get_mac_from_eeprom(int dev_id) {
+	unsigned char mac[6];
+	cl_eeprom_read_n_mac_addr(mac, dev_id, CONFIG_SYS_I2C_EEPROM_BUS);
+	eth_env_set_enetaddr_by_index("eth",dev_id,mac);
+	return;
+}
+#else
+static void board_get_mac_from_eeprom(int dev_id) { return;}
+#endif
+
 int board_init(void)
 {
 	if (CONFIG_IS_ENABLED(FEC_MXC))
@@ -156,6 +167,9 @@ int board_late_init(void)
 	env_set("board_name", "UCM-iMX93");
 	env_set("board_rev", "iMX93");
 #endif
+	board_get_mac_from_eeprom(0);
+	board_get_mac_from_eeprom(1);
+
 	return 0;
 }
 
