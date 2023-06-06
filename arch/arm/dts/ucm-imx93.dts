@@ -17,6 +17,8 @@
 
 	aliases {
 		i2c8 = &flexio_i2c_master;
+		ethernet0 = &eqos;
+		ethernet1 = &fec;
 	};
 
 	reserved-memory {
