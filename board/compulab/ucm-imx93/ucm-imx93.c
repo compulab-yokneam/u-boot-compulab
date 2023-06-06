@@ -20,6 +20,7 @@
 #include <usb.h>
 #include <dwc3-uboot.h>
 #include <asm/gpio.h>
+#include "../common/eeprom.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
