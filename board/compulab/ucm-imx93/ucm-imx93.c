@@ -132,6 +132,10 @@ static void board_gpio_init(void)
 static void board_get_mac_from_eeprom(int dev_id) {
 	unsigned char mac[6];
 	cl_eeprom_read_n_mac_addr(mac, dev_id, CONFIG_SYS_I2C_EEPROM_BUS);
+
+	if (is_zero_ethaddr(mac) || !is_valid_ethaddr(mac))
+		net_random_ethaddr(mac);
+
 	eth_env_set_enetaddr_by_index("eth",dev_id,mac);
 	return;
 }
