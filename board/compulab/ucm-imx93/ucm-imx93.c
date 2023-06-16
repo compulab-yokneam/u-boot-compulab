@@ -32,6 +32,10 @@ static iomux_v3_cfg_t const uart_pads[] = {
 	MX93_PAD_UART1_TXD__LPUART1_TX | MUX_PAD_CTRL(UART_PAD_CTRL),
 };
 
+static iomux_v3_cfg_t const gpio_pads[] = {
+	MX93_PAD_PDM_CLK__GPIO1_IO08 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
+
 int board_early_init_f(void)
 {
 	imx_iomux_v3_setup_multiple_pads(uart_pads, ARRAY_SIZE(uart_pads));
@@ -100,31 +104,35 @@ static int setup_eqos(void)
 
 static void board_gpio_init(void)
 {
-	struct gpio_desc desc;
 	int ret;
+	struct gpio_desc desc;
+	struct udevice *dev;
 
-	/* Enable EXT1_PWREN for PCIE_3.3V */
-	ret = dm_gpio_lookup_name("gpio@22_13", &desc);
-	if (ret)
+	imx_iomux_v3_setup_multiple_pads(gpio_pads, ARRAY_SIZE(gpio_pads));
+
+	/* enable i2c port expander assert reset line first */
+	/* we can't use dm_gpio_lookup_name for GPIO1_8, because the func will probe the
+	 * uclass list until find the device. The expander device is at begin of the list due to
+	 * I2c nodes is prior than gpio in the DTS. So if the func goes through the uclass list,
+	 * probe to expander will fail, and exit the dm_gpio_lookup_name func. Thus, we always
+	 * fail to get the device
+	*/
+	ret = uclass_get_device_by_seq(UCLASS_GPIO, 0, &dev);
+	if (ret) {
+		printf("%s failed to find GPIO1 device, ret = %d\n", __func__, ret);
 		return;
+	}
 
-	ret = dm_gpio_request(&desc, "EXT1_PWREN");
-	if (ret)
+	desc.dev = dev;
+	desc.offset = 8;
+	desc.flags = 0;
+
+	ret = dm_gpio_request(&desc, "EXP_nPWREN");
+	if (ret) {
+		printf("%s request ioexp_rst failed ret = %d\n", __func__, ret);
 		return;
-
-	dm_gpio_set_dir_flags(&desc, GPIOD_IS_OUT);
-	dm_gpio_set_value(&desc, 1);
-
-	/* Deassert SD3_nRST */
-	ret = dm_gpio_lookup_name("gpio@22_12", &desc);
-	if (ret)
-		return;
-
-	ret = dm_gpio_request(&desc, "SD3_nRST");
-	if (ret)
-		return;
-
-	dm_gpio_set_dir_flags(&desc, GPIOD_IS_OUT);
+	}
+	dm_gpio_set_dir_flags(&desc, GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE);
 	dm_gpio_set_value(&desc, 1);
 }
 
