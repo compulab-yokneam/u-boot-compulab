@@ -1531,7 +1531,7 @@ SPL: spl/u-boot-spl.bin FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 
 firmware:
-	$(MAKE) -C $(srctree)/board/compulab/plat/imx8mp/firmware all
+	#$(MAKE) -C $(srctree)/board/compulab/plat/imx8mp/firmware all
 
 ifeq ($(CONFIG_ARCH_IMX8M)$(CONFIG_ARCH_IMX8), y)
 ifeq ($(CONFIG_SPL_LOAD_IMX_CONTAINER), y)
