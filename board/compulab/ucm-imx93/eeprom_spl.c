@@ -23,27 +23,7 @@
 #define CONFIG_SYS_I2C_EEPROM_BUS	1
 #endif
 
-// const static iomux_v3_cfg_t eeprom_pads[] = {
-// 	IMX8MQ_PAD_GPIO1_IO13__GPIO1_IO13 | MUX_PAD_CTRL(NO_PAD_CTRL),
-// };
-
 #define EEPROM_WP_GPIO IMX_GPIO_NR(1, 13)
-
-// static void cl_eeprom_we(int enable)
-// {
-// 	static int done = 0;
-
-// 	if (done) {
-// 		gpio_direction_output(EEPROM_WP_GPIO, enable);
-// 		return;
-// 	}
-
-// 	imx_iomux_v3_setup_multiple_pads(
-// 		eeprom_pads, ARRAY_SIZE(eeprom_pads));
-// 	gpio_request(EEPROM_WP_GPIO, "eeprom_wp");
-// 	gpio_direction_output(EEPROM_WP_GPIO, enable);
-// 	done = 1;
-// }
 
 struct eeprom_path {
 	int bus;
