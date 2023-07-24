@@ -43,17 +43,23 @@ struct lpddr4_desc {
 };
 
 static const struct lpddr4_desc lpddr4_array[] = {
-	{.name = "deadbeaf",	.id = 0xdeadbeaf, .subind = 0x1, .size = 512, .count = 1,
+	{.name = "dummy cfg",	.id = 0xdeadbeef, .subind = 0x1, .size = 512, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &dram_timing
+#endif
+	},
+	{.name = "Micron",	.id = 0xff000110, .subind = 0xff, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+	// .timing = &dram_timing
+ .timing = &ucm_dram_timing_ff000110
+#endif
+	},
+	{.name = "Micron",	.id = 0xff060018, .subind = 0x8, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &dram_timing
 #endif
 	},
 	{.name = "Samsung",	.id = 0x01050008, .subind = 0x1, .size = 512, .count = 1,
-#ifdef CONFIG_SPL_BUILD
-		.timing = &dram_timing
-#endif
-	},
-	{.name = "Micron",	.id = 0xff060018, .subind = 0x8, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &dram_timing
 #endif
