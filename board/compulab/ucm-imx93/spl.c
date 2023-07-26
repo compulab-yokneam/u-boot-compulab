@@ -32,8 +32,7 @@
 #include <power/pmic.h>
 #include <power/pca9450.h>
 #include <asm/arch/trdc.h>
-#include <bloblist.h>
-#include <handoff.h>
+#include "ddr/ddr.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -42,30 +41,9 @@ int spl_board_boot_device(enum boot_device boot_dev_spl)
 	return BOOT_DEVICE_BOOTROM;
 }
 
-static int spl_dram_size_handoff(void)
-{
-	struct spl_handoff *ho;
-
-	ho = bloblist_find(BLOBLISTT_U_BOOT_SPL_HANDOFF, sizeof(*ho));
-	if (!ho) {
-		printf("Missing SPL hand-off info");
-	} else {
-		ho->ram_size = 0x40000000;
-		printf("%s [ 0x%lx ]\n",__func__,ho->ram_size);
-		handoff_load_dram_size(ho);
-	}
-	return 0;
-}
-
 void spl_board_init(void)
 {
-	spl_dram_size_handoff();
 	puts("Normal Boot\n");
-}
-
-void spl_dram_init(void)
-{
-	ddr_init(&dram_timing);
 }
 
 #if CONFIG_IS_ENABLED(DM_PMIC_PCA9450)
