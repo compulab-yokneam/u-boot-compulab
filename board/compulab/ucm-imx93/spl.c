@@ -32,6 +32,7 @@
 #include <power/pmic.h>
 #include <power/pca9450.h>
 #include <asm/arch/trdc.h>
+#include "ddr/ddr.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -43,11 +44,6 @@ int spl_board_boot_device(enum boot_device boot_dev_spl)
 void spl_board_init(void)
 {
 	puts("Normal Boot\n");
-}
-
-void spl_dram_init(void)
-{
-	ddr_init(&dram_timing);
 }
 
 #if CONFIG_IS_ENABLED(DM_PMIC_PCA9450)
