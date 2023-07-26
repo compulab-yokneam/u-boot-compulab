@@ -114,8 +114,8 @@ static void write_ddr_info_to_eeprom(u32 id_in) {
 	}
 }
 
-static void write_subind_to_eeprom(u8 subind_in) {
-	u8 subind_out = 0xff;
+static void write_subind_to_eeprom(unsigned char subind_in) {
+	unsigned char subind_out = 0;
 	cl_eeprom_set_subind(subind_in);
 	mdelay(20);
 	subind_out = cl_eeprom_get_subind();
@@ -127,27 +127,8 @@ static void write_subind_to_eeprom(u8 subind_in) {
 	}
 }
 
-static u8 get_ddr_timing_index_with_next_subind(u32 ddr_info, u8 invalid_subind) {
-	u8 i = 2;
-	while (i < ARRAY_SIZE(lpddr4_array)) {
-		if ((lpddr4_array[i].id == ddr_info) && (lpddr4_array[i].subind == invalid_subind)) {
-			i++;
-			break;
-		}
-		i++;
-	}
-	while (i < ARRAY_SIZE(lpddr4_array)) {
-		if (lpddr4_array[i].id == ddr_info) {
-			return i;
-		}
-		i++;
-	}
-	printf("DDRINFO: didn't find cfg for ddr info 0x%x\n", ddr_info);
-	return 0;
-}
-
-static u8 get_valid_ddr_timing_index(u32 ddr_info, u8 subind) {
-	for (u8 i = 1; i < ARRAY_SIZE(lpddr4_array); i++)
+static unsigned char get_valid_ddr_timing_index(u32 ddr_info, unsigned char subind) {
+	for (unsigned char i = 1; i < ARRAY_SIZE(lpddr4_array); i++)
 	{
 		if ((lpddr4_array[i].id == ddr_info) && (lpddr4_array[i].subind == subind))
 		{
@@ -158,8 +139,27 @@ static u8 get_valid_ddr_timing_index(u32 ddr_info, u8 subind) {
 	return 0;
 }
 
-static u8 get_ddr_timing_index(u32 ddr_info) {
-	for (u8 i = 1; i < ARRAY_SIZE(lpddr4_array); i++)
+static unsigned char get_next_subind(u32 ddr_info, unsigned char subind) {//test this by trying to init with non working timing first
+	unsigned char i = 1;
+	while (i < ARRAY_SIZE(lpddr4_array)) {
+		if ((lpddr4_array[i].id == ddr_info) && (lpddr4_array[i].subind == subind)) {
+			break;
+		}
+		i++;
+	}
+	i++;
+	while (i < ARRAY_SIZE(lpddr4_array)) {
+		if (lpddr4_array[i].id == ddr_info) {
+			return lpddr4_array[i].subind;
+		}
+		i++;
+	}
+	printf("DDRINFO: didn't find another cfg for ddr info 0x%x\n", ddr_info);
+	return 0;
+}
+
+static unsigned char get_ddr_timing_index(u32 ddr_info) {
+	for (unsigned char i = 1; i < ARRAY_SIZE(lpddr4_array); i++)
 	{
 		if (lpddr4_array[i].id == ddr_info)
 		{
@@ -177,139 +177,64 @@ static inline void share_ddr_info_on_ocram(void) {
 #endif
 }
 
-static int initialize_ddr(const struct lpddr4_desc* ddr_desc) {
+static bool initialize_ddr(const struct lpddr4_desc* ddr_desc) {
 	if (ddr_init(ddr_desc->timing))
 	{
 		printf("DDRINFO: failed applying cfg: %s %dMB @ %d MHz\n", ddr_desc->name, ddr_desc->size, ddr_desc->timing->fsp_table[0]);
-		return 1;
+		return false;
 	}
 	else
 	{
 		printf("DDRINFO: applied cfg: %s %dMB @ %d MHz\n", ddr_desc->name, ddr_desc->size, ddr_desc->timing->fsp_table[0]);
-		return 0;
+		return true;
 	}
 }
 
-static void set_state(u32 state) {
-	spl_tcm_data.ddr_init_status = state;
-	lpddr4_data_set(SPL_TCM_DATA);
-}
-
-#define DDR_CFG_VALID 							0x11111111
-#define NAIVE_DDR_INIT 							0x22222222
-#define DDR_INIT_FAILED_BUT_ANOTHER_CFG_EXISTS 	0x33333333
-#define CFG_UNKNOWN 							0x44444444
-
-void die(void) {
-	set_state(CFG_UNKNOWN);
-	while (1)
-	{
-	};
-}
-
-static void go_to_state(u32 state) {
-	set_state(state);
-	do_reset(NULL, 0, 0, NULL);
-}
-
-static int get_occurences_of_ddr_info(u32 ddr_info) {
-	int count = 0;
-	for (u8 i = 1; i < ARRAY_SIZE(lpddr4_array); i++)
-	{
-		if (lpddr4_array[i].id == ddr_info)
-		{
-			count++;
-		}
-	}
-	return count;
-}
-
-static bool there_is_another_cfg_for_this_ddr_info(u32 ddr_info) {
-	return (1 < get_occurences_of_ddr_info(ddr_info));
-}
-
-static const struct lpddr4_desc* get_ddr_desc(u8 i) {
-	if (i == 0) {
-		die();
-	}
+static const struct lpddr4_desc* get_ddr_desc(unsigned char i) {
 	return &lpddr4_array[i];
 }
 
 /*
 testing:
-after ddr came up:
-check current eeprom state:						i2c dev 0; i2c md 0x51 0x0 0x50
-sabotage subind to check recovery after reset: 	i2c mw 0x51 0x44 0xff
-sabotage ddrinfo to check recovery after reset: i2c mw 0x51 0x40 0xff; i2c mw 0x51 0x41 0xff; i2c mw 0x51 0x42 0xff; i2c mw 0x51 0x43 0xff
-sabotage state to check recovery after reset: 	i2c mw 0x51 0xe 0xff
+after ddr came up check current eeprom state:
+i2c dev 0;
+i2c md 0x51 0x0 0x50
+
+sabotage subind to check recovery after reset:
+i2c mw 0x51 0x44 0xff
+
+sabotage ddrinfo to check recovery after reset:
+i2c mw 0x51 0x40 0x10; i2c mw 0x51 0x41 0x01; i2c mw 0x51 0x42 0x00; i2c mw 0x51 0x43 0xff
 */
+
+void initialize_ddr_info() {
+	u32 ddr_info = lpddr4_get_mr();
+	const struct lpddr4_desc* ddr_desc = get_ddr_desc(get_ddr_timing_index(ddr_info));
+	if (ddr_desc->id == 0xdeadbeef) {
+		do_reset(NULL, 0, 0, NULL);
+	}
+	write_ddr_info_to_eeprom(ddr_info);
+	write_subind_to_eeprom(ddr_desc->subind);
+}
 
 void spl_dram_init(void) {
 	const struct lpddr4_desc* ddr_desc;
 	u32 ddr_info = cl_eeprom_get_ddrinfo();
-	u8 subind = cl_eeprom_get_subind();
-	lpddr4_data_get(SPL_TCM_DATA);
-	switch (spl_tcm_data.ddr_init_status) {
-	case DDR_CFG_VALID:
-	{
-		int i = get_valid_ddr_timing_index(ddr_info, subind);
-		if (i == 0) {
-			go_to_state(CFG_UNKNOWN);
-		}
-		ddr_desc = get_ddr_desc(i);
-		if (initialize_ddr(ddr_desc)) {
-			go_to_state(CFG_UNKNOWN);
-		}
-		break;
-	}
-	case NAIVE_DDR_INIT:
-	{
-		printf("DDRINFO: NAIVE_DDR_INIT\n");
-		ddr_desc = get_ddr_desc(get_ddr_timing_index(ddr_info));
-		write_subind_to_eeprom(ddr_desc->subind);
-		if (initialize_ddr(ddr_desc)) {
-			if (there_is_another_cfg_for_this_ddr_info(ddr_info)) {
-				go_to_state(DDR_INIT_FAILED_BUT_ANOTHER_CFG_EXISTS);
-			}
-			else {
-				die();
-			}
-		}
-		break;
-	}
-	case DDR_INIT_FAILED_BUT_ANOTHER_CFG_EXISTS:
-	{
-		printf("DDRINFO: DDR_INIT_FAILED_BUT_ANOTHER_CFG_EXISTS\n");
-		ddr_desc = get_ddr_desc(get_ddr_timing_index_with_next_subind(ddr_info, subind));
-		write_subind_to_eeprom(ddr_desc->subind);
-		if (initialize_ddr(ddr_desc)) {
-			go_to_state(DDR_INIT_FAILED_BUT_ANOTHER_CFG_EXISTS);
-		}
-		else {
-			die();
-		}
-		break;
-	}
-	default:
-	{
-		u32 ddr_info = 0xdeadbeef;
-		printf("DDRINFO: CFG_UNKNOWN\n");
+	unsigned char subind = cl_eeprom_get_subind();
+	int i = get_valid_ddr_timing_index(ddr_info, subind);
+	if (i == 0) {
 		printf("DDRINFO: set dummy cfg to enable reading mr[5-8]\n");
-		if (initialize_ddr(&lpddr4_array[0]))
-		{
-			die();
-		}
-		ddr_info = lpddr4_get_mr();
-		if (get_ddr_timing_index(ddr_info) == 0) {
-			die();
-		}
-		write_ddr_info_to_eeprom(ddr_info);
-		set_state(NAIVE_DDR_INIT);
+	}
+	lpddr4_data_get(SPL_TCM_DATA);
+	ddr_desc = get_ddr_desc(i);
+	if (initialize_ddr(ddr_desc) == false) {
+		write_subind_to_eeprom(get_next_subind(ddr_info, subind));
 		do_reset(NULL, 0, 0, NULL);
-		break;
 	}
+	if (i == 0) {
+		initialize_ddr_info();
+		do_reset(NULL, 0, 0, NULL);
 	}
-	set_state(DDR_CFG_VALID);
 	spl_tcm_data.size = ddr_desc->size;
 	share_ddr_info_on_ocram();
 }
