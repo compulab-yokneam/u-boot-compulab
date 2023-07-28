@@ -328,16 +328,16 @@
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy2>;
 	fsl,magic-packet;
-	status = "disabled";
+	status = "okay";
 
 	mdio {
 		#address-cells = <1>;
 		#size-cells = <0>;
 		clock-frequency = <5000000>;
 
-		ethphy2: ethernet-phy@2 {
+		ethphy2: ethernet-phy-fec@5 {
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <2>;
+			reg = <5>;
 			eee-broken-1000t;
 			rtl821x,aldps-disable;
 			rtl821x,clkout-disable;
@@ -358,7 +358,7 @@
 		#size-cells = <0>;
 		clock-frequency = <5000000>;
 
-		ethphy1: ethernet-phy@4 {
+		ethphy1: ethernet-phy-eqos@4 {
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <4>;
 			eee-broken-1000t;
