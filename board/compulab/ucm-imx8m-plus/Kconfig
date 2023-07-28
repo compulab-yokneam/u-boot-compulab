@@ -1,0 +1,37 @@
+if TARGET_UCM_IMX8M_PLUS
+
+config SYS_BOARD
+	default "ucm-imx8m-plus"
+
+config SYS_VENDOR
+	default "compulab"
+
+config SYS_CONFIG_NAME
+	default "ucm-imx8m-plus"
+
+config DEFAULT_DTB
+	default "sbc-ucm-imx8m-plus.dtb"
+
+config DEFAULT_FDT_FILE
+	default "ucm-imx8m-plus.dtb"
+
+config DEFAULT_DEVICE_TREE
+	default "ucm-imx8m-plus"
+
+config SYS_I2C_EEPROM_BUS
+	int "SOM eeprom bus address"
+	default 1
+
+config SYS_I2C_EEPROM_ADDR
+	hex "SOM eeprom dev address"
+	default 0x50
+
+config SYS_I2C_EEPROM_BUS_SB
+	hex "SB eeprom bus address"
+	default 0x4
+
+config SYS_I2C_EEPROM_ADDR_SB
+	hex "SB eeprom dev address"
+	default 0x54
+
+endif

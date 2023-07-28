@@ -1,0 +1,47 @@
+if TARGET_UCM_IMX93
+
+config SYS_BOARD
+	default "ucm-imx93"
+
+config SYS_VENDOR
+	default "compulab"
+
+config SYS_CONFIG_NAME
+	default "ucm-imx93"
+
+config DEFAULT_DEVICE_TREE
+	default "ucm-imx93"
+
+config DEFAULT_FDT_FILE
+	default "ucm-imx93.dtb"
+
+config ENV_IS_IN_MMC
+	bool
+	default y
+
+config ENV_OFFSET
+	hex
+	default 0x300000
+
+config ENV_SIZE
+	hex
+	default 0x4000
+
+config SYS_MMC_ENV_DEV
+	int
+	default 0
+
+config SYS_MMC_ENV_PART
+	int
+	default 1
+
+config UCM_IMX93_LPDDR4X
+	bool "Using LPDDR4X Timing and PMIC voltage"
+	default y
+	select IMX9_LPDDR4X
+	help
+	  Select the LPDDR4X timing and 0.6V VDDQ
+
+source "board/freescale/common/Kconfig"
+
+endif

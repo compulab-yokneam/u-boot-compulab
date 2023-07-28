@@ -1,8 +1,9 @@
-// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2014 CompuLab, Ltd. <www.compulab.co.il>
  *
  * Authors: Igor Grinberg <grinberg@compulab.co.il>
+ *
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -10,7 +11,6 @@
 #include <asm/bootm.h>
 #include <asm/gpio.h>
 #include <asm/setup.h>
-#include <linux/delay.h>
 
 #include "common.h"
 #include "eeprom.h"

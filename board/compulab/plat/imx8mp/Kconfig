@@ -1,0 +1,67 @@
+if TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_IOT_GATE_IMX8PLUS
+
+menu "i.MX8MP CompuLab Common Config"
+
+choice
+	prompt "CompuLab i.MX8 dram config"
+
+config DRAM_D2D4
+	bool "D2,D4 dram support"
+	select SAMSUNG_2G
+
+config SAMSUNG_2G
+	bool "Samsung 2G"
+	depends on DRAM_D2D4
+
+config SAMSUNG_4G
+	bool "Samsung 4G"
+	depends on DRAM_D2D4
+
+config MICRON_4G
+	bool "Micron 4G"
+	depends on DRAM_D2D4
+
+config DRAM_D1D8
+	bool "D1,D8 dram support"
+	select SAMSUNG_1G
+
+config SAMSUNG_1G
+	bool "Samsung 1G"
+	depends on DRAM_D1D8
+
+config MICRON_8G
+	bool "Micron 8G"
+	depends on DRAM_D1D8
+
+endchoice
+
+config COMPULAB_DEBUG_UART1
+	bool "System Debug UART1"
+	default n
+
+config ATF_LOAD_ADDR
+	hex "bl31.bin load address"
+	default 0x00970000
+
+config LOADADDR
+	hex
+	default 0x40400000
+
+config TEE_LOAD_ADDR
+	hex "tee.bin load address"
+	default 0x56000000
+
+config IMX_CONFIG
+	default "board/compulab/plat/imx8mp/imximage-8mp-sd.cfg"
+
+config SPL_FIT_SOURCE
+	default "board/compulab/plat/imx8mp/u-boot.its"
+
+config COMPULAB_IMX8MP_HDMI
+	bool "i.MX8MP HDMI support for CompuLab SOM"
+	default y
+	select VIDEO_IMX8MP_HDMI
+
+endmenu
+
+endif
