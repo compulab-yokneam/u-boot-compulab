@@ -39,9 +39,19 @@
 #include <fdt_support.h>
 #include <bootcount.h>
 #include <wdt.h>
+#include <asm/mach-imx/gpio.h>
+#include <linux/delay.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 DECLARE_BINMAN_MAGIC_SYM;
+
+#ifdef CONFIG_ARCH_IMX8M
+#define RESET_ETH0_GPIO IMX_GPIO_NR(4,22)
+#ifdef CONFIG_IMX8MP
+#define RESET_ETH1_GPIO IMX_GPIO_NR(4,2)
+#endif
+#define USDHC_GPIO_PAD_CTRL (PAD_CTL_HYS | PAD_CTL_DSE1)
+#endif
 
 #ifndef CFG_SYS_UBOOT_START
 #define CFG_SYS_UBOOT_START	CONFIG_TEXT_BASE
@@ -785,6 +795,22 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 			hang();
 		}
 	}
+
+#ifdef CONFIG_ARCH_IMX8M
+	/*reset eth*/
+	gpio_request(RESET_ETH0_GPIO, "reset_eth0_gpio");
+	gpio_direction_output(RESET_ETH0_GPIO, 0);
+	mdelay(1);
+	gpio_direction_output(RESET_ETH0_GPIO, 1);
+	mdelay(1);
+#ifdef CONFIG_IMX8MP
+	gpio_request(RESET_ETH1_GPIO, "reset_eth1_gpio");
+	gpio_direction_output(RESET_ETH1_GPIO, 0);
+	mdelay(1);
+	gpio_direction_output(RESET_ETH1_GPIO, 1);
+	mdelay(1);
+#endif
+#endif
 
 #if CONFIG_IS_ENABLED(BOARD_INIT)
 	spl_board_init();

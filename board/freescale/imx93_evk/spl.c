@@ -32,8 +32,22 @@
 #include <power/pmic.h>
 #include <power/pca9450.h>
 #include <asm/arch/trdc.h>
+#include <serial.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+#ifdef CONFIG_SPL_OS_BOOT
+int spl_start_uboot(void) {
+	if (IS_ENABLED(CONFIG_SPL_SERIAL) && serial_tstc() && serial_getc() == 'c') {
+	/* break into full u boot on 'c' */
+		while(serial_tstc()) { /* eat up all the remaining characters */
+			serial_getc();
+		}
+		return 1;
+	}
+	return 0; // start the Kernel
+}
+#endif
 
 int spl_board_boot_device(enum boot_device boot_dev_spl)
 {
