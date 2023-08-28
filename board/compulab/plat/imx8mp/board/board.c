@@ -32,6 +32,7 @@
 #include <linux/arm-smccc.h>
 #include "ddr/ddr.h"
 #include "common/eeprom.h"
+#include "cmd.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -488,6 +489,7 @@ int board_late_init(void)
 #endif
 	board_vendor_late_init();
 
+	do_pbb_restore();
 	return 0;
 }
 

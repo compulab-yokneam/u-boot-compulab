@@ -150,3 +150,97 @@ U_BOOT_CMD(
 	"rdmr/read/clear\nSupported configurations : [ "SUPPORTED_CONF" ]" ,
 	ddr_help_text
 );
+
+#define SNVS_LP 0x30370038
+
+static char pbb_help_text[] =
+	"help            -- show this help\n"
+	"pbb get         -- get SVNS_LP resgister value\n"
+	"pbb set <value> -- set SVNS_LP resgister value\n"
+	"pbb on_time <value> -- set power button on_time value\n"
+	"\t0: 500msec off->on transition time (default)\n"
+	"\t1: 50msec off->on transition time\n"
+	"\t2: 100msec off->on transition time\n"
+	"\t3: 0msec off->on transition time\n"
+	"pbb btn_press_time <value> -- set power button btn_press_time value\n"
+	"\t0: 5sec  on->off long press time (default)\n"
+	"\t1: 10sec on->off long press time\n"
+	"\t2: 15sec on->off long press time\n"
+	"\t3: on->off long press disabled\n";
+
+static void do_pbb_get(void) {
+    unsigned int value;
+    char *cvalue = NULL;
+    value = readl(SNVS_LP);
+    printf("%s = 0x%x\n","SNVS_LP Control Register LPCR",value);
+    cvalue = env_get("on_time");
+    if (cvalue) {
+        printf("env: on_time=%s\n",cvalue);
+    }
+    cvalue = env_get("btn_press_time");
+    if (cvalue) {
+        printf("env: btn_press_time=%s\n",cvalue);
+    }
+    return;
+}
+
+static void do_pbb_set(const char *cvalue) {
+    unsigned int value;
+    value = simple_strtoul(cvalue, NULL, 16);
+    writel(value, SNVS_LP);
+    return;
+}
+
+static void do_pbb_function(char *name, const char *cvalue, unsigned int offset, int flag) {
+    unsigned int value;
+    unsigned int _value;
+    if (cvalue == NULL) {
+        value = readl(SNVS_LP);
+        value &= (3 << offset);
+        value = (value >> offset);
+        if (flag)
+            printf("%s[%d] = 0x%x\n","SNVS_LP Control Register LPCR",offset,value);
+    } else {
+        value = simple_strtoul(cvalue, NULL, 10);
+        _value = readl(SNVS_LP);
+        _value &= ~(3 << offset);
+        _value |= (value << offset);
+        writel(_value, SNVS_LP);
+        if (flag)
+            env_set(name, cvalue);
+    }
+}
+
+int do_pbb(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
+{
+    if (argc < 2) {
+        return CMD_RET_USAGE;
+    }
+
+    if (strcmp(argv[1], "on_time") == 0) {
+        do_pbb_function(argv[1], argv[2], 20, 1);
+    } else if (strcmp(argv[1], "btn_press_time") == 0 ) {
+        do_pbb_function(argv[1], argv[2], 16, 1);
+    } else if (strcmp(argv[1], "get") == 0 ) {
+        do_pbb_get();
+    } else if ((strcmp(argv[1], "set") == 0) && (argv[2])) {
+        do_pbb_set(argv[2]);
+    } else
+        return CMD_RET_USAGE;
+
+   return 0;
+}
+
+U_BOOT_CMD(
+    pbb, 3,	1, do_pbb,
+    "get/set power button settings",
+    pbb_help_text
+);
+
+void do_pbb_restore(void) {
+    char *cvalue = NULL;
+    cvalue = env_get("on_time");
+    do_pbb_function("on_time", cvalue, 20, 0);
+    cvalue = env_get("btn_press_time");
+    do_pbb_function("btn_press_time", cvalue, 16, 0);
+}
