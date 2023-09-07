@@ -166,7 +166,6 @@ int board_mmc_getcd(struct mmc *mmc)
 }
 
 #if CONFIG_IS_ENABLED(DM_PMIC_PCA9450)
-#ifdef CONFIG_TARGET_UCM_IMX8M_PLUS
 /* Forward declarations */
 u8 cl_eeprom_get_ldo4(void);
 static void power_init_ldo4(struct udevice *dev) {
@@ -192,15 +191,6 @@ static void power_init_ldo4(struct udevice *dev) {
 	ldo4 = (( ldo4 > 33 ) ? 33 : ldo4);
 	printf("pca9450@25 [ldo4][%s] = %dv%d\n", ( mode ? "u" : "d" ), (ldo4/10) , (ldo4%10));
 }
-#else
-static void power_init_ldo4(struct udevice *dev) {
-	u8 ldo4 = 0x9F;
-	pmic_reg_write(dev, PCA9450_LDO4CTRL, ldo4);
-	ldo4 = pmic_reg_read(dev, PCA9450_LDO4CTRL);
-	ldo4 = (( ldo4 > 33 ) ? 33 : ldo4);
-	printf("pca9450@25 [ldo4][%s] = %dv%d\n", "hw" , (ldo4/10) , (ldo4%10));
-}
-#endif
 
 int power_init_board(void)
 {
