@@ -13,6 +13,7 @@
 #ifdef CONFIG_SPL_BUILD
 #ifdef CONFIG_UCM_IMX93_LPDDR4X
 extern struct dram_timing_info dram_timing;
+extern struct dram_timing_info dram_timing_for_samsung_2G;
 #endif
 #endif
 
@@ -45,17 +46,27 @@ struct lpddr4_desc {
 static const struct lpddr4_desc lpddr4_array[] = {
 	{.name = "dummy cfg",	.id = 0xdeadbeef, .subind = 0x1, .size = 512, .count = 1,
 #ifdef CONFIG_SPL_BUILD
-		.timing = &dram_timing
+	.timing = &dram_timing
 #endif
 	},
-	{.name = "Micron",	.id = 0xff000110, .subind = 0xff, .size = 2048, .count = 1,
+	{.name = "Micron",	.id = 0xff000110, .subind = 0x1, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 	.timing = &dram_timing
 #endif
 	},
-	{.name = "Micron",	.id = 0xff060018, .subind = 0x8, .size = 2048, .count = 1,
+	{.name = "Micron",	.id = 0xff060018, .subind = 0x1, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
-		.timing = &dram_timing
+	.timing = &dram_timing
+#endif
+	},
+	{.name = "Samsung",	.id = 0x01061010, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+	.timing = &dram_timing_for_samsung_2G
+#endif
+	},
+	{.name = "Samsung",	.id = 0x01061010, .subind = 0x5, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+	.timing = &dram_timing
 #endif
 	},
 	{.name = "Samsung",	.id = 0x01050008, .subind = 0x1, .size = 512, .count = 1,
