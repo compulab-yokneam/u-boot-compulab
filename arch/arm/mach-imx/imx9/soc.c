@@ -615,7 +615,9 @@ static const char *get_reset_cause(u32 *srsr_ret)
 int print_cpuinfo(void)
 {
 	u32 cpurev, max_freq;
+#if 0
 	int minc, maxc;
+#endif
 	u32 ssrs_ret;
 
 	cpurev = get_cpu_rev();
@@ -631,7 +633,7 @@ int print_cpuinfo(void)
 		printf(" %d MHz (running at %d MHz)\n", max_freq / 1000000,
 		       mxc_get_clock(MXC_ARM_CLK) / 1000000);
 	}
-
+#if 0
 	puts("CPU:   ");
 	switch (get_cpu_temp_grade(&minc, &maxc)) {
 	case TEMP_AUTOMOTIVE:
@@ -648,7 +650,6 @@ int print_cpuinfo(void)
 		break;
 	}
 	printf("(%dC to %dC)", minc, maxc);
-
 #if defined(CONFIG_IMX_TMU)
 	struct udevice *udev;
 	int ret, temp;
@@ -666,7 +667,7 @@ int print_cpuinfo(void)
 	}
 #endif
 	puts("\n");
-
+#endif
 	printf("Reset cause: %s", get_reset_cause(&ssrs_ret));
 	printf("(0x%x)\n", ssrs_ret);
 
