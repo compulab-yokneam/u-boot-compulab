@@ -272,6 +272,11 @@ static int fdt_set_env_addr(void *blob)
 
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
+	phys_size_t sdram_size;
+	board_phys_sdram_size(&sdram_size);
+	if (sdram_size < 0x80000000) { // ethosu operates only at physical address 0xc0000000
+		disable_npu_nodes(blob);
+	}
 	fdt_set_env_addr(blob);
 	fdt_set_sn(blob);
 	return 0;
