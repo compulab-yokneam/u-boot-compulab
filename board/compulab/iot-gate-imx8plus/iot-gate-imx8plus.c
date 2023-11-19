@@ -43,30 +43,35 @@ void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 /* IOT-GATE-IMX8PLUS M.2 extension boards ID */
 typedef enum {
 	IOTG_IMX8PLUS_ADDON_FIRST,
-	IOTG_IMX8PLUS_ADDON_M2TPM = IOTG_IMX8PLUS_ADDON_FIRST, /* TPM module */
+	IOTG_IMX8PLUS_ADDON_M2EMMC = IOTG_IMX8PLUS_ADDON_FIRST, /* eMMC+TPM module */
+	IOTG_IMX8PLUS_ADDON_M2TPM, /* TPM module */
 	IOTG_IMX8PLUS_ADDON_EMPTY,
 	IOTG_IMX8PLUS_ADDON_LAST = IOTG_IMX8PLUS_ADDON_EMPTY,
 	IOTG_IMX8PLUS_ADDON_NUM,
 } iotg_imx8plus_addon_type;
 
 static char *iotg_imx8plus_addon_type_name[IOTG_IMX8PLUS_ADDON_NUM] = {
+	[IOTG_IMX8PLUS_ADDON_M2EMMC] = "M2EMMC",
 	[IOTG_IMX8PLUS_ADDON_M2TPM] = "M2TPM",
 	[IOTG_IMX8PLUS_ADDON_EMPTY] = "none",
 };
 
 /* Device tree names array */
 static char *iotg_imx8plus_dtb[IOTG_IMX8PLUS_ADDON_NUM] = {
+	[IOTG_IMX8PLUS_ADDON_M2EMMC] = "iot-gate-imx8plus-m2emmc.dtb",
 	[IOTG_IMX8PLUS_ADDON_M2TPM] = "iot-gate-imx8plus-m2tpm.dtb",
 	[IOTG_IMX8PLUS_ADDON_EMPTY] = "iot-gate-imx8plus.dtb",
 };
 
 /* I2C bus numbers array */
 static int iotg_imx8plus_addon_i2c_bus[IOTG_IMX8PLUS_ADDON_LAST] = {
+	[IOTG_IMX8PLUS_ADDON_M2EMMC] = 4,
 	[IOTG_IMX8PLUS_ADDON_M2TPM] = 4,
 };
 
 /* I2C device addresses array */
 static uint iotg_imx8plus_addon_i2c_addr[IOTG_IMX8PLUS_ADDON_LAST] = {
+	[IOTG_IMX8PLUS_ADDON_M2EMMC] = 0x20,
 	[IOTG_IMX8PLUS_ADDON_M2TPM] = 0x54,
 };
 
@@ -76,6 +81,8 @@ static int iotg_imx8plus_addon_id = IOTG_IMX8PLUS_ADDON_EMPTY;
 #define IOTG_IMX8PLUS_ENV_FDT_FILE	"fdtfile"
 #define IOTG_IMX8PLUS_ENV_ADDON_SETUP	"addon_smart_setup"
 #define IOTG_IMX8PLUS_ENV_ADDON_BOARD	"addon_board"
+
+#define EMMC_SIZE(_detval)		((_detval & 0xf) << 4)
 
 /*
  * iotg_imx8plus_detect_addon() - extended add-on board detection
@@ -101,7 +108,13 @@ static void iotg_imx8plus_detect_addon(void)
 			iotg_imx8plus_addon_id = type;
 			debug("%s: detected module type_idx = %d, type_name = %s\n", __func__, type,
 				iotg_imx8plus_addon_type_name[type]);
-			printf("Add-on Board:   %s\n", iotg_imx8plus_addon_type_name[type]);
+			printf("Add-on Board:   %s", iotg_imx8plus_addon_type_name[type]);
+			if (type == IOTG_IMX8PLUS_ADDON_M2EMMC) {
+				/* Detect eMMC size: read offset 0 (Input port 0 reg) and inspect 4 lower bits */
+				ret = dm_i2c_reg_read(i2c_dev, 0);
+				printf("(%dG)", EMMC_SIZE(ret));
+			}
+			printf("\n");
 			env_set(IOTG_IMX8PLUS_ENV_ADDON_BOARD, iotg_imx8plus_addon_type_name[type]);
 
 			return;
