@@ -33,6 +33,17 @@
 	};
 };
 
+&gpio1 {
+	sd_vsel_m2emmc {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usdhc2_gpio>;
+		gpio-hog;
+		gpios = <4 GPIO_ACTIVE_HIGH>;
+		line-name = "sd-vsel-m2emmc";
+		output-low;
+	};
+};
+
 &gpio2 {
 	usb_hub_reset {
 		pinctrl-names = "default";
@@ -87,6 +98,14 @@
 	status = "okay";
 };
 
+&usdhc2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc2>;
+	non-removable;
+	no-1-8-v;
+	status = "okay";
+};
+
 &cpu_alert0 {
     temperature = <100000>;
 };
@@ -125,6 +144,12 @@
 	pinctrl_usb2_vbus: usb2vbusgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_MCLK__GPIO4_IO20			0x154
+		>;
+	};
+
+	pinctrl_usdhc2_gpio: usdhc2gpiogrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO04__GPIO1_IO04			0x101
 		>;
 	};
 };

@@ -76,6 +76,13 @@
 	u-boot,dm-spl;
 };
 
+&pinctrl_usdhc2 {
+	u-boot,dm-spl;
+};
+&pinctrl_usdhc2_gpio {
+	u-boot,dm-spl;
+};
+
 &pinctrl_usdhc3 {
 	u-boot,dm-spl;
 };
