@@ -742,8 +742,20 @@ int disable_npu_nodes(void *blob)
 		"/ethosu",
 		"/reserved-memory/ethosu_region@C0000000"
 	};
-
 	return delete_fdt_nodes(blob, nodes_path_npu, ARRAY_SIZE(nodes_path_npu));
+}
+
+int disable_m33_nodes(void *blob)
+{
+	static const char * const nodes_path[] = {
+		"/reserved-memory/vdev0vring0@a4000000",
+		"/reserved-memory/vdev0vring1@a4008000",
+		"/reserved-memory/vdev1vring0@a4000000",
+		"/reserved-memory/vdev1vring1@a4018000",
+		"/reserved-memory/vdevbuffer@a4020000",
+		"/imx93-cm33"
+	};
+	return delete_fdt_nodes(blob, nodes_path, ARRAY_SIZE(nodes_path));
 }
 
 static void disable_thermal_cpu_nodes(void *blob, u32 disabled_cores)
