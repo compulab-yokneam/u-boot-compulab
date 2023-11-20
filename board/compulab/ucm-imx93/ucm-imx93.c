@@ -280,13 +280,16 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 	if (error) {
 		return error;
 	}
-	if (sdram_size < 0x80000000) { 
+	// todo - below is bad code because it rely on linux device tree which is fragile. eliminate ASAP!
+	if (sdram_size < 0x80000000) {
 		printf("disable ethosu because its address is mapped above 1GB\n");
 		disable_npu_nodes(blob);
 	}
 	if (sdram_size < 0x40000000) { 
 		printf("disable M33 because its shared address is mapped above 500MB, you can enable it after changing this address in M33 code and in Linux device tree\n");
 		disable_m33_nodes(blob);
+		printf("disable ELE because its shared address is mapped above 500MB\n");
+		disable_ele_nodes(blob);
 	}
 	return 0;
 }
