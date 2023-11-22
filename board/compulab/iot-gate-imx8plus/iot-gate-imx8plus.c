@@ -44,6 +44,7 @@ void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 typedef enum {
 	IOTG_IMX8PLUS_ADDON_FIRST,
 	IOTG_IMX8PLUS_ADDON_M2EMMC = IOTG_IMX8PLUS_ADDON_FIRST, /* eMMC+TPM module */
+	IOTG_IMX8PLUS_ADDON_M2ADC, /* ADC+TPM module */
 	IOTG_IMX8PLUS_ADDON_M2TPM, /* TPM module */
 	IOTG_IMX8PLUS_ADDON_EMPTY,
 	IOTG_IMX8PLUS_ADDON_LAST = IOTG_IMX8PLUS_ADDON_EMPTY,
@@ -52,6 +53,7 @@ typedef enum {
 
 static char *iotg_imx8plus_addon_type_name[IOTG_IMX8PLUS_ADDON_NUM] = {
 	[IOTG_IMX8PLUS_ADDON_M2EMMC] = "M2EMMC",
+	[IOTG_IMX8PLUS_ADDON_M2ADC] = "M2ADC",
 	[IOTG_IMX8PLUS_ADDON_M2TPM] = "M2TPM",
 	[IOTG_IMX8PLUS_ADDON_EMPTY] = "none",
 };
@@ -59,6 +61,7 @@ static char *iotg_imx8plus_addon_type_name[IOTG_IMX8PLUS_ADDON_NUM] = {
 /* Device tree names array */
 static char *iotg_imx8plus_dtb[IOTG_IMX8PLUS_ADDON_NUM] = {
 	[IOTG_IMX8PLUS_ADDON_M2EMMC] = "iot-gate-imx8plus-m2emmc.dtb",
+	[IOTG_IMX8PLUS_ADDON_M2ADC] = "iot-gate-imx8plus-m2adc.dtb",
 	[IOTG_IMX8PLUS_ADDON_M2TPM] = "iot-gate-imx8plus-m2tpm.dtb",
 	[IOTG_IMX8PLUS_ADDON_EMPTY] = "iot-gate-imx8plus.dtb",
 };
@@ -66,12 +69,14 @@ static char *iotg_imx8plus_dtb[IOTG_IMX8PLUS_ADDON_NUM] = {
 /* I2C bus numbers array */
 static int iotg_imx8plus_addon_i2c_bus[IOTG_IMX8PLUS_ADDON_LAST] = {
 	[IOTG_IMX8PLUS_ADDON_M2EMMC] = 4,
+	[IOTG_IMX8PLUS_ADDON_M2ADC] = 4,
 	[IOTG_IMX8PLUS_ADDON_M2TPM] = 4,
 };
 
 /* I2C device addresses array */
 static uint iotg_imx8plus_addon_i2c_addr[IOTG_IMX8PLUS_ADDON_LAST] = {
 	[IOTG_IMX8PLUS_ADDON_M2EMMC] = 0x20,
+	[IOTG_IMX8PLUS_ADDON_M2ADC] = 0x48,
 	[IOTG_IMX8PLUS_ADDON_M2TPM] = 0x54,
 };
 
