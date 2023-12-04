@@ -12,7 +12,7 @@
 #define CONFIG_IMX6_PWM_PER_CLK 66000000
 
 #if defined(CONFIG_CMD_NET)
-#define CONFIG_ETHPRIME                 "eth0" /* Set eqos to primary since we use its MDIO */
+#define CONFIG_ETHPRIME                 "eth1" /* Set eqos to primary since we use its MDIO */
 
 #define CONFIG_FEC_XCV_TYPE             RGMII
 #define CONFIG_FEC_MXC_PHYADDR         	-1
