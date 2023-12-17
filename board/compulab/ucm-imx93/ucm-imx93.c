@@ -270,6 +270,10 @@ static int fdt_set_env_addr(void *blob)
 	return 0;
 }
 
+int disable_npu_nodes(void *blob);
+int disable_m33_nodes(void *blob);
+int disable_ele_nodes(void *blob);
+
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
 	phys_size_t sdram_size;
