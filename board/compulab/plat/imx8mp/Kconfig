@@ -43,9 +43,9 @@ config ATF_LOAD_ADDR
 	hex "bl31.bin load address"
 	default 0x00970000
 
-config LOADADDR
+config SYS_LOAD_ADDR
 	hex
-	default 0x40400000
+	default 0x40480000
 
 config TEE_LOAD_ADDR
 	hex "tee.bin load address"
