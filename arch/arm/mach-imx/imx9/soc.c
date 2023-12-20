@@ -703,7 +703,7 @@ static int delete_fdt_nodes(void *blob, const char *const nodes_path[], int size
 	return 0;
 }
 
-static int disable_npu_nodes(void *blob)
+int disable_npu_nodes(void *blob)
 {
 	static const char * const nodes_path_npu[] = {
 		"/ethosu",
