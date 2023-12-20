@@ -712,6 +712,15 @@ int disable_npu_nodes(void *blob)
 	return delete_fdt_nodes(blob, nodes_path_npu, ARRAY_SIZE(nodes_path_npu));
 }
 
+int disable_ele_nodes(void *blob)
+{
+	static const char * const nodes_path[] = {
+		"/soc@0/ele-mu",
+		"/reserved-memory/ele-reserved@a4120000"
+	};
+	return delete_fdt_nodes(blob, nodes_path, ARRAY_SIZE(nodes_path));
+}
+
 int disable_m33_nodes(void *blob)
 {
 	static const char * const nodes_path[] = {
