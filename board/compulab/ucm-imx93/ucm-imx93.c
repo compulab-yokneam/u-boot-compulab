@@ -273,12 +273,21 @@ static int fdt_set_env_addr(void *blob)
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
 	phys_size_t sdram_size;
-	board_phys_sdram_size(&sdram_size);
-	if (sdram_size < 0x80000000) { // ethosu operates only at physical address 0xc0000000
-		disable_npu_nodes(blob);
-	}
+	int error = board_phys_sdram_size(&sdram_size);
+
 	fdt_set_env_addr(blob);
 	fdt_set_sn(blob);
+	if (error) {
+		return error;
+	}
+	if (sdram_size < 0x80000000) {
+		printf("disable ethosu because its address is mapped above 1GB\n");
+		disable_npu_nodes(blob);
+	}
+	if (sdram_size < 0x40000000) {
+		printf("disable M33 because its shared address is mapped above 500MB, you can enable it after changing this address in M33 code and in Linux device tree\n");
+		disable_m33_nodes(blob);
+	}
 	return 0;
 }
 #endif
