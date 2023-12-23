@@ -11,25 +11,19 @@
 #include <asm/arch/imx-regs.h>
 #include "imx_env.h"
 
-/*#define CONFIG_SYS_BOOTM_LEN		(SZ_64M)*/
-/*#define CONFIG_SPL_MAX_SIZE		(148 * 1024)*/
-/*#define CONFIG_SYS_MONITOR_LEN		SZ_512K*/
 #define CONFIG_SYS_UBOOT_BASE	\
 	(QSPI0_AMBA_BASE + CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR * 512)
 
 #ifdef CONFIG_SPL_BUILD
 #define CONFIG_SPL_STACK		0x20519dd0
 #define CONFIG_SPL_BSS_START_ADDR	0x2051a000
-/*#define CONFIG_SPL_BSS_MAX_SIZE	SZ_8K */
 #define CONFIG_SYS_SPL_MALLOC_START	0x83200000 /* Need disable simple malloc where still uses malloc_f area */
-#define CONFIG_SYS_SPL_MALLOC_SIZE	SZ_512K	/* 512 KB */
 
 /* For RAW image gives a error info not panic */
 #define CONFIG_SPL_ABORT_ON_RAW_IMAGE
 
 #endif
 
-/*#define CONFIG_CMD_READ*/
 #define CONFIG_SERIAL_TAG
 
 #ifdef CONFIG_AHAB_BOOT
@@ -216,7 +210,6 @@
 #define CONFIG_SYS_CBSIZE		2048
 #define CONFIG_SYS_MAXARGS		64
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
-/*#define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)*/
 
 #define CONFIG_IMX_BOOTAUX
 
@@ -231,7 +224,6 @@
 #define CONFIG_USB_MAX_CONTROLLER_COUNT         2
 
 #if defined(CONFIG_CMD_NET)
-#define CONFIG_ETHPRIME                 "eth0"
 #define CONFIG_FEC_XCV_TYPE             RGMII
 #define PHY_ANEG_TIMEOUT 20000
 
