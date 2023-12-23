@@ -154,10 +154,10 @@ static void board_get_mac_from_eeprom(int dev_id) { return;}
 
 int board_init(void)
 {
-	if (CONFIG_IS_ENABLED(FEC_MXC))
+	if (IS_ENABLED(CONFIG_FEC_MXC))
 		setup_fec();
 
-	if (CONFIG_IS_ENABLED(DWC_ETH_QOS))
+	if (IS_ENABLED(CONFIG_DWC_ETH_QOS))
 		setup_eqos();
 
 	board_gpio_init();
