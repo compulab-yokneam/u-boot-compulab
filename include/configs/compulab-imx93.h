@@ -11,7 +11,7 @@
 #include <asm/arch/imx-regs.h>
 #include "imx_env.h"
 
-#define CONFIG_SYS_UBOOT_BASE	\
+#define CFG_SYS_UBOOT_BASE	\
 	(QSPI0_AMBA_BASE + CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR * 512)
 
 #ifdef CONFIG_SPL_BUILD
@@ -51,17 +51,17 @@
 	"jh_netboot=setenv fdtfile ucm-imx93-root.dtb; " \
 		    "setenv jh_clk clk_ignore_unused mem=1248MB kvm-arm.mode=nvhe; run netboot; \0 "
 
-#define CONFIG_MFG_ENV_SETTINGS \
-	CONFIG_MFG_ENV_SETTINGS_DEFAULT \
+#define CFG_MFG_ENV_SETTINGS \
+	CFG_MFG_ENV_SETTINGS_DEFAULT \
 	"initrd_addr=0x83800000\0" \
 	"initrd_high=0xffffffffffffffff\0" \
 	"emmc_dev=0\0"\
 	"sd_dev=1\0" \
 
 /* Initial environment variables */
-#define CONFIG_EXTRA_ENV_SETTINGS		\
+#define CFG_EXTRA_ENV_SETTINGS		\
 	JAILHOUSE_ENV \
-	CONFIG_MFG_ENV_SETTINGS \
+	CFG_MFG_ENV_SETTINGS \
 	BOOTENV \
 	AHAB_ENV \
 	"autoload=off\0" \
@@ -213,7 +213,7 @@
 
 #define CONFIG_IMX_BOOTAUX
 
-#define CONFIG_SYS_FSL_USDHC_NUM	2
+#define CFG_SYS_FSL_USDHC_NUM	2
 
 /* Using ULP WDOG for reset */
 #define WDOG_BASE_ADDR          WDG3_BASE_ADDR
