@@ -1466,6 +1466,9 @@ else
 SPL_PAYLOAD := u-boot.bin
 endif
 
+export ATF_LOAD_ADDR=$(CONFIG_ATF_LOAD_ADDR)
+export TEE_LOAD_ADDR=$(CONFIG_TEE_LOAD_ADDR)
+
 SPL_IMAGE := $(CONFIG_SPL_IMAGE:"%"=%)
 
 OBJCOPYFLAGS_u-boot-with-spl.bin = -I binary -O binary \
@@ -1501,6 +1504,9 @@ tpl/u-boot-with-tpl.bin: tpl/u-boot-tpl.bin u-boot.bin FORCE
 
 SPL: spl/u-boot-spl.bin FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
+
+firmware:
+	$(MAKE) -C $(srctree)/board/compulab/plat/imx8mp/firmware all
 
 #ifeq ($(CONFIG_ARCH_IMX8M)$(CONFIG_ARCH_IMX8), y)
 ifeq ($(CONFIG_SPL_LOAD_IMX_CONTAINER), y)

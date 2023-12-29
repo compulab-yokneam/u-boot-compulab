@@ -10,6 +10,7 @@ config SYS_CONFIG_NAME
 	default "som-imx8m-plus"
 
 config DEFAULT_DTB
+	string
 	default "sbc-som-imx8m-plus.dtb"
 
 config DEFAULT_FDT_FILE
@@ -19,19 +20,19 @@ config DEFAULT_DEVICE_TREE
 	default "som-imx8m-plus"
 
 config SYS_I2C_EEPROM_BUS
-	int "SOM eeprom bus address"
+	int
 	default 1
 
 config SYS_I2C_EEPROM_ADDR
-	hex "SOM eeprom dev address"
+	hex
 	default 0x50
 
 config SYS_I2C_EEPROM_BUS_SB
-	hex "SB eeprom bus address"
+	hex
 	default 0x2
 
 config SYS_I2C_EEPROM_ADDR_SB
-	hex "SB eeprom dev address"
+	hex
 	default 0x54
 
 endif

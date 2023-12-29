@@ -9,9 +9,9 @@ config SYS_VENDOR
 config SYS_CONFIG_NAME
 	default "ucm-imx8m-mini"
 
-config DEFAULT_DTB
-	string "U-Boot Default Device Tree File"
+config DEFAULT_FDT
+	string
 	depends on TARGET_UCM_IMX8M_MINI
-	default "sbc-ucm-imx8m-mini.dtb"
+	default "ucm-imx8m-mini.dtb"
 
 endif

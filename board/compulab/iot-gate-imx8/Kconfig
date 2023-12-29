@@ -9,8 +9,8 @@ config SYS_VENDOR
 config SYS_CONFIG_NAME
 	default "iot-gate-imx8"
 
-config DEFAULT_DTB
-	string "U-Boot Default Device Tree File"
+config DEFAULT_FDT
+	string
 	depends on TARGET_IOT_GATE_IMX8
 	default "sb-iotgimx8-can.dtb"
 

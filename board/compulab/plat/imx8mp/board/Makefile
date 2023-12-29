@@ -4,5 +4,5 @@ ccflags-y += -I$(srctree)/board/freescale/
 
 obj-y += board.o
 ifndef CONFIG_SPL_BUILD
-obj-y += efi_capsule.o
+obj-y += cmd.o
 endif
