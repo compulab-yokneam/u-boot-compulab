@@ -466,9 +466,6 @@ int board_init(void)
 	arm_smccc_smc(IMX_SIP_GPC, IMX_SIP_GPC_PM_DOMAIN,
 		      MIPI, true, 0, 0, 0, 0, &res);
 
-	if (IS_ENABLED(CONFIG_LED))
-		led_default_state();
-
 	return 0;
 }
 
@@ -494,7 +491,7 @@ int board_late_init(void)
 }
 
 #ifdef CONFIG_IMX_BOOTAUX
-ulong board_get_usable_ram_top(ulong total_size)
+phys_size_t board_get_usable_ram_top(phys_size_t total_size)
 {
 	/* Reserve 16M memory used by M core vring/buffer, which begins at 16MB before optee */
 	if (rom_pointer[1])
