@@ -1,0 +1,45 @@
+if TARGET_MCM_IMX8M_PLUS
+
+config SYS_BOARD
+	default "mcm-imx8m-plus"
+
+config SYS_VENDOR
+	default "compulab"
+
+config SYS_CONFIG_NAME
+	default "mcm-imx8m-plus"
+
+config DEFAULT_DTB
+	string
+	default "mcm-imx8m-plus.dtb"
+
+
+config DEFAULT_FDT_FILE
+	string
+	default "mcm-imx8m-plus.dtb"
+
+config DEFAULT_DEVICE_TREE
+	string
+	default "mcm-imx8m-plus"
+
+config SYS_I2C_EEPROM_BUS
+	int
+	default 1
+
+config SYS_I2C_EEPROM_ADDR
+	hex
+	default 0x50
+
+config SYS_I2C_EEPROM_BUS_SB
+	hex
+	default 0x1
+
+config SYS_I2C_EEPROM_ADDR_SB
+	hex
+	default 0x54
+
+config COMPULAB_DEBUG_UART1
+	bool "System Debug UART1"
+	default false
+
+endif

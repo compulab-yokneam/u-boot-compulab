@@ -1,0 +1,132 @@
+choice
+	prompt  "CompuLab i.MX8M select"
+
+config TARGET_UCM_IMX8M_MINI
+	bool "CompuLab ucm-imx8m-mini"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_MCM_IMX8M_MINI
+	bool "CompuLab mcm-imx8m-mini"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_IOT_GATE_IMX8
+	bool "CompuLab iot-gate-imx8"
+	select IMX8MM
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_UCM_IMX8M_PLUS
+	bool "CompuLab ucm-imx8m-plus"
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_MCM_IMX8M_PLUS
+	bool "CompuLab mcm-imx8m-plus"
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_SOM_IMX8M_PLUS
+	bool "CompuLab som-imx8m-plus"
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+config TARGET_IOT_GATE_IMX8PLUS
+	bool "CompuLab iot-gate-imx8plus"
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+
+endchoice
+
+if TARGET_IOT_GATE_IMX8PLUS || TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_MCM_IMX8M_PLUS
+
+config IMX_FLASH_BIN
+	bool
+	default y
+	select USE_SPL_FIT_GENERATOR
+
+config SPL_FIT_GENERATOR
+	string
+	default "arch/arm/mach-imx/mkimage_fit_atf.sh"
+
+endif
+
+menu "Compulab i.MX8MM platform features"
+	depends on TARGET_UCM_IMX8M_MINI || TARGET_MCM_IMX8M_MINI || TARGET_IOT_GATE_IMX8
+
+config SPL_REPORT_FAKE_MEMSIZE
+	bool "SPL passes a fake DRAM size to U-Boot"
+	default n
+	help
+	  SPL passes to the U-Boot a value from EEPROM instead of a real memory
+	  size. For debug purposes ONLY!!!
+
+endmenu
+
+menu  "Compulab i.MX8MP platform features"
+	depends on TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_IOT_GATE_IMX8PLUS || TARGET_MCM_IMX8M_PLUS
+
+config DRAM_D2D4
+	bool "Enable D2D4 or D1D8 dram support"
+	default y
+	help
+	  If 'Y' then support for D2 and D4 configuration is enabled
+	  else support for D1 and D8 configuration is enabled
+
+config ADDON_SMART_SETUP
+        bool "CompuLab i.MX8M-Plus Add-on Board Smart Setup"
+        default y
+        help
+          CompuLab i.MX8M-Plus Add-on Board Smart Setup feature allows detecting an extension board
+          and enabling it in Linux kernel by choosing a proper device tree
+
+choice
+        prompt "Select Add-on Board Smart Setup default strategy"
+
+        depends on ADDON_SMART_SETUP
+        help
+          Choose a default strategy for CompuLab i.MX8M-Plus Add-on Board Smart Setup: either Enabled or Disabled.
+          The default strategy can be overriden by "addon_smart_setup" environment variable
+
+config ADDON_SMART_SETUP_DEFAULT_OFF
+        bool "Disabled"
+        default y
+	help
+          Do not enable add-on boards in Linux kernel by default.
+          Can be overriden by setting "addon_smart_setup" environment variable
+	  to the true value (1/Y/y/T/t)
+
+config ADDON_SMART_SETUP_DEFAULT_ON
+        bool "Enabled"
+        default n
+	help
+          Detect an add-on board type and enaible it in Linux kernel by default.
+          Can be overriden by setting "addon_smart_setup" environment variable
+	  to the false value (neither one of following: 1/Y/y/T/t)
+
+endchoice
+
+config ATF_LOAD_ADDR
+	hex
+	default 0x00970000
+
+config TEE_LOAD_ADDR
+	hex
+	default 0x56000000
+
+endmenu
+
+source "board/compulab/ucm-imx8m-mini/Kconfig"
+source "board/compulab/mcm-imx8m-mini/Kconfig"
+source "board/compulab/iot-gate-imx8/Kconfig"
+source "board/compulab/ucm-imx8m-plus/Kconfig"
+source "board/compulab/mcm-imx8m-plus/Kconfig"
+source "board/compulab/som-imx8m-plus/Kconfig"
+source "board/compulab/iot-gate-imx8plus/Kconfig"
