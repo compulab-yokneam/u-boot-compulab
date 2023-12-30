@@ -113,14 +113,6 @@ config ADDON_SMART_SETUP_DEFAULT_ON
 
 endchoice
 
-config ATF_LOAD_ADDR
-	hex
-	default 0x00970000
-
-config TEE_LOAD_ADDR
-	hex
-	default 0x56000000
-
 endmenu
 
 source "board/compulab/ucm-imx8m-mini/Kconfig"

@@ -35,28 +35,6 @@ config MICRON_8G
 
 endchoice
 
-config COMPULAB_DEBUG_UART1
-	bool "System Debug UART1"
-	default n
-
-config ATF_LOAD_ADDR
-	hex "bl31.bin load address"
-	default 0x00970000
-
-config LOADADDR
-	hex
-	default 0x40400000
-
-config TEE_LOAD_ADDR
-	hex "tee.bin load address"
-	default 0x56000000
-
-config IMX_CONFIG
-	default "board/compulab/plat/imx8mp/imximage-8mp-sd.cfg"
-
-config SPL_FIT_SOURCE
-	default "board/compulab/plat/imx8mp/u-boot.its"
-
 config COMPULAB_IMX8MP_HDMI
 	bool "i.MX8MP HDMI support for CompuLab SOM"
 	default y
