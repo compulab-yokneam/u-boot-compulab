@@ -234,7 +234,21 @@ int power_init_board(void)
 
 void spl_board_init(void)
 {
+	arch_misc_init();
+
+	/*
+	 * Set GIC clock to 500Mhz for OD VDD_SOC. Kernel driver does
+	 * not allow to change it. Should set the clock after PMIC
+	 * setting done. Default is 400Mhz (system_pll1_800m with div = 2)
+	 * set by ROM for ND VDD_SOC
+	 */
+#if defined(CONFIG_IMX8M_LPDDR4) && !defined(CONFIG_IMX8M_VDD_SOC_850MV)
+	clock_enable(CCGR_GIC, 0);
+	clock_set_target_val(GIC_CLK_ROOT, CLK_ROOT_ON | CLK_ROOT_SOURCE_SEL(5));
+	clock_enable(CCGR_GIC, 1);
+
 	puts("Normal Boot\n");
+#endif
 }
 
 #ifdef CONFIG_SPL_LOAD_FIT
@@ -249,6 +263,7 @@ int board_fit_config_name_match(const char *name)
 
 void board_init_f(ulong dummy)
 {
+	struct udevice *dev;
 	int ret;
 
 	/* Clear the BSS. */
@@ -260,17 +275,24 @@ void board_init_f(ulong dummy)
 
 	timer_init();
 
-	preloader_console_init();
-
-	ret = spl_init();
+	ret = spl_early_init();
 	if (ret) {
-		debug("spl_init() failed: %d\n", ret);
+		debug("spl_early_init() failed: %d\n", ret);
 		hang();
 	}
 
+	ret = uclass_get_device_by_name(UCLASS_CLK,
+					"clock-controller@30380000",
+					&dev);
+	if (ret < 0) {
+		printf("Failed to find clock node. Check device tree\n");
+		hang();
+	}
+
+	preloader_console_init();
+
 	enable_tzc380();
 
-	/* Adjust pmic voltage to 1.0V for 800M */
 	power_init_board();
 
 	/* DDR initialization */
