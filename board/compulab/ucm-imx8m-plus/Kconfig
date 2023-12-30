@@ -13,13 +13,10 @@ config DEFAULT_DTB
 	string
 	default "ucm-imx8m-plus.dtb"
 
-
 config DEFAULT_FDT_FILE
-	string
 	default "ucm-imx8m-plus.dtb"
 
 config DEFAULT_DEVICE_TREE
-	string
 	default "ucm-imx8m-plus"
 
 config SYS_I2C_EEPROM_BUS
@@ -37,9 +34,5 @@ config SYS_I2C_EEPROM_BUS_SB
 config SYS_I2C_EEPROM_ADDR_SB
 	hex
 	default 0x54
-
-config COMPULAB_DEBUG_UART1
-	bool "System Debug UART1"
-	default false
 
 endif
