@@ -45,6 +45,27 @@ struct lpddr4_desc {
 	char *desc[4];
 };
 
+#ifdef CONFIG_SPL_OS_BOOT
+static const struct lpddr4_desc lpddr4_array[] = {
+	{ .name = "deadbeaf",	.id = 0xdeadbeef, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+	{ .name = "Nanya",	.id = 0x05000010, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+};
+
+#else /* CONFIG_SPL_OS_BOOT */
+
 static const struct lpddr4_desc lpddr4_array[] = {
 #ifdef CONFIG_DRAM_D2D4
 	{ .name = "deadbeaf",	.id = 0xdeadbeef, .subind = 0x2, .size = 2048, .count = 1,
@@ -100,6 +121,7 @@ static const struct lpddr4_desc lpddr4_array[] = {
 	},
 #endif
 };
+#endif /* CONFIG_SPL_OS_BOOT */
 
 unsigned int lpddr4_get_mr(void);
 const struct lpddr4_desc *lpddr4_get_desc_by_id(unsigned int id);

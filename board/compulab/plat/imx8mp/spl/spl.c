@@ -39,6 +39,19 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifdef CONFIG_SPL_OS_BOOT
+int spl_start_uboot(void) {
+	if (IS_ENABLED(CONFIG_SPL_SERIAL) && serial_tstc() && serial_getc() == 'c') {
+	/* break into full u boot on 'c' */
+		while(serial_tstc()) { /* eat up all the remaining characters */
+			serial_getc();
+		}
+		return 1;
+	}
+	return 0; // start the Kernel
+}
+#endif
+
 int spl_board_boot_device(enum boot_device boot_dev_spl)
 {
 #ifdef CONFIG_SPL_BOOTROM_SUPPORT
@@ -168,6 +181,9 @@ int board_mmc_getcd(struct mmc *mmc)
 
 #if CONFIG_IS_ENABLED(DM_PMIC_PCA9450)
 /* Forward declarations */
+#ifdef CONFIG_SPL_OS_BOOT
+static void power_init_ldo4(struct udevice *dev) { return; }
+#else
 u8 cl_eeprom_get_ldo4(void);
 static void power_init_ldo4(struct udevice *dev) {
 	u8 ldo4 = cl_eeprom_get_ldo4();
@@ -192,6 +208,7 @@ static void power_init_ldo4(struct udevice *dev) {
 	ldo4 = (( ldo4 > 33 ) ? 33 : ldo4);
 	printf("pca9450@25 [ldo4][%s] = %dv%d\n", ( mode ? "u" : "d" ), (ldo4/10) , (ldo4%10));
 }
+#endif
 
 int power_init_board(void)
 {
