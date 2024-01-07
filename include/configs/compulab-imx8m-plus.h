@@ -50,6 +50,9 @@
 #define BOOTENV
 #endif
 
+#ifndef MACHINE_EXTRA_ENV_SETTINGS
+#define MACHINE_EXTRA_ENV_SETTINGS
+#endif
 
 #define JAILHOUSE_ENV \
 	"jh_clk= \0 " \
@@ -72,6 +75,7 @@
 	CONFIG_MFG_ENV_SETTINGS \
 	JAILHOUSE_ENV \
 	BOOTENV \
+	MACHINE_EXTRA_ENV_SETTINGS \
 	"stdout=serial,vidconsole\0" \
 	"stderr=serial,vidconsole\0" \
 	"stdin=serial,usbkbd\0" \
