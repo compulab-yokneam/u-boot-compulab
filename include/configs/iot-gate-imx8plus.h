@@ -7,6 +7,9 @@
 #ifndef __IOT_GATE_IMX8PLUS_H
 #define __IOT_GATE_IMX8PLUS_H
 
+#define MACHINE_EXTRA_ENV_SETTINGS	\
+	"boot_opt=net.ifnames=0\0"
+
 #include "compulab-imx8m-plus.h"
 
 #define CONFIG_IMX6_PWM_PER_CLK 66000000
