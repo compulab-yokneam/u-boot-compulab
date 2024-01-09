@@ -12,6 +12,7 @@
 	compatible = "compulab,ucm-imx93", "fsl,imx93";
 
 	chosen {
+		bootargs = "console=ttyLP0,115200";
 		stdout-path = &lpuart1;
 	};
 
@@ -19,18 +20,6 @@
 		i2c8 = &flexio_i2c_master;
 		ethernet0 = &eqos;
 		ethernet1 = &fec;
-	};
-
-	reserved-memory {
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-
-		audio: audio@a4120000 {
-			compatible = "shared-dma-pool";
-			reg = <0 0xa4120000 0 0x100000>;
-			no-map;
-		};
 	};
 
 	reg_usdhc2_vmmc: regulator-usdhc2 {
@@ -321,29 +310,6 @@
 	status = "disabled";
 };
 
-&fec {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_fec>;
-	phy-mode = "rgmii-id";
-	phy-handle = <&ethphy2>;
-	fsl,magic-packet;
-	status = "okay";
-
-	mdio {
-		#address-cells = <1>;
-		#size-cells = <0>;
-		clock-frequency = <5000000>;
-
-		ethphy2: ethernet-phy-fec@5 {
-			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <5>;
-			eee-broken-1000t;
-			rtl821x,aldps-disable;
-			rtl821x,clkout-disable;
-		};
-	};
-};
-
 &eqos {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_eqos>;
@@ -361,8 +327,27 @@
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <4>;
 			eee-broken-1000t;
-			rtl821x,aldps-disable;
-			rtl821x,clkout-disable;
+		};
+	};
+};
+
+&fec {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_fec>;
+	phy-mode = "rgmii-id";
+	phy-handle = <&ethphy2>;
+	fsl,magic-packet;
+	status = "disabled";
+
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		clock-frequency = <5000000>;
+
+		ethphy2: ethernet-phy-fec@5 {
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <5>;
+			eee-broken-1000t;
 		};
 	};
 };
