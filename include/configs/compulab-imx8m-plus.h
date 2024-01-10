@@ -147,7 +147,9 @@
 			"setenv bootargs console=${console} root=${sd_root} ${root_opt};\0" \
 		"usb_ul=usb start; setenv iface usb; setenv dev ${usb_dev}; setenv part ${boot_part};" \
 			"setenv bootargs console=${console} root=${usb_root} ${root_opt};\0" \
-		"ulbootscript=load ${iface} ${dev}:${part} ${loadaddr} ${script};\0" \
+		"ulbootscript=load ${iface} ${dev}:${part} ${scriptaddr} ${bsp_script};\0" \
+		"ulrunbootscript=echo Running bootscript from ${iface} ${dev}:${part} ...; " \
+				"source ${scriptaddr}\0" \
 		"ulimage=load ${iface} ${dev}:${part} ${loadaddr} ${image}\0" \
 		"ulfdt=if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
 			"load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; " \
@@ -161,18 +163,18 @@
 		"bootlist=usb_ul sd_ul emmc_ul\0" \
 		"bsp_bootcmd=echo Running BSP bootcmd ...; " \
 		"for src in ${bootlist}; do " \
+			"echo Running ${src} ...; " \
 			"run ${src}; " \
 			"env exist boot_opt && env exists bootargs && setenv bootargs ${bootargs} ${boot_opt}; " \
 			"if run ulbootscript; then " \
-				"run bootscript; " \
-			"else " \
-				"if run ulimage; then " \
-					"if run ulfdt; then " \
-						"booti ${loadaddr} - ${fdt_addr_r}; " \
-					"else " \
-						"if test ${boot_fdt} != yes; then " \
-							"booti ${loadaddr}; " \
-						"fi; " \
+				"run ulrunbootscript; " \
+			"fi; " \
+			"if run ulimage; then " \
+				"if run ulfdt; then " \
+					"booti ${loadaddr} - ${fdt_addr_r}; " \
+				"else " \
+					"if test ${boot_fdt} != yes; then " \
+						"booti ${loadaddr}; " \
 					"fi; " \
 				"fi; " \
 			"fi; " \
