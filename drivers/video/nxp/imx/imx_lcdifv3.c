@@ -28,6 +28,7 @@
 #include <dm.h>
 #include <dm/device-internal.h>
 #include <dm/device_compat.h>
+#include <display.h>
 
 #define	PS2KHZ(ps)	(1000000000UL / (ps))
 #define HZ2PS(hz)	(1000000000UL / ((hz) / 1000))
@@ -233,7 +234,7 @@ static void lcdifv3_init(struct udevice *dev,
 	lcdifv3_enable_controller(priv);
 }
 
-void lcdifv3_power_down(struct lcdifv3_priv *priv)
+static void lcdifv3_power_down(struct lcdifv3_priv *priv)
 {
 	int timeout = 1000000;
 
@@ -349,6 +350,15 @@ static int lcdifv3_video_probe(struct udevice *dev)
 		return ret;
 
 	lcdifv3_of_parse_thres(dev);
+
+#if IS_ENABLED(CONFIG_VIDEO_IMX93_LVDS)
+	/* This is the LVDS method */
+	ret = display_enable(priv->disp_dev, 32, &timings);
+	if (ret) {
+		debug("%s: display enable error %d\n", __func__, ret);
+		return ret;
+	}
+#endif
 
 	if (priv->disp_dev) {
 #if IS_ENABLED(CONFIG_VIDEO_BRIDGE)
