@@ -18,10 +18,23 @@ struct simple_panel_priv {
 	struct gpio_desc enable;
 };
 
+static const struct display_timing boe_hv070wsa_timing = {
+	.pixelclock.typ		= 69142857,
+	.hactive.typ		= 1024,
+	.hfront_porch.typ	= 160,
+	.hback_porch.typ	= 160,
+	.hsync_len.typ		= 1,
+	.vactive.typ		= 600,
+	.vfront_porch.typ	= 23,
+	.vback_porch.typ	= 12,
+	.vsync_len.typ		= 1,
+};
+
 static int simple_panel_enable_backlight(struct udevice *dev)
 {
 	struct simple_panel_priv *priv = dev_get_priv(dev);
 	int ret;
+	debug("%s\n", __func__);
 
 	dm_gpio_set_value(&priv->enable, 1);
 	if (priv->backlight) {
@@ -40,7 +53,8 @@ static int simple_panel_set_backlight(struct udevice *dev, int percent)
 	struct simple_panel_priv *priv = dev_get_priv(dev);
 	int ret;
 
-	debug("%s: start, backlight = '%s'\n", __func__, priv->backlight->name);
+	debug("%s\n", __func__);
+
 	dm_gpio_set_value(&priv->enable, 1);
 	if (priv->backlight) {
 		ret = backlight_set_brightness(priv->backlight, percent);
@@ -57,6 +71,8 @@ static int simple_panel_of_to_plat(struct udevice *dev)
 	struct simple_panel_priv *priv = dev_get_priv(dev);
 	int ret;
 
+	debug("%s\n", __func__);
+
 	if (IS_ENABLED(CONFIG_DM_REGULATOR)) {
 		ret = uclass_get_device_by_phandle(UCLASS_REGULATOR, dev,
 						   "power-supply", &priv->reg);
@@ -70,7 +86,7 @@ static int simple_panel_of_to_plat(struct udevice *dev)
 	ret = uclass_get_device_by_phandle(UCLASS_PANEL_BACKLIGHT, dev,
 					   "backlight", &priv->backlight);
 	if (ret) {
-		printf("%s: Cannot get backlight: ret=%d\n", __func__, ret);
+		debug("%s: Cannot get backlight: ret=%d\n", __func__, ret);
 		priv->backlight = NULL;
 	}
 
@@ -91,6 +107,8 @@ static int simple_panel_probe(struct udevice *dev)
 	struct simple_panel_priv *priv = dev_get_priv(dev);
 	int ret;
 
+	debug("%s\n", __func__);
+
 	if (IS_ENABLED(CONFIG_DM_REGULATOR) && priv->reg) {
 		debug("%s: Enable regulator '%s'\n", __func__, priv->reg->name);
 		ret = regulator_set_enable(priv->reg, true);
@@ -100,10 +118,18 @@ static int simple_panel_probe(struct udevice *dev)
 
 	return 0;
 }
+static int simple_panel_get_display_timing(struct udevice *dev,
+					    struct display_timing *timings)
+{
+	memcpy(timings, &boe_hv070wsa_timing, sizeof(*timings));
+
+	return 0;
+}
 
 static const struct panel_ops simple_panel_ops = {
 	.enable_backlight	= simple_panel_enable_backlight,
 	.set_backlight		= simple_panel_set_backlight,
+	.get_display_timing = simple_panel_get_display_timing,
 };
 
 static const struct udevice_id simple_panel_ids[] = {
@@ -115,6 +141,7 @@ static const struct udevice_id simple_panel_ids[] = {
 	{ .compatible = "lg,lb070wv8" },
 	{ .compatible = "sharp,lq123p1jx31" },
 	{ .compatible = "boe,nv101wxmn51" },
+	{ .compatible = "boe,hv070wsa" },
 	{ }
 };
 
