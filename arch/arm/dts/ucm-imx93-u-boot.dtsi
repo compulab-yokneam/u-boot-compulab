@@ -195,3 +195,15 @@
 &dphy {
 	/delete-property/ power-domains;
 };
+
+&ldb_phy {
+	/delete-property/ power-domains;
+};
+
+&ldb {
+	/delete-property/ power-domains;
+};
+
+&media_blk_ctrl {
+	/delete-property/ power-domains;
+};

@@ -521,3 +521,7 @@
 &wdog3 {
 	status = "okay";
 };
+
+#if IS_ENABLED(CONFIG_VIDEO_IMX93_LVDS)
+#include "ucm-imx93-lvds.dtsi"
+#endif
