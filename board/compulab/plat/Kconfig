@@ -45,19 +45,6 @@ config TARGET_IOT_GATE_IMX8PLUS
 
 endchoice
 
-if TARGET_IOT_GATE_IMX8PLUS || TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_MCM_IMX8M_PLUS
-
-config IMX_FLASH_BIN
-	bool
-	default y
-	select USE_SPL_FIT_GENERATOR
-
-config SPL_FIT_GENERATOR
-	string
-	default "arch/arm/mach-imx/mkimage_fit_atf.sh"
-
-endif
-
 menu "Compulab i.MX8MM platform features"
 	depends on TARGET_UCM_IMX8M_MINI || TARGET_MCM_IMX8M_MINI || TARGET_IOT_GATE_IMX8
 

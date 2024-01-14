@@ -36,14 +36,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#ifdef CONFIG_NAND_MXS
-
-static void setup_gpmi_nand(void)
-{
-	init_nand_clk();
-}
-#endif
-
 int board_phys_sdram_size(phys_size_t *size)
 {
 	size_t dramsize;
@@ -69,31 +61,6 @@ __weak void board_save_phyaddr(int phy_addr) {
 
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
-#ifdef CONFIG_IMX8M_DRAM_INLINE_ECC
-	int rc;
-	phys_addr_t ecc0_start = 0xb0000000;
-	phys_addr_t ecc1_start = 0x130000000;
-	phys_addr_t ecc2_start = 0x1b0000000;
-	size_t ecc_size = 0x10000000;
-
-	rc = add_res_mem_dt_node(blob, "ecc", ecc0_start, ecc_size);
-	if (rc < 0) {
-		printf("Could not create ecc0 reserved-memory node.\n");
-		return rc;
-	}
-
-	rc = add_res_mem_dt_node(blob, "ecc", ecc1_start, ecc_size);
-	if (rc < 0) {
-		printf("Could not create ecc1 reserved-memory node.\n");
-		return rc;
-	}
-
-	rc = add_res_mem_dt_node(blob, "ecc", ecc2_start, ecc_size);
-	if (rc < 0) {
-		printf("Could not create ecc2 reserved-memory node.\n");
-		return rc;
-	}
-#endif
 
 	fdt_set_env_addr(blob);
 	fdt_set_sn(blob);
@@ -126,149 +93,6 @@ int board_phy_config(struct phy_device *phydev)
 	if (phydev->drv->config)
 		phydev->drv->config(phydev);
 	return 0;
-}
-#endif
-
-#ifdef CONFIG_USB_TCPC
-struct tcpc_port port1;
-struct tcpc_port port2;
-
-static int setup_pd_switch(uint8_t i2c_bus, uint8_t addr)
-{
-	struct udevice *bus;
-	struct udevice *i2c_dev = NULL;
-	int ret;
-	uint8_t valb;
-
-	ret = uclass_get_device_by_seq(UCLASS_I2C, i2c_bus, &bus);
-	if (ret) {
-		printf("%s: Can't find bus\n", __func__);
-		return -EINVAL;
-	}
-
-	ret = dm_i2c_probe(bus, addr, 0, &i2c_dev);
-	if (ret) {
-		printf("%s: Can't find device id=0x%x\n",
-			__func__, addr);
-		return -ENODEV;
-	}
-
-	ret = dm_i2c_read(i2c_dev, 0xB, &valb, 1);
-	if (ret) {
-		printf("%s dm_i2c_read failed, err %d\n", __func__, ret);
-		return -EIO;
-	}
-	valb |= 0x4; /* Set DB_EXIT to exit dead battery mode */
-	ret = dm_i2c_write(i2c_dev, 0xB, (const uint8_t *)&valb, 1);
-	if (ret) {
-		printf("%s dm_i2c_write failed, err %d\n", __func__, ret);
-		return -EIO;
-	}
-
-	/* Set OVP threshold to 23V */
-	valb = 0x6;
-	ret = dm_i2c_write(i2c_dev, 0x8, (const uint8_t *)&valb, 1);
-	if (ret) {
-		printf("%s dm_i2c_write failed, err %d\n", __func__, ret);
-		return -EIO;
-	}
-
-	return 0;
-}
-
-int pd_switch_snk_enable(struct tcpc_port *port)
-{
-	if (port == &port1) {
-		debug("Setup pd switch on port 1\n");
-		return setup_pd_switch(1, 0x72);
-	} else
-		return -EINVAL;
-}
-
-/* Port2 is the power supply, port 1 does not support power */
-struct tcpc_port_config port1_config = {
-	.i2c_bus = 1, /*i2c2*/
-	.addr = 0x50,
-	.port_type = TYPEC_PORT_UFP,
-	.max_snk_mv = 20000,
-	.max_snk_ma = 3000,
-	.max_snk_mw = 45000,
-	.op_snk_mv = 15000,
-	.switch_setup_func = &pd_switch_snk_enable,
-	.disable_pd = true,
-};
-
-struct tcpc_port_config port2_config = {
-	.i2c_bus = 2, /*i2c3*/
-	.addr = 0x50,
-	.port_type = TYPEC_PORT_UFP,
-	.max_snk_mv = 20000,
-	.max_snk_ma = 3000,
-	.max_snk_mw = 45000,
-	.op_snk_mv = 15000,
-};
-
-#define USB_TYPEC_SEL IMX_GPIO_NR(4, 20)
-#define USB_TYPEC_EN IMX_GPIO_NR(2, 20)
-
-static iomux_v3_cfg_t ss_mux_gpio[] = {
-	MX8MP_PAD_SAI1_MCLK__GPIO4_IO20 | MUX_PAD_CTRL(NO_PAD_CTRL),
-	MX8MP_PAD_SD2_WP__GPIO2_IO20 | MUX_PAD_CTRL(NO_PAD_CTRL),
-};
-
-void ss_mux_select(enum typec_cc_polarity pol)
-{
-	if (pol == TYPEC_POLARITY_CC1)
-		gpio_direction_output(USB_TYPEC_SEL, 0);
-	else
-		gpio_direction_output(USB_TYPEC_SEL, 1);
-}
-
-static int setup_typec(void)
-{
-	int ret;
-	struct gpio_desc per_12v_desc;
-
-	debug("tcpc_init port 2\n");
-	ret = tcpc_init(&port2, port2_config, NULL);
-	if (ret) {
-		printf("%s: tcpc port2 init failed, err=%d\n",
-		       __func__, ret);
-	} else if (tcpc_pd_sink_check_charging(&port2)) {
-		printf("Power supply on USB2\n");
-
-		/* Enable PER 12V, any check before it? */
-		ret = dm_gpio_lookup_name("gpio@20_1", &per_12v_desc);
-		if (ret) {
-			printf("%s lookup gpio@20_1 failed ret = %d\n", __func__, ret);
-			return -ENODEV;
-		}
-
-		ret = dm_gpio_request(&per_12v_desc, "per_12v_en");
-		if (ret) {
-			printf("%s request per_12v failed ret = %d\n", __func__, ret);
-			return -EIO;
-		}
-
-		/* Enable PER 12V regulator */
-		dm_gpio_set_dir_flags(&per_12v_desc, GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE);
-	}
-
-	debug("tcpc_init port 1\n");
-	imx_iomux_v3_setup_multiple_pads(ss_mux_gpio, ARRAY_SIZE(ss_mux_gpio));
-	gpio_request(USB_TYPEC_SEL, "typec_sel");
-	gpio_request(USB_TYPEC_EN, "typec_en");
-	gpio_direction_output(USB_TYPEC_EN, 0);
-
-	ret = tcpc_init(&port1, port1_config, &ss_mux_select);
-	if (ret) {
-		printf("%s: tcpc port1 init failed, err=%d\n",
-		       __func__, ret);
-	} else {
-		return ret;
-	}
-
-	return ret;
 }
 #endif
 
@@ -359,22 +183,12 @@ int board_usb_init(int index, enum usb_init_type init)
 	imx8m_usb_power(index, true);
 
 	if (index == 0 && init == USB_INIT_DEVICE) {
-#ifdef CONFIG_USB_TCPC
-		ret = tcpc_setup_ufp_mode(&port1);
-		if (ret)
-			return ret;
-#endif
 		dwc3_nxp_usb_phy_init(&dwc3_device_data);
 		return dwc3_uboot_init(&dwc3_device_data);
 	} else if (index == 0 && init == USB_INIT_HOST) {
-#ifdef CONFIG_USB_TCPC
-		ret = tcpc_setup_dfp_mode(&port1);
-#endif
 		return ret;
 	} else if (index == 1 && init == USB_INIT_HOST) {
-		/* Enable GPIO1_IO14 for 5V VBUS */
-		gpio_request(USB2_PWR_EN, "usb2_pwr");
-		gpio_direction_output(USB2_PWR_EN, 1);
+		return ret;
 	}
 
 	return 0;
@@ -385,43 +199,12 @@ int board_usb_cleanup(int index, enum usb_init_type init)
 	int ret = 0;
 	if (index == 0 && init == USB_INIT_DEVICE) {
 		dwc3_uboot_exit(index);
-	} else if (index == 0 && init == USB_INIT_HOST) {
-#ifdef CONFIG_USB_TCPC
-		ret = tcpc_disable_src_vbus(&port1);
-#endif
-	} else if (index == 1 && init == USB_INIT_HOST) {
-		/* Disable GPIO1_IO14 for 5V VBUS */
-		gpio_direction_output(USB2_PWR_EN, 0);
 	}
 
 	imx8m_usb_power(index, false);
 
 	return ret;
 }
-
-#ifdef CONFIG_USB_TCPC
-/* Not used so far */
-int board_typec_get_mode(int index)
-{
-	int ret = 0;
-	enum typec_cc_polarity pol;
-	enum typec_cc_state state;
-
-	if (index == 0) {
-		tcpc_setup_ufp_mode(&port1);
-
-		ret = tcpc_get_cc_status(&port1, &pol, &state);
-		if (!ret) {
-			if (state == TYPEC_STATE_SRC_RD_RA || state == TYPEC_STATE_SRC_RD)
-				return USB_INIT_HOST;
-		}
-
-		return USB_INIT_DEVICE;
-	} else {
-		return USB_INIT_HOST;
-	}
-}
-#endif
 #endif
 
 #define FSL_SIP_GPC			0xC2000000
@@ -437,34 +220,29 @@ __weak void board_vendor_late_init(void) {
 	return;
 }
 
-int board_init(void)
+void static board_pm_init(void)
 {
 	struct arm_smccc_res res;
-
-	board_vendor_init();
-
-#ifdef CONFIG_USB_TCPC
-	setup_typec();
-#endif
-
-#ifdef CONFIG_DWC_ETH_QOS
-	/* clock, pin, gpr */
-	setup_eqos();
-#endif
-
-#ifdef CONFIG_NAND_MXS
-	setup_gpmi_nand();
-#endif
-
-#if defined(CONFIG_USB_DWC3) || defined(CONFIG_USB_XHCI_IMX8M)
-	init_usb_clk();
-#endif
-
 	/* enable the dispmix & mipi phy power domain */
 	arm_smccc_smc(IMX_SIP_GPC, IMX_SIP_GPC_PM_DOMAIN,
 		      DISPMIX, true, 0, 0, 0, 0, &res);
 	arm_smccc_smc(IMX_SIP_GPC, IMX_SIP_GPC_PM_DOMAIN,
 		      MIPI, true, 0, 0, 0, 0, &res);
+}
+
+int board_init(void)
+{
+	board_pm_init();
+
+	board_vendor_init();
+
+#ifdef CONFIG_DWC_ETH_QOS
+	setup_eqos();
+#endif
+
+#if defined(CONFIG_USB_DWC3) || defined(CONFIG_USB_XHCI_IMX8M)
+	init_usb_clk();
+#endif
 
 	return 0;
 }
@@ -489,17 +267,6 @@ int board_late_init(void)
 	do_pbb_restore();
 	return 0;
 }
-
-#ifdef CONFIG_IMX_BOOTAUX
-phys_size_t board_get_usable_ram_top(phys_size_t total_size)
-{
-	/* Reserve 16M memory used by M core vring/buffer, which begins at 16MB before optee */
-	if (rom_pointer[1])
-		return gd->ram_top - SZ_16M;
-
-	return gd->ram_top;
-}
-#endif
 
 #ifdef CONFIG_FSL_FASTBOOT
 #ifdef CONFIG_ANDROID_RECOVERY
