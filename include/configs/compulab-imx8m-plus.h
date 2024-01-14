@@ -38,6 +38,7 @@
 #define CFG_EXTRA_ENV_SETTINGS		\
 	CFG_MFG_ENV_SETTINGS \
 	BOOTENV \
+	"video_link=1\0" \
 	"stdout=serial,vidconsole\0" \
 	"stderr=serial,vidconsole\0" \
 	"stdin=serial,usbkbd\0" \
