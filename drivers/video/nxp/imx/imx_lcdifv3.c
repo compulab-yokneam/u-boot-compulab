@@ -350,14 +350,12 @@ static int lcdifv3_video_probe(struct udevice *dev)
 
 	lcdifv3_of_parse_thres(dev);
 
-#if IS_ENABLED(CONFIG_VIDEO_IMX93_LVDS)
 	/* This is the LVDS method */
 	ret = display_enable(priv->disp_dev, 32, &timings);
 	if (ret) {
 		debug("%s: display enable error %d\n", __func__, ret);
 		return ret;
 	}
-#endif
 
 	if (priv->disp_dev) {
 #if IS_ENABLED(CONFIG_VIDEO_BRIDGE)
