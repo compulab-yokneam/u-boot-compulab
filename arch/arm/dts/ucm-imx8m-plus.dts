@@ -39,18 +39,6 @@
 		};
 	};
 
-	reg_usb1_host_vbus: regulator-usb1-vbus {
-		compatible = "regulator-fixed";
-		regulator-name = "usb1_host_vbus";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_usb1_vbus>;
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio1 14 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-		regulator-always-on;
-	};
-
 	reg_usdhc2_vmmc: regulator-usdhc2 {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
@@ -428,6 +416,10 @@
 	status = "okay";
 };
 
+&usb3_0 {
+	status = "okay";
+};
+
 &usb_dwc3_0 {
 	dr_mode = "otg";
 	hnp-disable;
@@ -441,7 +433,13 @@
 	status = "okay";
 };
 
+&usb3_1 {
+	status = "okay";
+};
+
 &usb_dwc3_1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usb1_vbus>;
 	dr_mode = "host";
 	status = "okay";
 };
@@ -619,7 +617,7 @@
 
 	pinctrl_usb1_vbus: usb1grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO14__GPIO1_IO14	0x19
+			MX8MP_IOMUXC_GPIO1_IO14__USB2_PWR	0x10
 		>;
 	};
 
