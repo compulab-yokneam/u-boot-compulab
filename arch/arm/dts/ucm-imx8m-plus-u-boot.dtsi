@@ -223,6 +223,22 @@
 	/delete-property/ assigned-clock-rates;
 };
 
+&lcdif2 {
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-parents;
+	/delete-property/ assigned-clock-rates;
+};
+
+&ldb {
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-parents;
+	/delete-property/ assigned-clock-rates;
+};
+
+&pgc_ispdwp {
+	/delete-property/ clocks;
+};
+
 &mipi_dsi {
 	/delete-property/ assigned-clocks;
 	/delete-property/ assigned-clock-parents;
