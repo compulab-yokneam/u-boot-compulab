@@ -167,7 +167,6 @@ int board_mmc_getcd(struct mmc *mmc)
 
 #if CONFIG_IS_ENABLED(DM_PMIC_PCA9450)
 #if defined(CONFIG_TARGET_UCM_IMX8M_PLUS) || defined(CONFIG_TARGET_IOT_GATE_IMX8PLUS)
->>>>>>> 4b1b6ae2c5... Enable ldo4 for both ucm and iot-gate
 /* Forward declarations */
 u8 cl_eeprom_get_ldo4(void);
 static void power_init_ldo4(struct udevice *dev) {
