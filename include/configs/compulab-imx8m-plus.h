@@ -111,15 +111,21 @@
 		"usb_ul=usb start; setenv iface usb; setenv dev ${usb_dev}; setenv part ${boot_part};" \
 			"setenv bootargs console=${console} root=${usb_root} ${root_opt};\0" \
 		"ulbootscript=load ${iface} ${dev}:${part} ${loadaddr} ${script};\0" \
-		"ulimage=load ${iface} ${dev}:${part} ${loadaddr} ${image}\0" \
+		"ulimage=echo loading ${image}; load ${iface} ${dev}:${part} ${loadaddr} ${image}\0" \
+		"ulfdto=setenv fdto1file; for fdto1file in ${fdtofile}; do "\
+			    "echo loading ${fdto1file}; "\
+			    "load ${iface} ${dev}:${part} ${fdto_addr_r} ${fdto1file} "\
+			    "&& fdt addr ${fdt_addr_r} "\
+			    "&& fdt resize 0x8000 "\
+			    "&& fdt apply ${fdto_addr_r};"\
+		"done; true;\0"\
 		"ulfdt=if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; " \
-			"if itest.s x != x${fdtofile}; then " \
-			    "load ${iface} ${dev}:${part} ${fdto_addr_r} ${fdtofile};" \
-			    "fdt addr ${fdt_addr_r}; fdt resize 0x8000; fdt apply ${fdto_addr_r};" \
-			"else " \
-			    "true;" \
-			"fi;" \
+			"echo loading ${fdtfile}; load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; " \
+			"if env exists fdtofile;then "\
+					"run ulfdto; "\
+				"else "\
+					"true; "\
+				"fi; "\
 		"fi;\0" \
 		"bootlist=usb_ul sd_ul emmc_ul\0" \
 		"bsp_bootcmd=echo Running BSP bootcmd ...; " \
