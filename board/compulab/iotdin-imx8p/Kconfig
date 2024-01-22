@@ -1,0 +1,38 @@
+if TARGET_IOTDIN_IMX8P
+
+config SYS_BOARD
+	default "iotdin-imx8p"
+
+config SYS_VENDOR
+	default "compulab"
+
+config SYS_CONFIG_NAME
+	default "iotdin-imx8p"
+
+config DEFAULT_DTB
+	string
+	default "iotdin-imx8p.dtb"
+
+config DEFAULT_FDT_FILE
+	default "iotdin-imx8p.dtb"
+
+config DEFAULT_DEVICE_TREE
+	default "iotdin-imx8p"
+
+config SYS_I2C_EEPROM_BUS
+	int
+	default 1
+
+config SYS_I2C_EEPROM_ADDR
+	hex
+	default 0x50
+
+config SYS_I2C_EEPROM_BUS_SB
+	hex
+	default 0x4
+
+config SYS_I2C_EEPROM_ADDR_SB
+	hex
+	default 0x50
+
+endif

@@ -1,0 +1,142 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2024 CompuLab
+ */
+
+/ {
+	chosen {
+		bootargs = "console=ttymxc1,115200 earlycon=ec_imx6q,0x30890000,115200 console=tty0";
+		stdout-path = &uart2;
+	};
+};
+
+&fec {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_fec>, <&pinctrl_fec_phy_reset>;
+	phy-mode = "rgmii-id";
+	phy-handle = <&fecphy>;
+	phy-reset-gpios = <&gpio4 24 GPIO_ACTIVE_LOW>;
+	phy-reset-duration = <10>;
+	phy-reset-post-delay = <150>;
+	status = "okay";
+
+	mdio {
+		compatible = "snps,dwmac-mdio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		fecphy: fec-phy@0 {
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <0>;
+			eee-broken-1000t;
+		};
+	};
+};
+
+&gpio2 {
+	usb_hub_reset {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb_hub_rst>;
+		gpio-hog;
+		gpios = <10 GPIO_ACTIVE_HIGH>;
+		line-name = "usb_hub_reset";
+		output-high;
+	};
+};
+
+&gpio4 {
+	usb_vbus_ena {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb2_vbus>;
+		gpio-hog;
+		gpios = <20 GPIO_ACTIVE_HIGH>;
+		line-name = "usb2_host_vbus";
+		output-high;
+	};
+};
+
+&i2c3 {
+	status = "okay";
+};
+
+&i2c5 {
+	status = "okay";
+
+        pca9555_sb: pca9555-sb@20 {
+                compatible = "nxp,pca9555";
+                gpio-controller;
+                #gpio-cells = <2>;
+                reg = <0x20>;
+
+		gpio-line-names =
+			"WLAN_PDn", "ULED2_GREEN", "TPM_RSTn", "ULED2_RED",
+			"ULED1_RED", "MODEM_RSTn", "RF_KILLn", "LED_AMBR_CNTL",
+			"PWR_EN", "USB_RESET1", "USB_RESET2", "USB_RESET3",
+			"B2B_GPIO0", "B2B_GPIO1", "B2B_GPIO2", "B2B_GPIO3";
+        };
+
+	eeprom_sb: eeprom-sb@50 {
+		compatible = "atmel,24c08";
+		reg = <0x50>;
+		pagesize = <16>;
+	};
+
+};
+
+&usb3_phy0 {
+	status = "okay";
+};
+
+&usb_dwc3_0 {
+	dr_mode = "otg";
+	hnp-disable;
+	srp-disable;
+	adp-disable;
+	usb-role-switch;
+	status = "okay";
+};
+
+&usb3_phy1 {
+	status = "okay";
+};
+
+&usb_dwc3_1 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+&cpu_alert0 {
+    temperature = <100000>;
+};
+
+&cpu_crit0 {
+    temperature = <105000>;
+};
+
+&soc_alert0 {
+    temperature = <100000>;
+};
+
+&soc_crit0 {
+    temperature = <105000>;
+};
+
+&iomuxc {
+	pinctrl_fec_phy_reset: fecphyrstgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI2_TXFS__GPIO4_IO24			0x19
+		>;
+	};
+
+	pinctrl_usb_hub_rst: usbhubrstgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_RESET_B__GPIO2_IO10			0x19
+		>;
+	};
+
+	pinctrl_usb2_vbus: usb2vbusgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_MCLK__GPIO4_IO20			0x154
+		>;
+	};
+};

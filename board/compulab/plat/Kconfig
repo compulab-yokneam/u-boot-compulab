@@ -43,9 +43,14 @@ config TARGET_IOT_GATE_IMX8PLUS
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
 
+config TARGET_IOTDIN_IMX8P
+	bool "CompuLab iotdin-imx8p"
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
 endchoice
 
-if TARGET_IOT_GATE_IMX8PLUS || TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_MCM_IMX8M_PLUS
+if TARGET_IOT_GATE_IMX8PLUS || TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_MCM_IMX8M_PLUS || TARGET_IOTDIN_IMX8P
 
 config IMX_FLASH_BIN
 	bool
@@ -71,7 +76,7 @@ config SPL_REPORT_FAKE_MEMSIZE
 endmenu
 
 menu  "Compulab i.MX8MP platform features"
-	depends on TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_IOT_GATE_IMX8PLUS || TARGET_MCM_IMX8M_PLUS
+	depends on TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_IOT_GATE_IMX8PLUS || TARGET_MCM_IMX8M_PLUS || TARGET_IOTDIN_IMX8P
 
 config DRAM_D2D4
 	bool "Enable D2D4 or D1D8 dram support"
@@ -132,3 +137,4 @@ source "board/compulab/ucm-imx8m-plus/Kconfig"
 source "board/compulab/mcm-imx8m-plus/Kconfig"
 source "board/compulab/som-imx8m-plus/Kconfig"
 source "board/compulab/iot-gate-imx8plus/Kconfig"
+source "board/compulab/iotdin-imx8p/Kconfig"
