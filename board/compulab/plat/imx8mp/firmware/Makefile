@@ -1,13 +1,10 @@
-files := bl31.bin lpddr4_pmu_train_1d_dmem.bin lpddr4_pmu_train_1d_imem.bin lpddr4_pmu_train_2d_dmem.bin lpddr4_pmu_train_2d_imem.bin tee.bin
+files=bl31.bin lpddr4_pmu_train_1d_dmem.bin lpddr4_pmu_train_1d_imem.bin lpddr4_pmu_train_2d_dmem.bin lpddr4_pmu_train_2d_imem.bin tee.bin
+fw_src=$(srctree)/board/compulab/plat/imx8mp/firmware
 
 all: $(files)
 
 $(files):
-	for file in $(files); do \
-		uudecode --output-file $(O)/$$file $$file.uue; \
-	done;
+	uudecode --output-file $@ $(fw_src)/$@.uue
 
 clean:
-	for file in $(files); do \
-		rm -rf $(O)/$$file; \
-	done;
+	rm -rf $(files)
