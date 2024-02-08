@@ -1,4 +1,5 @@
 #include <common.h>
+#include <command.h>
 #include <spl.h>
 #include <asm/io.h>
 #include <errno.h>
@@ -12,7 +13,9 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/clock.h>
 #include <asm/mach-imx/gpio.h>
+#include <linux/delay.h>
 #include "ddr.h"
+#include "ddr_ddrphy_trained_csr.h"
 
 /* Forward declarations */
 u32 cl_eeprom_get_ddrinfo(void);
@@ -23,7 +26,7 @@ u32 cl_eeprom_set_subind(u32 subind);
 #ifdef CONFIG_SPL_REPORT_FAKE_MEMSIZE
 u32 cl_eeprom_get_osize(void);
 #endif
-static unsigned int lpddr4_mr_read(unsigned int mr_rank, unsigned int mr_addr)
+static unsigned int lpddr4_mr_read_and_refine(unsigned int mr_rank, unsigned int mr_addr)
 {
 	unsigned int tmp;
 	reg32_write(DRC_PERF_MON_MRR0_DAT(0), 0x1);
@@ -74,8 +77,11 @@ static const struct lpddr4_desc lpddr4_array[] = {
 #else
 	{ .name = "Nanya",	.id = 0x05000010, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_05000010},
 #endif
-	{ .name = "Samsung",	.id = 0x01061010, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
+	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x04, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},
+	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x02, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
 	{ .name = "Samsung",	.id = 0x01050008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_01050008},
+	{ .name = "Samsung",	.id = 0x01060008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_01050008},
+	{ .name = "Alliance",   .id = 0x52000008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_01050008},
 	{ .name = "Kingston",	.id = 0xff000010, .subind = 0x04, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},
 	{ .name = "Kingston",	.id = 0xff000010, .subind = 0x02, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
 	{ .name = "Micron",	.id = 0xff020008, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_ff020008},
@@ -91,7 +97,7 @@ static unsigned int lpddr4_get_mr(void)
 	do {
 		for ( i = 0 ; i < ARRAY_SIZE(regs) ; i++ ) {
 			unsigned int data = 0;
-			data = lpddr4_mr_read(0xF, regs[i]);
+			data = lpddr4_mr_read_and_refine(0xF, regs[i]);
 			ddr_info <<= 8;
 			ddr_info += (data & 0xFF);
 		}
@@ -164,6 +170,10 @@ void spl_dram_init(void)
 
 	printf("DDRINFO(%s): %s %dG @ %d MHz\n", (ddr_found ? "D" : "?" ), lpddr4_array[i].name,
 			lpddr4_array[i].size, lpddr4_array[i].timing->fsp_table[0]);
+
+	//Initialize the common part of all trainigs
+	lpddr4_array[i].timing->ddrphy_trained_csr = ddr_ddrphy_trained_csr;
+	lpddr4_array[i].timing->ddrphy_trained_csr_num = ARRAY_SIZE(ddr_ddrphy_trained_csr);
 
 	if (ddr_init(lpddr4_array[i].timing)) {
 		SPL_TCM_INIT;

@@ -29,14 +29,20 @@
 #include <asm/setup.h>
 #include <asm/mach-imx/boot_mode.h>
 #include <asm/mach-imx/video.h>
+#include <imx_sip.h>
+#include <linux/arm-smccc.h>
+#include <linux/delay.h>
 #include "ddr/ddr.h"
 #include "common/eeprom.h"
 #include "common/rtc.h"
+#include <asm-generic/u-boot.h>
+#include <fdt_support.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
 static int env_dev = -1;
 static int env_part= -1;
+static int fec_phyaddr = -1;
 
 #ifdef CONFIG_BOARD_POSTCLK_INIT
 int board_postclk_init(void)
@@ -71,20 +77,6 @@ ulong board_get_usable_ram_top(ulong total_size)
             gd->ram_top = 0x100000000;
 
         return gd->ram_top;
-}
-
-int dram_init(void)
-{
-	phys_size_t sdram_size;
-	int ret;
-	ret = board_phys_sdram_size(&sdram_size);
-	if (ret)
-		return ret;
-
-	/* rom_pointer[1] contains the size of TEE occupies */
-	gd->ram_size = sdram_size - rom_pointer[1];
-
-	return 0;
 }
 
 #ifdef CONFIG_OF_BOARD_SETUP
@@ -149,11 +141,30 @@ static int fdt_set_env_addr(void *blob)
 	return 0;
 }
 
-int ft_board_setup(void *blob, bd_t *bd)
+__weak int sub_ft_board_setup(void *blob, struct bd_info *bd)
+{
+	return 0;
+}
+
+#define FDT_PHYADDR "/soc@0/bus@30800000/ethernet@30be0000/mdio/ethernet-phy@0"
+#define FLIP_32B(val) (((val>>24)&0xff) | ((val<<8)&0xff0000) | ((val>>8)&0xff00) | ((val<<24)&0xff000000))
+static int fdt_set_fec_phy_addr(void *blob)
+{
+	if(0 > fec_phyaddr)
+		return -EINVAL;
+
+	u32 val = FLIP_32B(fec_phyaddr);
+	return fdt_find_and_setprop
+		(blob, FDT_PHYADDR, "reg", (const void*)&val, sizeof(val), 0);
+}
+
+int ft_board_setup(void *blob, struct bd_info *bd)
 {
 	fdt_set_env_addr(blob);
 	fdt_set_sn(blob);
-	return 0;
+	fdt_set_fec_phy_addr(blob);
+
+	return sub_ft_board_setup(blob, bd);
 }
 #endif
 
@@ -216,16 +227,92 @@ static int setup_fec(void)
 	return set_clk_enet(ENET_125MHZ);
 }
 
+/* These are specifc ID, purposed to distiguish between PHY vendors.
+These values are not equal to real vendors' OUI (half of MAC address) */
+#define OUI_PHY_ATHEROS 0x1374
+#define OUI_PHY_REALTEK 0x0732
+
 int board_phy_config(struct phy_device *phydev)
 {
-	/* enable rgmii rxc skew and phy mode select to RGMII copper */
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x1f);
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x8);
+	int phyid1, phyid2;
+	unsigned int model, rev, oui;
+	unsigned int reg;
 
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x00);
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x82ee);
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x05);
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x100);
+	phyid1 = phy_read(phydev, MDIO_DEVAD_NONE, MII_PHYSID1);
+	if(0 > phyid1) {
+		printf("%s: PHYID1 registry read fail %i\n", __func__, phyid1);
+		return phyid1;
+	}
+
+	phyid2 = phy_read(phydev, MDIO_DEVAD_NONE, MII_PHYSID2);
+	if(0 > phyid2) {
+		printf("%s: PHYID2 registry read fail %i\n", __func__, phyid2);
+		return phyid2;
+	}
+
+	reg = phyid2 | phyid1 << 16;
+	if(0xffff == reg) {
+		printf("%s: There is no device @%i\n", __func__, phydev->addr);
+		return -ENODEV;
+	}
+
+	rev = reg & 0xf;
+	reg >>= 4;
+	model = reg & 0x3f;
+	reg >>=6;
+	oui = reg;
+	debug("%s: PHY @0x%x OUI 0x%06x model 0x%x rev 0x%x\n",
+		__func__, phydev->addr, oui, model, rev);
+
+	switch (oui) {
+	case OUI_PHY_ATHEROS:
+		/* enable rgmii rxc skew and phy mode select to RGMII copper */
+		printf("phy: AR803x@%x\t", phydev->addr);
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x1f);
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x8);
+
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x00);
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x82ee);
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x05);
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x100);
+		break;
+	case OUI_PHY_REALTEK:
+		printf("phy: RTL8211E@%x\t", phydev->addr);
+		/** RTL8211E-VB-CG - add TX and RX delay */
+		unsigned short val;
+
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x07);
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0xa4);
+		val = phy_read(phydev, MDIO_DEVAD_NONE, 0x1c);
+		val |= (0x1 << 13) | (0x1 << 12) | (0x1 << 11);
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1c, val);
+		/*LEDs:*/
+		/* set to extension page */
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x0007);
+		/* extension Page44 */
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x002c);
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1c, 0x0430);//LCR
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1a, 0x0010);//LACR
+		/* To disable EEE LED mode (blinking .4s/2s) */
+		/* extension Page5 */
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x0005);
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x05, 0x8b82);//magic const
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x06, 0x052b);//magic const
+
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x00);// Back to Page0
+
+		val = phy_read(phydev, MDIO_DEVAD_NONE, 0x10);
+		val |= 0x10;
+		phy_write(phydev, MDIO_DEVAD_NONE, 0x10, val);// Turn off the PHY CLK 125 MHz
+
+		break;
+	default:
+		printf("%s: ERROR: unknown PHY @0x%x OUI 0x%06x model 0x%x rev 0x%x\n",
+			__func__, phydev->addr, oui, model, rev);
+		return -ENOSYS;
+	}
+
+	fec_phyaddr = phydev->addr;
 
 	if (phydev->drv->config)
 		phydev->drv->config(phydev);
@@ -296,8 +383,15 @@ static void disable_rtc_bus_on_battery(void)
 	return;
 }
 
+#define FSL_SIP_GPC			0xC2000000
+#define FSL_SIP_CONFIG_GPC_PM_DOMAIN	0x3
+#define DISPMIX				9
+#define MIPI				10
+
 int board_init(void)
 {
+
+	struct arm_smccc_res res;
 
 	disable_rtc_bus_on_battery();
 
@@ -308,41 +402,13 @@ int board_init(void)
 		printf("uboot_board_private_init() failed\n");
 		hang();
 	}
-	if (IS_ENABLED(CONFIG_LED))
-		led_default_state();
+
+	arm_smccc_smc(IMX_SIP_GPC, IMX_SIP_GPC_PM_DOMAIN,
+		      DISPMIX, true, 0, 0, 0, 0, &res);
+	arm_smccc_smc(IMX_SIP_GPC, IMX_SIP_GPC_PM_DOMAIN,
+		      MIPI, true, 0, 0, 0, 0, &res);
 
 	show_suite_info();
-	return 0;
-}
-
-int board_mmc_get_env_dev(int devno)
-{
-	const ulong user_env_devno = env_get_hex("env_dev", ULONG_MAX);
-	if (user_env_devno != ULONG_MAX) {
-		printf("User Environment dev# is (%lu)\n", user_env_devno);
-		return (int)user_env_devno;
-	}
-	return devno;
-}
-
-static int _mmc_get_env_part(struct mmc *mmc)
-{
-	const ulong user_env_part = env_get_hex("env_part", ULONG_MAX);
-	if (user_env_part != ULONG_MAX) {
-		printf("User Environment part# is (%lu)\n", user_env_part);
-		return (int)user_env_part;
-	}
-
-	return EXT_CSD_EXTRACT_BOOT_PART(mmc->part_config);
-}
-
-uint mmc_get_env_part(struct mmc *mmc)
-{
-	if (mmc->part_support && mmc->part_config != MMCPART_NOAVAILABLE) {
-		uint partno = _mmc_get_env_part(mmc);
-		env_part = partno;
-		return partno;
-	}
 	return 0;
 }
 
@@ -372,6 +438,11 @@ static void board_bootdev_init(void)
 	env_set_ulong("bootdev", bootdev);
 }
 
+__weak int sub_board_late_init(void)
+{
+	return 0;
+}
+
 int board_late_init(void)
 {
 	int ret;
@@ -385,7 +456,8 @@ int board_late_init(void)
 	if (ret < 0)
 		printf("%s: Can't set MAC address\n", __func__);
 
-	return 0;
+	ret = sub_board_late_init();
+	return ret;
 }
 
 #ifdef CONFIG_FSL_FASTBOOT

@@ -2,6 +2,7 @@
 #include <asm/mach-imx/iomux-v3.h>
 #include <asm/arch/imx8mm_pins.h>
 #include <asm/arch/clock.h>
+#include <configs/ucm-imx8m-mini.h>
 #include <asm/arch/sys_proto.h>
 
 #define UART_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_FSEL1)

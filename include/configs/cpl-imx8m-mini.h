@@ -11,54 +11,14 @@
 #include <asm/arch/imx-regs.h>
 #include "imx_env.h"
 
-#define CONFIG_SPL_MAX_SIZE		(148 * 1024)
-#define CONFIG_SYS_MONITOR_LEN		(512 * 1024)
-#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_USE_SECTOR
-#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	0x300
-#define CONFIG_SYS_MMCSD_FS_BOOT_PARTITION	1
-#define CONFIG_SYS_UBOOT_BASE		(QSPI0_AMBA_BASE + CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR * 512)
+#define CFG_SYS_UBOOT_BASE	(QSPI0_AMBA_BASE + CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR * 512)
 
 #ifdef CONFIG_SPL_BUILD
-/*#define CONFIG_ENABLE_DDR_TRAINING_DEBUG*/
-#define CONFIG_SPL_WATCHDOG_SUPPORT
-#define CONFIG_SPL_DRIVERS_MISC_SUPPORT
-#define CONFIG_SPL_I2C_SUPPORT
-#define CONFIG_SPL_LIBCOMMON_SUPPORT
-#define CONFIG_SPL_LIBGENERIC_SUPPORT
-
-#define CONFIG_SPL_STACK            0x920000
-#define CONFIG_SPL_BSS_START_ADDR   0x910000
-#define CONFIG_SPL_BSS_MAX_SIZE     SZ_8K
-#define CONFIG_SYS_SPL_MALLOC_START 0x42200000
-#define CONFIG_SYS_SPL_MALLOC_SIZE  SZ_512K
 
 /* malloc f used before GD_FLG_FULL_MALLOC_INIT set */
-#define CONFIG_MALLOC_F_ADDR        0x912000
-
-#define CONFIG_SPL_ABORT_ON_RAW_IMAGE /* For RAW image gives a error info not panic */
-
-#undef CONFIG_DM_MMC
-#undef CONFIG_DM_PMIC
-#undef CONFIG_DM_PMIC_PFUZE100
-
-#define CONFIG_SYS_I2C
-#define CONFIG_SYS_I2C_MXC_I2C1		/* enable I2C bus 1 */
-#define CONFIG_SYS_I2C_MXC_I2C2		/* enable I2C bus 2 */
-#define CONFIG_SYS_I2C_MXC_I2C3		/* enable I2C bus 3 */
-
-#define CONFIG_POWER
-#define CONFIG_POWER_I2C
-#define CONFIG_POWER_BD71837
+#define CFG_MALLOC_F_ADDR	0x930000
 
 #endif /*ifdef CONFIG_SPL_BUILD*/
-
-#define CONFIG_CMD_READ
-#define CONFIG_SERIAL_TAG
-#define CONFIG_FASTBOOT_USB_DEV 0
-
-#define CONFIG_REMAKE_ELF
-
-#define CONFIG_BOARD_POSTCLK_INIT
 
 /* Flat Device Tree Definitions */
 #define CONFIG_OF_BOARD_SETUP
@@ -73,18 +33,17 @@
 #if defined(CONFIG_CMD_NET)
 #define CONFIG_ETHPRIME                 "FEC"
 
-#define CONFIG_FEC_XCV_TYPE             RGMII
-#define CONFIG_FEC_MXC_PHYADDR          0
+#define CFG_FEC_XCV_TYPE             RGMII
+#define CFG_FEC_MXC_PHYADDR          0
 #define FEC_QUIRK_ENET_MAC
 
 #define CONFIG_PHY_GIGE
-#define IMX_FEC_BASE			0x30BE0000
 
 #define CONFIG_PHYLIB
 #define CONFIG_PHY_ATHEROS
 #endif
 
-#define CONFIG_MFG_ENV_SETTINGS \
+#define CFG_MFG_ENV_SETTINGS \
 	"mfgtool_args=setenv bootargs console=${console},${baudrate} " \
 		"rdinit=/linuxrc " \
 		"g_mass_storage.stall=0 g_mass_storage.removable=1 " \
@@ -100,8 +59,8 @@
 					   "booti ${loadaddr} ${initrd_addr} ${fdt_addr};"\
 					"else echo \"Run fastboot ...\"; fastboot 0; fi\0" \
 /* Initial environment variables */
-#define CONFIG_EXTRA_ENV_SETTINGS		\
-	CONFIG_MFG_ENV_SETTINGS \
+#define CFG_EXTRA_ENV_SETTINGS		\
+	CFG_MFG_ENV_SETTINGS \
 	"autoload=off\0" \
 	"script=boot.scr\0" \
 	"image=Image\0" \
@@ -169,38 +128,31 @@
 	"usb start; ums 0 mmc ${mmcdev};"
 
 /* Link Definitions */
-#define CONFIG_LOADADDR			0x40480000
 
-#define CONFIG_SYS_LOAD_ADDR           CONFIG_LOADADDR
-
-#define CONFIG_SYS_INIT_RAM_ADDR        0x40000000
-#define CONFIG_SYS_INIT_RAM_SIZE        0x80000
-#define CONFIG_SYS_INIT_SP_OFFSET \
-        (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
-#define CONFIG_SYS_INIT_SP_ADDR \
-        (CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
+#define CFG_SYS_INIT_RAM_ADDR        0x40000000
+#define CFG_SYS_INIT_RAM_SIZE        0x200000
+#define CFG_SYS_INIT_SP_OFFSET \
+        (CFG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CFG_SYS_INIT_SP_ADDR \
+        (CFG_SYS_INIT_RAM_ADDR + CFG_SYS_INIT_SP_OFFSET)
 
 #define CONFIG_ENV_OVERWRITE
-#define CONFIG_SYS_MMC_ENV_DEV		1   /* USDHC2 */
-#define CONFIG_SYS_MMC_ENV_PART		1
 #define CONFIG_MMCROOT			"/dev/mmcblk1p2"  /* USDHC2 */
 
-/* Size of malloc() pool */
-#define CONFIG_SYS_MALLOC_LEN		((CONFIG_ENV_SIZE + (2*1024) + (16*1024)) * 1024)
 
 #define PHYS_SDRAM              0x40000000
 #define PHYS_SDRAM_2            0x100000000
 #define PHYS_SDRAM_SIZE   0 /* Memory chip autodetection */
 #define PHYS_SDRAM_2_SIZE 0 /* Memory chip autodetection */
-#define CONFIG_NR_DRAM_BANKS    4
-#define CONFIG_SYS_SDRAM_BASE   PHYS_SDRAM
+#define CFG_NR_DRAM_BANKS    4
+#define CFG_SYS_SDRAM_BASE   PHYS_SDRAM
 
 #define MEMTEST_DIVIDER   2
 #define MEMTEST_NUMERATOR 1
 
 #define CONFIG_BAUDRATE			115200
 
-#define CONFIG_MXC_UART_BASE		UART3_BASE_ADDR
+#define CFG_MXC_UART_BASE		UART3_BASE_ADDR
 
 /* Monitor Command Prompt */
 #undef CONFIG_SYS_PROMPT
@@ -209,45 +161,25 @@
 #define CONFIG_SYS_CBSIZE              2048
 #define CONFIG_SYS_MAXARGS             64
 #define CONFIG_SYS_BARGSIZE CONFIG_SYS_CBSIZE
-#define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
-					sizeof(CONFIG_SYS_PROMPT) + 16)
 
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
-#define CONFIG_IMX_BOOTAUX
 
 /* USDHC */
-#define CONFIG_FSL_USDHC
 
-#define CONFIG_SYS_FSL_USDHC_NUM	2
-#define CONFIG_SYS_FSL_ESDHC_ADDR       0
-
-#ifndef CONFIG_DM_I2C
-#define CONFIG_SYS_I2C
-#endif
-#define CONFIG_SYS_I2C_MXC_I2C1		/* enable I2C bus 1 */
-#define CONFIG_SYS_I2C_MXC_I2C2		/* enable I2C bus 2 */
-#define CONFIG_SYS_I2C_MXC_I2C3		/* enable I2C bus 3 */
-#define CONFIG_SYS_I2C_SPEED		100000
+#define CFG_SYS_FSL_USDHC_NUM	2
+#define CFG_SYS_FSL_ESDHC_ADDR       0
 
 /* EEPROM */
 #define CONFIG_ENV_EEPROM_IS_ON_I2C
-#define CONFIG_SYS_I2C_EEPROM_BUS		1
-#define CONFIG_SYS_I2C_SLAVE			0x00
+#define CFG_SYS_I2C_SLAVE			0x00
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN		1
 #define CONFIG_SYS_EEPROM_SIZE			256
-#define CONFIG_SYS_EEPROM_PAGE_WRITE_BITS	4
-#define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	5
 
 /* USB configs */
 #ifndef CONFIG_SPL_BUILD
 #define CONFIG_CMD_USB
-#define CONFIG_USB_STORAGE
 #define CONFIG_USBD_HS
-
-#define CONFIG_CMD_USB_MASS_STORAGE
-#define CONFIG_USB_GADGET_MASS_STORAGE
-#define CONFIG_USB_FUNCTION_MASS_STORAGE
 
 #endif
 
@@ -255,19 +187,6 @@
 
 #define CONFIG_MXC_USB_PORTSC  (PORT_PTS_UTMI | PORT_PTS_PTW)
 #define CONFIG_USB_MAX_CONTROLLER_COUNT         2
-
-#ifdef CONFIG_VIDEO
-#define CONFIG_VIDEO_MXS
-#define CONFIG_VIDEO_LOGO
-#define CONFIG_SPLASH_SCREEN
-#define CONFIG_SPLASH_SCREEN_ALIGN
-#define CONFIG_CMD_BMP
-#define CONFIG_BMP_16BPP
-#define CONFIG_VIDEO_BMP_RLE8
-#define CONFIG_VIDEO_BMP_LOGO
-#define CONFIG_IMX_VIDEO_SKIP
-#define CONFIG_RM67191
-#endif
 
 #define CONFIG_BOARD_POSTCLK_INIT
 #define CONFIG_OF_BOARD_SETUP

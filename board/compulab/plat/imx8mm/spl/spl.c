@@ -5,6 +5,7 @@
 #include <common.h>
 #include <cpu_func.h>
 #include <hang.h>
+#include <init.h>
 #include <spl.h>
 #include <asm/io.h>
 #include <asm/mach-imx/iomux-v3.h>
@@ -13,6 +14,7 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/mach-imx/boot_mode.h>
 #include <asm/arch/ddr.h>
+#include <linux/delay.h>
 
 #include <power/pmic.h>
 #include <power/bd71837.h>
@@ -20,9 +22,22 @@
 #include <asm/mach-imx/mxc_i2c.h>
 #include <fsl_esdhc_imx.h>
 #include <mmc.h>
+#include <usb.h>
 #include "ddr/ddr.h"
 
 DECLARE_GLOBAL_DATA_PTR;
+
+static int _board_phy_mode=USB_INIT_HOST;
+
+int board_usb_phy_mode(int port)
+{
+	return _board_phy_mode;
+}
+
+static void board_soft_otg(void)
+{
+	_board_phy_mode=USB_INIT_DEVICE;
+}
 
 int spl_board_boot_device(enum boot_device boot_dev_spl)
 {
@@ -33,6 +48,9 @@ int spl_board_boot_device(enum boot_device boot_dev_spl)
 	case SD3_BOOT:
 	case MMC3_BOOT:
 		return BOOT_DEVICE_MMC2;
+	case USB_BOOT:
+		board_soft_otg();
+		return BOOT_DEVICE_BOARD;
 	default:
 		return BOOT_DEVICE_NONE;
 	}
@@ -89,7 +107,7 @@ static struct fsl_esdhc_cfg usdhc_cfg[2] = {
 	{USDHC3_BASE_ADDR, 0, 8},
 };
 
-int board_mmc_init(bd_t *bis)
+int board_mmc_init(struct bd_info *bis)
 {
 	int i, ret;
 	/*
@@ -98,7 +116,7 @@ int board_mmc_init(bd_t *bis)
 	 * mmc0                    USDHC1
 	 * mmc1                    USDHC2
 	 */
-	for (i = 0; i < CONFIG_SYS_FSL_USDHC_NUM; i++) {
+	for (i = 0; i < CFG_SYS_FSL_USDHC_NUM; i++) {
 		switch (i) {
 		case 0:
 			init_clk_usdhc(1);
@@ -164,29 +182,28 @@ int power_init_board(void)
 	p = pmic_get("BD71837");
 	pmic_probe(p);
 
-
 	/* decrease RESET key long push time from the default 10s to 10ms */
-	pmic_reg_write(p, BD71837_PWRONCONFIG1, 0x0);
+	pmic_reg_write(p, BD718XX_PWRONCONFIG1, 0x0);
 
 	/* unlock the PMIC regs */
-	pmic_reg_write(p, BD71837_REGLOCK, 0x1);
+	pmic_reg_write(p, BD718XX_REGLOCK, 0x1);
 
 	/* decrease VDD_ARM to 0.85V for 1.2GHz operation */
-	pmic_reg_write(p, BD71837_BUCK1_VOLT_RUN, 0x0f);
+	pmic_reg_write(p, BD718XX_BUCK1_VOLT_RUN, 0x0f);
 
 	/* increase VDD_DRAM to 0.975V (9v5 required but not supported)*/
-	pmic_reg_write(p, BD71837_BUCK5_VOLT, 0x83);
+	pmic_reg_write(p, BD718XX_1ST_NODVS_BUCK_VOLT, 0x83);
 
 	/* increase NVCC_DRAM_1V2 to 1.2v for DDR4 */
-	pmic_reg_write(p, BD71837_BUCK8_VOLT, 0x28);
+	pmic_reg_write(p, BD718XX_4TH_NODVS_BUCK_VOLT, 0x28);
 
 	/* lock the PMIC regs */
-	pmic_reg_write(p, BD71837_REGLOCK, 0x11);
+	pmic_reg_write(p, BD718XX_REGLOCK, 0x11);
 
 	return 0;
 }
 #else
-int power_init_board(void) { return 0; }
+int power_init_board(void) { return 0;}
 #endif
 
 __weak int spl_board_private_init(void) {
