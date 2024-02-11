@@ -22,6 +22,8 @@ struct eeprom_layout {
 	void (*print)(const struct eeprom_layout *eeprom_layout);
 	int (*update)(struct eeprom_layout *eeprom_layout, char *field_name,
 		      char *new_data);
+	int (*read)(struct eeprom_layout *eeprom_layout, char *field_name,
+		    uchar *buf, int buf_size);
 };
 
 void eeprom_layout_setup(struct eeprom_layout *layout, unsigned char *buf,

@@ -130,6 +130,28 @@ int eeprom_field_update_bin(struct eeprom_field *field, uchar *fbuf,
 }
 
 /**
+ * eeprom_field_read_bin() - Read field data in binary form
+ *
+ * @field:     an initialized field
+ * @fbuf:      field buffer
+ * @buf:       read buffer
+ * @buf_size:  read buffer size
+ */
+int eeprom_field_read_bin(const struct eeprom_field *field, uchar *fbuf,
+                         uchar *buf, int buf_size)
+{
+	memset(buf, 0, buf_size);
+	if (field->size <= 0)
+		return 0;
+	if (field->size > buf_size)
+		memcpy(buf, fbuf, buf_size);
+	else
+		memcpy(buf, fbuf, field->size);
+
+	return 0;
+}
+
+/**
  * eeprom_field_update_reserved() - Update reserved field with new data in
  *				    binary form
  *

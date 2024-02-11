@@ -96,6 +96,42 @@ static int eeprom_layout_update_field(struct eeprom_layout *layout,
 }
 
 /*
+ * eeprom_layout_read_field() - read a single field from the layout data
+ * @layout:    A pointer to an existing struct layout.
+ * @field_name:        The name of the field to update.
+ * @buf:       Read data buffer.
+ * @buf_size:  Read data buffer size.
+ *
+ * Returns: 0 on success, negative error value on failure.
+ */
+static int eeprom_layout_read_field(struct eeprom_layout *layout,
+				    char *field_name, uchar *buf, int buf_size)
+{
+       int i, err;
+       struct eeprom_field *fields = layout->fields;
+       uchar *fbuf = layout->data;
+
+       if ((field_name == NULL) || (buf == NULL) || (buf_size <= 0))
+               return -1;
+
+	for (i = 0; i < layout->num_of_fields; fbuf += fields[i++].size) {
+		if (fields[i].name == RESERVED_FIELDS ||
+		    strcmp(fields[i].name, field_name))
+			continue;
+
+		err = fields[i].read(&fields[i], fbuf, buf, buf_size);
+		if (err)
+			printf("Field %s, read error\n", field_name);
+
+		return err;
+	}
+
+	printf("No such field '%s'\n", field_name);
+
+	return -1;
+}
+
+/*
  * eeprom_layout_setup() - setup layout struct with the layout data and
  *			   metadata as dictated by layout_version
  * @layout:	A pointer to an existing struct layout.
@@ -116,4 +152,5 @@ void eeprom_layout_setup(struct eeprom_layout *layout, unsigned char *buf,
 	layout->data_size = buf_size;
 	layout->print = eeprom_layout_print;
 	layout->update = eeprom_layout_update_field;
+	layout->read = eeprom_layout_read_field;
 }
