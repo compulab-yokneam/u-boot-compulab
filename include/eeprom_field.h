@@ -18,11 +18,15 @@ struct eeprom_field {
 	void (*print)(const struct eeprom_field *eeprom_field, uchar *fbuf);
 	int (*update)(struct eeprom_field *eeprom_field, uchar *fbuf,
 		      char *value);
+	int (*read)(const struct eeprom_field *field, uchar *fbuf, uchar *buf,
+		    int buf_size);
 };
 
 void eeprom_field_print_bin(const struct eeprom_field *field, uchar *fbuf);
 int eeprom_field_update_bin(struct eeprom_field *field, uchar *fbuf,
 			    char *value);
+int eeprom_field_read_bin(const struct eeprom_field *field, uchar *fbuf,
+			  uchar *buf, int buf_size);
 
 void eeprom_field_print_bin_rev(const struct eeprom_field *field, uchar *fbuf);
 int eeprom_field_update_bin_rev(struct eeprom_field *field, uchar *fbuf,
