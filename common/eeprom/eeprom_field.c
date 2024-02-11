@@ -204,6 +204,27 @@ int eeprom_field_update_bin_rev(struct eeprom_field *field, uchar *fbuf,
 }
 
 /**
+ * eeprom_field_read_rev() - Read reversed binary data
+ *
+ * @field:     an initialized field
+ * @fbuf:      field buffer
+ * @buf:       read buffer
+ * @buf_size:  read buffer size
+ */
+int eeprom_field_read_rev(const struct eeprom_field *field, uchar *fbuf,
+			  uchar *buf, int buf_size)
+{
+	int i;
+
+	memset(buf, 0, buf_size);
+
+	for (i = field->size - 1; i >= 0; i--, buf++)
+		*buf = fbuf[i];
+
+	return 0;
+}
+
+/**
  * eeprom_field_print_mac_addr() - print a field which contains a mac address
  *
  * Treat the field data as simple binary data, and print it formatted as a MAC
