@@ -601,7 +601,8 @@ int print_cpuinfo(void)
 		       mxc_get_clock(MXC_ARM_CLK) / 1000000);
 	}
 
-	puts("CPU:   ");
+	puts("CPU:  ");
+#if 0
 	switch (get_cpu_temp_grade(&minc, &maxc)) {
 	case TEMP_AUTOMOTIVE:
 		puts("Automotive temperature grade ");
@@ -620,7 +621,7 @@ int print_cpuinfo(void)
 		break;
 	}
 	printf("(%dC to %dC)", minc, maxc);
-
+#endif
 #if defined(CONFIG_IMX_TMU)
 	struct udevice *udev;
 	int ret, temp;
