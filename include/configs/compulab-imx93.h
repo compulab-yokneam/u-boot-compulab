@@ -66,6 +66,7 @@
 	AHAB_ENV \
 	"autoload=off\0" \
 	"scriptaddr=0x83500000\0" \
+	"script=boot.scr\0" \
 	"kernel_addr_r=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
 	"image=Image\0" \
 	"splashimage=0x90000000\0" \
