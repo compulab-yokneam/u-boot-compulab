@@ -748,6 +748,18 @@ efi_status_t efi_check_pe(void *buffer, size_t size, void **nt_header)
 	return EFI_SUCCESS;
 }
 
+extern int autnenticate_buffer(void *buffer, size_t size);
+efi_status_t efi_check_csf(void *buffer, size_t size, void **nt_header)
+{
+#if defined(CONFIG_IMX_HAB) && !defined(CONFIG_AVB_SUPPORT)
+	if (authenticate_buffer( (uint32_t) buffer, size )) {
+		return EFI_SECURITY_VIOLATION;
+	} else  {
+		return EFI_SUCCESS;
+	}
+#endif
+	return EFI_SUCCESS;
+}
 /**
  * section_size() - determine size of section
  *
@@ -798,6 +810,12 @@ efi_status_t efi_load_pe(struct efi_loaded_image_obj *handle,
 	ret = efi_check_pe(efi, efi_size, (void **)&nt);
 	if (ret != EFI_SUCCESS) {
 		log_err("Not a PE-COFF file\n");
+		return EFI_LOAD_ERROR;
+	}
+
+	ret = efi_check_csf(efi, efi_size, (void **)&nt);
+	if (ret != EFI_SUCCESS) {
+		log_err("CSF Errot\n");
 		return EFI_LOAD_ERROR;
 	}
 

@@ -33,6 +33,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define HAB_M4_PERSISTENT_BYTES		0xB80
 #endif
 
+#define DEBUG 1
 static int ivt_header_error(const char *err_str, struct ivt_header *ivt_hdr)
 {
 	printf("%s magic=0x%x length=0x%02x version=0x%x\n", err_str,
@@ -1010,4 +1011,10 @@ int authenticate_image(u32 ddr_start, u32 raw_image_size)
 	bytes = ivt_offset + IVT_SIZE + CSF_PAD_SIZE;
 
 	return imx_hab_authenticate_image(ddr_start, bytes, ivt_offset);
+}
+
+int authenticate_buffer(void *buffer, size_t size)
+{
+	u32 ivt_offset = (( size >> 12 )  << 12 );
+	return imx_hab_authenticate_image( (uint32_t) buffer, size, ivt_offset );
 }
