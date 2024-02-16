@@ -77,7 +77,7 @@
 	"stdin=serial,usbkbd\0" \
 	"autoload=off\0" \
 	"scriptaddr=0x43500000\0" \
-	"kernel_addr_r=" __stringify(CONFIG_LOADADDR) "\0" \
+	"kernel_addr_r=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
 	"bsp_script=boot.scr\0" \
 	"image=Image\0" \
 	"splashimage=0x50000000\0" \
