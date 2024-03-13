@@ -1,5 +1,7 @@
 if TARGET_SOM_IMX8M_PLUS
 
+menu "som-imx8m-plus config options"
+
 config SYS_BOARD
 	default "som-imx8m-plus"
 
@@ -33,5 +35,7 @@ config SYS_I2C_EEPROM_BUS_SB
 config SYS_I2C_EEPROM_ADDR_SB
 	hex "SB eeprom dev address"
 	default 0x54
+
+endmenu
 
 endif
