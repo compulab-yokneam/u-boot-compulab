@@ -97,6 +97,17 @@
 	};
 };
 
+&gpio1 {
+	pcapower-on-hog {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_reg_pca_poweron>;
+		gpios = <8 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "pcapoweron";
+		gpio-hog;
+	};
+};
+
 &eqos {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_eqos>;
@@ -646,6 +657,12 @@
 	pinctrl_reg_usdhc2_vmmc: regusdhc2vmmc {
 		fsl,pins = <
 			MX8MP_IOMUXC_SD2_RESET_B__GPIO2_IO19	0x41
+		>;
+	};
+
+	pinctrl_reg_pca_poweron: regpcapoweron {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08	0x41
 		>;
 	};
 
