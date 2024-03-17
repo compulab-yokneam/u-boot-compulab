@@ -125,13 +125,13 @@
 &iomuxc {
 	pinctrl_fec_phy_reset: fecphyrstgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI2_TXFS__GPIO4_IO24			0x19
+			MX8MP_IOMUXC_SAI2_TXFS__GPIO4_IO24			0x10
 		>;
 	};
 
 	pinctrl_usb_hub_rst: usbhubrstgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SD1_RESET_B__GPIO2_IO10			0x19
+			MX8MP_IOMUXC_SD1_RESET_B__GPIO2_IO10			0x100
 		>;
 	};
 
@@ -149,7 +149,7 @@
 
 	pinctrl_usdhc2_gpio: usdhc2gpiogrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO04__GPIO1_IO04			0x101
+			MX8MP_IOMUXC_GPIO1_IO04__GPIO1_IO04			0x100
 		>;
 	};
 };
