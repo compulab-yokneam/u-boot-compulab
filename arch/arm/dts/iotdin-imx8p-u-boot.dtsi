@@ -140,11 +140,7 @@
 	u-boot,dm-spl;
 };
 
-&pinctrl_i2c5 {
-	u-boot,dm-spl;
-};
-
-&pinctrl_i2c5_gpio {
+&pca9555_sb  {
 	u-boot,dm-spl;
 };
 

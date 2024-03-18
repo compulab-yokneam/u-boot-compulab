@@ -3,10 +3,29 @@
  * Copyright 2024 CompuLab
  */
 
+#include <dt-bindings/leds/common.h>
+
 / {
 	chosen {
 		bootargs = "console=ttymxc1,115200 earlycon=ec_imx6q,0x30890000,115200 console=tty0";
 		stdout-path = &uart2;
+	};
+
+	leds {
+		pinctrl-0 = <&pinctrl_gpio_led>, <&pinctrl_user_leds>;
+
+               pled_amber: power-led-abmer {
+                        label = "PowerLED_Amber";
+                        color = <LED_COLOR_ID_AMBER>;
+                        gpios = <&pca9555_sb 7 GPIO_ACTIVE_HIGH>;
+                        default-state = "off";
+                };
+                power-led-blue {
+                        label = "PowerLED_Blue";
+                        color = <LED_COLOR_ID_BLUE>;
+                        gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
+                        default-state = "on";
+                };
 	};
 };
 
@@ -57,10 +76,6 @@
 
 &i2c3 {
 	status = "okay";
-};
-
-&i2c5 {
-	status = "okay";
 
         pca9555_sb: pca9555-sb@20 {
                 compatible = "nxp,pca9555";
@@ -69,7 +84,7 @@
                 reg = <0x20>;
 
 		gpio-line-names =
-			"WLAN_PDn", "ULED2_GREEN", "TPM_RSTn", "ULED2_RED",
+			"WLAN_PDn", "ULED2_GREEN", "ULED1_GREEN", "ULED2_RED",
 			"ULED1_RED", "MODEM_RSTn", "RF_KILLn", "LED_AMBR_CNTL",
 			"PWR_EN", "USB_RESET1", "USB_RESET2", "USB_RESET3",
 			"B2B_GPIO0", "B2B_GPIO1", "B2B_GPIO2", "B2B_GPIO3";
@@ -137,6 +152,12 @@
 	pinctrl_usb2_vbus: usb2vbusgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_MCLK__GPIO4_IO20			0x154
+		>;
+	};
+
+	pinctrl_user_leds: userledsgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO00__GPIO1_IO00			0x140
 		>;
 	};
 };
