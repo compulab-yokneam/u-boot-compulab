@@ -29,7 +29,7 @@ config SYS_I2C_EEPROM_ADDR
 
 config SYS_I2C_EEPROM_BUS_SB
 	hex
-	default 0x4
+	default 0x2
 
 config SYS_I2C_EEPROM_ADDR_SB
 	hex
