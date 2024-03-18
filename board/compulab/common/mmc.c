@@ -15,10 +15,10 @@ int get_env_dev() {
 }
 
 int get_env_part() {
-	return env_dev;
+	return env_part;
 }
 
-int board_mmc_get_env_dev(int devno)
+static int _board_mmc_get_env_dev(int devno)
 {
 	const ulong user_env_devno = env_get_hex("env_dev", ULONG_MAX);
 	if (user_env_devno != ULONG_MAX) {
@@ -26,6 +26,12 @@ int board_mmc_get_env_dev(int devno)
 		return (int)user_env_devno;
 	}
 	return devno;
+}
+
+int board_mmc_get_env_dev(int devno)
+{
+	env_dev = _board_mmc_get_env_dev(devno);
+	return env_dev;
 }
 
 static int _mmc_get_env_part(struct mmc *mmc)
