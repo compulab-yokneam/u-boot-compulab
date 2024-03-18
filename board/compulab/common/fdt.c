@@ -58,14 +58,16 @@ int fdt_set_env_addr(void *blob)
 
 	fdt_setprop(blob, nodeoff, "env_off", tmp, sprintf(tmp, "0x%x", CONFIG_ENV_OFFSET));
 	fdt_setprop(blob, nodeoff, "env_size", tmp, sprintf(tmp, "0x%x", CONFIG_ENV_SIZE));
-	if(0 < env_dev) {
+
+	if (env_dev != -1) {
 		switch(env_part) {
-		case 1 ... 2:
-			fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%iboot%i", env_dev, env_part - 1));
-			break;
-		default:
-			fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%i", env_dev));
-			break;
+			case 2:
+			case 1:
+				fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%iboot%i", env_dev, env_part - 1));
+				break;
+			default:
+				fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%i", env_dev));
+				break;
 		}
 	}
 	return 0;
