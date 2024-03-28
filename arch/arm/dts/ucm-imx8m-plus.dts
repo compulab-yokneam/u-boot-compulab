@@ -671,7 +671,6 @@
 };
 
 #include "compulab-imx8m-plus-lcdif2.dtsi"
-#include "compulab-imx8m-plus-lcdif3.dtsi"
 &lcdif1 {
 	status = "okay";
 };
@@ -680,7 +679,11 @@
 	status = "okay";
 };
 
+#ifdef CFG_LCDIF3_HDMI
+
+#include "compulab-imx8m-plus-lcdif3.dtsi"
 &lcdif3 {
 	status = "okay";
 };
 
+#endif
