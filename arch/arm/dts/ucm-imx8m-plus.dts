@@ -534,7 +534,7 @@
 	pinctrl_uart1: uart1grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SD1_CMD__UART1_DCE_RX	0x49
-			MX8MP_IOMUXC_SAI2_RXFS__UART1_DCE_TX	0x49
+			MX8MP_IOMUXC_SD1_CLK__UART1_DCE_TX	0x49
 		>;
 	};
 
