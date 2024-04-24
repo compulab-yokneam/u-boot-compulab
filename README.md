@@ -44,7 +44,6 @@ make O=${BUILD} menuconfig
 
 * Build
 ```
-make O=${BUILD} -C board/compulab/plat/imx8mp/firmware all
 nice make -j`nproc` O=${BUILD} flash.bin
 ```
 
