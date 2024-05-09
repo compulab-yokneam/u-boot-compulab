@@ -8,8 +8,8 @@
 #include "imx93.dtsi"
 
 /{
-	model = "CompuLab UCM-i.MX93 board";
-	compatible = "compulab,ucm-imx93", "fsl,imx93";
+	model = "CompuLab MCM-i.MX93 board";
+	compatible = "compulab,mcm-imx93", "fsl,imx93";
 
 	chosen {
 		bootargs = "console=ttyLP0,115200";
@@ -327,6 +327,7 @@
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <4>;
 			eee-broken-1000t;
+			status = "okay";
 		};
 	};
 };
@@ -337,7 +338,7 @@
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy2>;
 	fsl,magic-packet;
-	status = "disabled";
+	status = "okay";
 
 	mdio {
 		#address-cells = <1>;
