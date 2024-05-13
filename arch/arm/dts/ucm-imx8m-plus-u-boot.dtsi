@@ -211,6 +211,12 @@
 	/delete-property/ assigned-clock-rates;
 };
 
+&fec {
+	phy-reset-gpios = <&gpio4 24 GPIO_ACTIVE_LOW>;
+	phy-reset-duration = <15>;
+	phy-reset-post-delay = <100>;
+};
+
 &lcdif1 {
 	/delete-property/ assigned-clocks;
 	/delete-property/ assigned-clock-parents;
