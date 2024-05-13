@@ -69,7 +69,15 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 }
 #endif
 
-#ifdef CONFIG_DWC_ETH_QOS
+static void setup_fec(void)
+{
+	struct iomuxc_gpr_base_regs *gpr =
+		(struct iomuxc_gpr_base_regs *)IOMUXC_GPR_BASE_ADDR;
+
+	/* Enable RGMII TX clk output */
+	setbits_le32(&gpr->gpr[1], BIT(22));
+}
+
 static int setup_eqos(void)
 {
 	struct iomuxc_gpr_base_regs *gpr =
@@ -82,7 +90,6 @@ static int setup_eqos(void)
 
 	return set_clk_eqos(ENET_125MHZ);
 }
-#endif
 
 #if defined(CONFIG_FEC_MXC) || defined(CONFIG_DWC_ETH_QOS)
 static int mx8_rgmii_rework(struct phy_device *phydev);
@@ -236,9 +243,13 @@ int board_init(void)
 
 	board_vendor_init();
 
-#ifdef CONFIG_DWC_ETH_QOS
-	setup_eqos();
-#endif
+	if (IS_ENABLED(CONFIG_FEC_MXC)) {
+		setup_fec();
+	}
+
+	if (IS_ENABLED(CONFIG_DWC_ETH_QOS)) {
+		setup_eqos();
+	}
 
 #if defined(CONFIG_USB_DWC3) || defined(CONFIG_USB_XHCI_IMX8M)
 	init_usb_clk();
