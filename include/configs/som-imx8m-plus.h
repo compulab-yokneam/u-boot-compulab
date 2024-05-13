@@ -12,8 +12,6 @@
 #define CONFIG_IMX6_PWM_PER_CLK 66000000
 
 #if defined(CONFIG_CMD_NET)
-#define CONFIG_ETHPRIME                 "eth0"
-
 #define CONFIG_FEC_XCV_TYPE             RGMII
 #define CONFIG_FEC_MXC_PHYADDR         	-1
 #define FEC_QUIRK_ENET_MAC
