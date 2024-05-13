@@ -4,6 +4,10 @@
  * Copyright 2022 CompuLab
  */
 
+#include "imx8mp-sec-def.h"
+#include "imx8mp-u-boot.dtsi"
+#include "compulab-imx8mp-binman.dtsi"
+
 / {
 	wdt-reboot {
 		compatible = "wdt-reboot";

@@ -4,8 +4,8 @@
  * Copyright 2024 CompuLab
  */
 #include "imx8mp-sec-def.h"
-
 #include "imx8mp-u-boot.dtsi"
+#include "compulab-imx8mp-binman.dtsi"
 
 / {
 	wdt-reboot {

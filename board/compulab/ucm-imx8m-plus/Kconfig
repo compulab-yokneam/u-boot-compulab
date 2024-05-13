@@ -35,4 +35,7 @@ config SYS_I2C_EEPROM_ADDR_SB
 	hex
 	default 0x54
 
+config IMX_CONFIG
+	default "board/freescale/imx8mp_evk/imximage-8mp-lpddr4.cfg"
+
 endif
