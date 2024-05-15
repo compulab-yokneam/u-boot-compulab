@@ -738,6 +738,37 @@ static int eqos_get_phy_addr(struct eqos_priv *priv, struct udevice *dev)
 	return reg;
 }
 
+static int eqos_phy_init(struct eqos_priv *eqos, struct udevice *dev)
+{
+	int addr = -1, ret;
+	addr = eqos_get_phy_addr(eqos, dev);
+	eqos->phy = phy_connect(eqos->mii, addr, dev,
+			eqos->config->interface(dev));
+	if (!eqos->phy) {
+		pr_err("phy_connect() failed");
+		goto err_stop_resets;
+	}
+	if (eqos->max_speed) {
+		ret = phy_set_supported(eqos->phy, eqos->max_speed);
+		if (ret) {
+			pr_err("phy_set_supported() failed: %d", ret);
+			goto err_shutdown_phy;
+		}
+	}
+	eqos->phy->node = eqos->phy_of_node;
+	ret = phy_config(eqos->phy);
+	if (ret < 0) {
+		pr_err("phy_config() failed: %d", ret);
+		goto err_shutdown_phy;
+	}
+	return 0;
+
+err_shutdown_phy:
+	phy_shutdown(eqos->phy);
+err_stop_resets:
+	eqos->config->ops->eqos_stop_resets(dev);
+}
+
 static int eqos_start(struct udevice *dev)
 {
 	struct eqos_priv *eqos = dev_get_priv(dev);
@@ -788,28 +819,10 @@ static int eqos_start(struct udevice *dev)
 	 * don't need to reconnect/reconfigure again
 	 */
 	if (!eqos->phy) {
-		int addr = -1;
-		addr = eqos_get_phy_addr(eqos, dev);
-		eqos->phy = phy_connect(eqos->mii, addr, dev,
-					eqos->config->interface(dev));
-		if (!eqos->phy) {
-			pr_err("phy_connect() failed");
-			goto err_stop_resets;
-		}
-
-		if (eqos->max_speed) {
-			ret = phy_set_supported(eqos->phy, eqos->max_speed);
-			if (ret) {
-				pr_err("phy_set_supported() failed: %d", ret);
-				goto err_shutdown_phy;
-			}
-		}
-
-		eqos->phy->node = eqos->phy_of_node;
-		ret = phy_config(eqos->phy);
+		ret = eqos_phy_init(eqos, dev);
 		if (ret < 0) {
-			pr_err("phy_config() failed: %d", ret);
-			goto err_shutdown_phy;
+			pr_err("eqos_phy_init() failed: %d", ret);
+			goto err;
 		}
 	}
 
@@ -1587,6 +1600,11 @@ static int eqos_probe(struct udevice *dev)
 	eth_phy_set_mdio_bus(dev, eqos->mii);
 #endif
 
+	ret = eqos_phy_init(eqos, dev);
+	if (ret < 0) {
+		pr_err("eqos_phy_init() failed: %d", ret);
+		return ret;
+	}
 	debug("%s: OK\n", __func__);
 	return 0;
 
