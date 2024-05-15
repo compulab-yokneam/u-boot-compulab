@@ -3,19 +3,11 @@
 
 /dts-v1/;
 
-#include "cl-imx93.dtsi"
+#include "cl-evk-shared-imx93.dtsi"
 
 /{
 	model = "CompuLab MCM-i.MX93 board";
 	compatible = "compulab,mcm-imx93", "fsl,imx93";
-};
-
-&eqos {
-	mdio {
-		ethphy1: ethernet-phy-eqos@4 {
-			status = "okay";
-		};
-	};
 };
 
 &fec {

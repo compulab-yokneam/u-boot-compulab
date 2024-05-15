@@ -3,7 +3,7 @@
 
 /dts-v1/;
 
-#include "cl-imx93.dtsi"
+#include "cl-evk-shared-imx93.dtsi"
 
 /{
 	model = "CompuLab UCM-i.MX93 board";
