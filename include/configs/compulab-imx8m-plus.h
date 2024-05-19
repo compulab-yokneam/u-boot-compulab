@@ -27,6 +27,10 @@
 #define BOOTENV
 #endif
 
+#ifndef MACHINE_EXTRA_ENV_SETTINGS
+#define MACHINE_EXTRA_ENV_SETTINGS
+#endif
+
 #define CFG_MFG_ENV_SETTINGS \
 	CFG_MFG_ENV_SETTINGS_DEFAULT \
 	"initrd_addr=0x43800000\0" \
@@ -38,6 +42,7 @@
 #define CFG_EXTRA_ENV_SETTINGS		\
 	CFG_MFG_ENV_SETTINGS \
 	BOOTENV \
+	MACHINE_EXTRA_ENV_SETTINGS \
 	"video_link=1\0" \
 	"stdout=serial,vidconsole\0" \
 	"stderr=serial,vidconsole\0" \
