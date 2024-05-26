@@ -326,19 +326,6 @@
 		reg = <0x50>;
 		pagesize = <16>;
 	};
-
-	eeprom@54 {
-		compatible = "atmel,24c08";
-		reg = <0x54>;
-		pagesize = <16>;
-	};
-
-        pca9555:pca9555@20 {
-                compatible = "nxp,pca9555";
-                gpio-controller;
-                #gpio-cells = <2>;
-                reg = <0x20>;
-        };
 };
 
 &i2c3 {
@@ -348,7 +335,28 @@
 	pinctrl-1 = <&pinctrl_i2c3_gpio>;
 	scl-gpios = <&gpio5 18 GPIO_ACTIVE_HIGH>;
 	sda-gpios = <&gpio5 19 GPIO_ACTIVE_HIGH>;
-	status = "disabled";
+	status = "okay";
+
+};
+
+#ifdef CONFIG_SBEV_UCMIMX8PLUS
+&i2c3
+#else
+&i2c2
+#endif
+{
+	eeprom@54 {
+		compatible = "atmel,24c08";
+		reg = <0x54>;
+		pagesize = <16>;
+	};
+
+	pca9555:pca9555@20 {
+		compatible = "nxp,pca9555";
+		gpio-controller;
+		#gpio-cells = <2>;
+		reg = <0x20>;
+	};
 };
 
 &i2c5 {

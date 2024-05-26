@@ -13,7 +13,11 @@
 	lvds0_panel: lvds-panel {
 		compatible = "simple-panel";
 		power-supply = <&lvds_power_supply>;
+#ifdef CONFIG_SBEV_UCMIMX8PLUS
+		enable-gpios = <&pca9555 3 GPIO_ACTIVE_HIGH>;
+#else
 		enable-gpios = <&pca9555 6 GPIO_ACTIVE_HIGH>;
+#endif
 		backlight = <&lvds_backlight>;
 		status = "okay";
 

@@ -38,4 +38,8 @@ config SYS_I2C_EEPROM_ADDR_SB
 config IMX_CONFIG
 	default "board/freescale/imx8mp_evk/imximage-8mp-lpddr4.cfg"
 
+config SBEV_UCMIMX8PLUS
+	bool "CompuLab SBEV-UCMIMX8PLUS Support"
+	default n
+
 endif
