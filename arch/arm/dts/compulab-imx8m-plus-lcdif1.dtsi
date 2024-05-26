@@ -1,0 +1,34 @@
+/ {
+	dsi_host: dsi-host {
+		compatible = "samsung,sec-mipi-dsi";
+		status = "okay";
+	};
+
+	ili9881c_panel {
+		compatible = "startek,ili9881c";
+		reset-gpio = <&pca9555 2 GPIO_ACTIVE_LOW>;
+		dsi-lanes = <4>;
+		panel-width-mm = <63>;
+		panel-height-mm = <115>;
+		status = "okay";
+
+		port {
+			ili9881c_from_dsim: endpoint {
+				remote-endpoint = <&ili9881c_to_dsim>;
+			};
+		};
+	};
+};
+
+&lcdif1 {
+	status = "okay";
+};
+
+&mipi_dsi {
+	status = "okay";
+	port@1 {
+		ili9881c_to_dsim: endpoint {
+			remote-endpoint = <&ili9881c_from_dsim>;
+		};
+	};
+};
