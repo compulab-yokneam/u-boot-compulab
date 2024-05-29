@@ -1110,7 +1110,7 @@ ifeq ($(CONFIG_BINMAN),y)
 endif
 	@touch $@
 
-all: .binman_stamp
+all: .binman_stamp mk_firmware
 
 ifeq ($(CONFIG_DEPRECATED),y)
 	$(warning "You have deprecated configuration options enabled in your .config! Please check your configuration.")
@@ -1505,11 +1505,16 @@ tpl/u-boot-with-tpl.bin: tpl/u-boot-tpl.bin u-boot.bin FORCE
 SPL: spl/u-boot-spl.bin FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 
-firmware:
+ifeq ($(CONFIG_BINMAN),y)
+mk_firmware:
 	$(Q)$(MAKE) $(build)=board/compulab/plat/imx8mp/firmware all
 
 rm_firmware:
 	$(Q)$(MAKE) $(build)=board/compulab/plat/imx8mp/firmware clean
+else
+mk_firmware:
+	@echo mk_firmware
+endif
 
 #ifeq ($(CONFIG_ARCH_IMX8M)$(CONFIG_ARCH_IMX8), y)
 ifeq ($(CONFIG_SPL_LOAD_IMX_CONTAINER), y)
@@ -1520,7 +1525,7 @@ flash.bin: spl/u-boot-spl.bin u-boot.cnt FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 else
 ifeq ($(CONFIG_BINMAN),y)
-flash.bin: spl/u-boot-spl.bin $(INPUTS-y) FORCE firmware
+flash.bin: spl/u-boot-spl.bin $(INPUTS-y) FORCE
 	$(call if_changed,binman)
 else
 flash.bin: spl/u-boot-spl.bin u-boot.itb FORCE
