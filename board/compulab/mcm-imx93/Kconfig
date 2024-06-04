@@ -13,7 +13,7 @@ config DEFAULT_DEVICE_TREE
 	default "mcm-imx93"
 
 config DEFAULT_FDT_FILE
-	default "mcm-imx93.dtb"
+	default "sbc-mcm-imx93.dtb"
 
 config ENV_IS_IN_MMC
 	bool
