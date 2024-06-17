@@ -9,12 +9,10 @@ config SYS_VENDOR
 config SYS_CONFIG_NAME
 	default "ucm-imx8m-plus"
 
-config DEFAULT_DTB
-	string
-	default "ucm-imx8m-plus.dtb"
-
 config DEFAULT_FDT_FILE
-	default "ucm-imx8m-plus.dtb"
+	string
+	default "ucm-imx8m-plus.dtb" if !SBEV_UCMIMX8PLUS
+	default "ucm-imx8m-plus-sbev.dtb" if SBEV_UCMIMX8PLUS
 
 config DEFAULT_DEVICE_TREE
 	default "ucm-imx8m-plus"
