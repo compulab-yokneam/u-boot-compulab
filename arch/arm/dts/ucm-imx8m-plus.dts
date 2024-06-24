@@ -51,6 +51,17 @@
 		startup-delay-us = <100>;
 		off-on-delay-us = <12000>;
 	};
+#ifdef CONFIG_SBEV_UCMIMX8PLUS
+	usb_power: regulator-usbpower {
+		compatible = "regulator-fixed";
+		regulator-name = "usb-power-en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&pca9555 1 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-always-on;
+	};
+#endif
 };
 
 &fec {
