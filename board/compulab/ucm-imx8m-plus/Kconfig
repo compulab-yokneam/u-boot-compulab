@@ -27,7 +27,8 @@ config SYS_I2C_EEPROM_ADDR
 
 config SYS_I2C_EEPROM_BUS_SB
 	hex
-	default 0x1
+	default 0x1 if !SBEV_UCMIMX8PLUS
+	default 0x2 if SBEV_UCMIMX8PLUS
 
 config SYS_I2C_EEPROM_ADDR_SB
 	hex
