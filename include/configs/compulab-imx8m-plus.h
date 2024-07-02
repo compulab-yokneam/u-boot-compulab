@@ -85,7 +85,7 @@
 	"bsp_script=boot.scr\0" \
 	"image=Image\0" \
 	"splashimage=0x50000000\0" \
-	"console=ttymxc1,115200 console=tty1\0" \
+	"console=ttymxc1,115200\0" \
 	"fdt_addr_r=0x43000000\0"			\
 	"fdto_addr_r=0x43800000\0"			\
 	"fdt_addr=0x43000000\0"			\
