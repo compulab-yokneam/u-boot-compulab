@@ -496,6 +496,10 @@ int board_late_init(void)
 #ifdef CONFIG_IMX_BOOTAUX
 ulong board_get_usable_ram_top(ulong total_size)
 {
+	/* Set U-boot upper limit to 2^32 */
+	if(gd->ram_top > 0x100000000)
+		gd->ram_top = 0x100000000;
+
 	/* Reserve 16M memory used by M core vring/buffer, which begins at 16MB before optee */
 	if (rom_pointer[1])
 		return gd->ram_top - SZ_16M;
