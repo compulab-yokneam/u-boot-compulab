@@ -27,6 +27,7 @@
 #include <dm.h>
 #include <dm/device-internal.h>
 #include <dm/device_compat.h>
+#include <display.h>
 
 #define	PS2KHZ(ps)	(1000000000UL / (ps))
 #define HZ2PS(hz)	(1000000000UL / ((hz) / 1000))
@@ -349,6 +350,13 @@ static int lcdifv3_video_probe(struct udevice *dev)
 
 	lcdifv3_of_parse_thres(dev);
 
+	/* This is the LVDS method */
+	ret = display_enable(priv->disp_dev, 32, &timings);
+	if (ret) {
+		debug("%s: display enable error %d\n", __func__, ret);
+		return ret;
+	}
+
 	if (priv->disp_dev) {
 #if IS_ENABLED(CONFIG_VIDEO_BRIDGE)
 		if (device_get_uclass_id(priv->disp_dev) == UCLASS_VIDEO_BRIDGE) {
@@ -434,6 +442,7 @@ static int lcdifv3_video_remove(struct udevice *dev)
 
 static const struct udevice_id lcdifv3_video_ids[] = {
 	{ .compatible = "fsl,imx8mp-lcdif1" },
+	{ .compatible = "fsl,imx8mp-lcdif2" },
 	{ .compatible = "fsl,imx93-lcdif" },
 	{ /* sentinel */ }
 };
