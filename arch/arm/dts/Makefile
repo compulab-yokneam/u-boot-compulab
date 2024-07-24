@@ -1183,6 +1183,15 @@ dtb-$(CONFIG_ARCH_IMX8M) += \
 	imx8mq-kontron-pitx-imx8m.dtb \
 	imx8mq-librem5-r4.dtb
 
+dtb-$(CONFIG_TARGET_UCM_IMX8M_MINI) += ucm-imx8m-mini.dtb
+dtb-$(CONFIG_TARGET_MCM_IMX8M_MINI) += mcm-imx8m-mini.dtb
+dtb-$(CONFIG_TARGET_IOT_GATE_IMX8) += iot-gate-imx8.dtb
+dtb-$(CONFIG_TARGET_UCM_IMX8M_PLUS) += ucm-imx8m-plus.dtb
+dtb-$(CONFIG_TARGET_MCM_IMX8M_PLUS) += mcm-imx8m-plus.dtb
+dtb-$(CONFIG_TARGET_SOM_IMX8M_PLUS) += som-imx8m-plus.dtb
+dtb-$(CONFIG_TARGET_IOT_GATE_IMX8PLUS) += iot-gate-imx8plus.dtb
+dtb-$(CONFIG_TARGET_IOTDIN_IMX8P) += iotdin-imx8p.dtb
+
 dtb-$(CONFIG_ARCH_IMX9) += \
 	imx95-15x15-evk.dtb \
 	imx95-19x19-evk.dtb \
@@ -1198,6 +1207,13 @@ dtb-$(CONFIG_ARCH_IMX9) += \
 	imx93-9x9-qsb-ontat-wvga-panel.dtb \
 	imx93-var-som-symphony.dtb \
 	imx93-phyboard-segin.dtb
+
+dtb-$(CONFIG_TARGET_UCM_IMX93) += \
+	ucm-imx93.dtb
+
+dtb-$(CONFIG_TARGET_MCM_IMX93) += \
+	mcm-imx93.dtb
+
 
 dtb-$(CONFIG_ARCH_IMXRT) += imxrt1050-evk.dtb \
 	imxrt1020-evk.dtb \
