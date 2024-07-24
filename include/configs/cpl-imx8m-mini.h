@@ -20,9 +20,6 @@
 
 #endif /*ifdef CONFIG_SPL_BUILD*/
 
-/* Flat Device Tree Definitions */
-#define CONFIG_OF_BOARD_SETUP
-
 #undef CONFIG_CMD_IMLS
 
 #undef CONFIG_CMD_CRC32
@@ -31,16 +28,12 @@
 /* ENET Config */
 /* ENET1 */
 #if defined(CONFIG_CMD_NET)
-#define CONFIG_ETHPRIME                 "FEC"
 
 #define CFG_FEC_XCV_TYPE             RGMII
 #define CFG_FEC_MXC_PHYADDR          0
 #define FEC_QUIRK_ENET_MAC
-
-#define CONFIG_PHY_GIGE
-
 #define CONFIG_PHYLIB
-#define CONFIG_PHY_ATHEROS
+
 #endif
 
 #define CFG_MFG_ENV_SETTINGS \
@@ -150,20 +143,11 @@
 #define MEMTEST_DIVIDER   2
 #define MEMTEST_NUMERATOR 1
 
-#define CONFIG_BAUDRATE			115200
-
 #define CFG_MXC_UART_BASE		UART3_BASE_ADDR
 
-/* Monitor Command Prompt */
-#undef CONFIG_SYS_PROMPT
-#define CONFIG_SYS_PROMPT		"u-boot=> "
-#define CONFIG_SYS_PROMPT_HUSH_PS2     "> "
-#define CONFIG_SYS_CBSIZE              2048
-#define CONFIG_SYS_MAXARGS             64
 #define CONFIG_SYS_BARGSIZE CONFIG_SYS_CBSIZE
 
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
-
 
 /* USDHC */
 
@@ -173,22 +157,7 @@
 /* EEPROM */
 #define CONFIG_ENV_EEPROM_IS_ON_I2C
 #define CFG_SYS_I2C_SLAVE			0x00
-#define CONFIG_SYS_I2C_EEPROM_ADDR_LEN		1
-#define CONFIG_SYS_EEPROM_SIZE			256
-
-/* USB configs */
-#ifndef CONFIG_SPL_BUILD
-#define CONFIG_CMD_USB
-#define CONFIG_USBD_HS
-
-#endif
-
-#define CONFIG_USB_GADGET_VBUS_DRAW 2
 
 #define CONFIG_MXC_USB_PORTSC  (PORT_PTS_UTMI | PORT_PTS_PTW)
-#define CONFIG_USB_MAX_CONTROLLER_COUNT         2
-
-#define CONFIG_BOARD_POSTCLK_INIT
-#define CONFIG_OF_BOARD_SETUP
 
 #endif
