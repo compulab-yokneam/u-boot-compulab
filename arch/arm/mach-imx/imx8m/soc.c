@@ -1595,6 +1595,8 @@ static int fixup_thermal_trips(void *blob, const char *name)
 	int minc, maxc;
 	int node, trip;
 
+	return 0;
+
 	node = fdt_path_offset(blob, "/thermal-zones");
 	if (node < 0)
 		return node;
