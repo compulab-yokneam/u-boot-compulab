@@ -1,0 +1,49 @@
+/*
+ * Copyright 2020 CompuLab
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/dts-v1/;
+
+#include "cpl-imx8m-mini.dtsi"
+
+/ {
+	model = "CompuLab IOT-GATE-iMX8";
+	compatible = "sb-iotgimx8", "cpl,ucm-imx8m-mini", "fsl,imx8mm-evk", "fsl,imx8mm";
+
+	reg_vusb_5v: regulator-usdhc2 {
+		compatible = "regulator-fixed";
+		regulator-name = "VUSB_5V";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&gpio4 28 GPIO_ACTIVE_HIGH>;
+		regulator-boot-on;
+		enable-active-high;
+	};
+};
+
+&usbotg1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctl_usb_gpio>;
+	dr_mode = "host";
+	status = "okay";
+};
+
+&iomuxc {
+	sb-iotgimx8 {
+		pinctl_usb_gpio: usb_gpio_grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28		0x00
+			>;
+		};
+	};
+};

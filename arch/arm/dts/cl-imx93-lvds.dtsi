@@ -1,0 +1,79 @@
+/ {
+	lvds0_panel {
+		compatible = "simple-panel";
+		power-supply = <&lvds_power_supply>;
+		enable-gpios = <&pca9555 6 GPIO_ACTIVE_HIGH>;
+
+		display-timings {
+			native-mode = <&timing0>;
+			timing0: timing0 {
+				clock-frequency = <69142857>;
+				hactive = <1024>;
+				vactive = <600>;
+				hfront-porch = <160>;
+				hback-porch = <160>;
+				hsync-len = <1>;
+				vback-porch = <12>;
+				vfront-porch = <23>;
+				vsync-len = <1>;
+
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <1>;
+				pixelclk-active = <0>;
+			};
+		};
+
+		port {
+			panel_lvds_in: endpoint {
+				remote-endpoint = <&lvds_out>;
+			};
+		};
+	};
+
+	lvds_power_supply: lvds-power-supply {
+		compatible = "regulator-fixed";
+		regulator-name = "lvds-power-supply";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+		regulator-always-on;
+	};
+};
+
+&dphy {
+	status = "disabled";
+};
+
+&dsi {
+	status = "disabled";
+};
+
+&lcdif {
+	assigned-clock-rates = <484000000>, <69142857>, <400000000>, <133333333>;
+	status = "okay";
+};
+
+&ldb {
+	status = "okay";
+
+	lvds-channel@0 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		fsl,data-mapping = "spwg";
+		fsl,data-width = <24>;
+		status = "okay";
+
+		port@1 {
+			reg = <1>;
+
+			lvds_out: endpoint {
+				remote-endpoint = <&panel_lvds_in>;
+			};
+		};
+	};
+};
+
+&ldb_phy {
+	status = "okay";
+};
