@@ -78,6 +78,6 @@ config SPL_LOAD_IMX_CONTAINER
 	default y
 
 config	IMX_CONTAINER_CFG
-	default "arch/arm/mach-imx/imx9/container.cfg
+	default "arch/arm/mach-imx/imx9/container.cfg"
 
 endif
