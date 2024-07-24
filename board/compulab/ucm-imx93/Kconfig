@@ -73,4 +73,11 @@ config UCM_IMX93_LPDDR4X
 	select IMX9_LPDDR4X
 	help
 	  Select the LPDDR4X timing and 0.6V VDDQ
+
+config SPL_LOAD_IMX_CONTAINER
+	default y
+
+config	IMX_CONTAINER_CFG
+	default "arch/arm/mach-imx/imx9/container.cfg
+
 endif
