@@ -132,9 +132,11 @@ static int fdt_set_env_addr(void *blob)
 		switch(env_part) {
 		case 1 ... 2:
 			fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%iboot%i", env_dev, env_part - 1));
+			fdt_setprop(blob, nodeoff, "fw_env.config", tmp, sprintf(tmp, "/dev/mmcblk%iboot%i\t0x%x\t0x%x\n", env_dev, env_part - 1, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE));
 			break;
 		default:
 			fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%i", env_dev));
+			fdt_setprop(blob, nodeoff, "fw_env.config", tmp, sprintf(tmp, "/dev/mmcblk%i\t0x%x\t0x%x\n", env_dev, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE));
 			break;
 		}
 	}
@@ -163,7 +165,6 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 	fdt_set_env_addr(blob);
 	fdt_set_sn(blob);
 	fdt_set_fec_phy_addr(blob);
-
 	return sub_ft_board_setup(blob, bd);
 }
 #endif
