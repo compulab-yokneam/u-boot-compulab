@@ -1,8 +1,5 @@
 # Disclaimer
 
-| !IMPORTANT! | This is a development branch, that is not relelased by CompuLab yet|
-|---|---|
-
 # Configuring the build
 
 ## Prerequisites
@@ -25,10 +22,10 @@ export BUILD=$(pwd)/build
 | Machine | Command Line |
 |---|---|
 |ucm-imx8m-plus|```export MACHINE=ucm-imx8m-plus```|
-|~~mcm-imx8m-plus~~|~~```export MACHINE=mcm-imx8m-plus```~~|
-|~~som-imx8m-plus~~|~~```export MACHINE=som-imx8m-plus```~~|
-|~~iot-gate-imx8plus~~|~~```export MACHINE=iot-gate-imx8plus```~~|
-|~~iotdin-imx8p~~|~~```export MACHINE=iotdin-imx8p```~~|
+|mcm-imx8m-plus|```export MACHINE=mcm-imx8m-plus```|
+|som-imx8m-plus|```export MACHINE=som-imx8m-plus```|
+|iot-gate-imx8plus|```export MACHINE=iot-gate-imx8plus```|
+|iotdin-imx8p|```export MACHINE=iotdin-imx8p```|
 
 * Clone the source code:
 ```
