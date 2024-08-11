@@ -98,10 +98,25 @@ static int fdt_set_fec_phy_addr(void *blob)
 		(blob, FDT_PHYADDR, "reg", (const void*)&val, sizeof(val), 0);
 }
 
+static int fdt_set_ram_size(void *blob)
+{
+	char tmp[32];
+	struct lpddr4_tcm_desc *lpddr4_tcm_desc = (struct lpddr4_tcm_desc *) TCM_DATA_CFG;
+	int nodeoff = fdt_add_subnode(blob, 0, "dram");
+
+	if(0 > nodeoff)
+		return nodeoff;
+
+	fdt_setprop(blob, nodeoff, "size", tmp, sprintf(tmp, "%llu", (1L << 20) * lpddr4_tcm_desc->size));
+	fdt_setprop(blob, nodeoff, "id", tmp, sprintf(tmp, "0x%x", lpddr4_tcm_desc->sign));
+	return 0;
+}
+
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
 	fdt_set_env_addr(blob);
 	fdt_set_sn(blob);
+	fdt_set_ram_size(blob);
 	fdt_set_fec_phy_addr(blob);
 	return sub_ft_board_setup(blob, bd);
 }

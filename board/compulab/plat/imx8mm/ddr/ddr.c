@@ -223,6 +223,7 @@ void spl_dram_init(void)
 	}
 #else
 	lpddr4_tcm_desc->size = lpddr4_array[i].size;
+	lpddr4_tcm_desc->sign = lpddr4_array[i].id;
 #endif
 
 }
