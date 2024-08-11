@@ -35,6 +35,7 @@
 #include "ddr/ddr.h"
 #include "common/eeprom.h"
 #include "common/rtc.h"
+#include "common/fdt.h"
 #include <asm-generic/u-boot.h>
 #include <fdt_support.h>
 
@@ -80,69 +81,6 @@ ulong board_get_usable_ram_top(ulong total_size)
 }
 
 #ifdef CONFIG_OF_BOARD_SETUP
-static void fdt_set_sn(void *blob)
-{
-	u32 rev;
-	char buf[100];
-	int len;
-	union {
-		struct tag_serialnr	s;
-		u64			u;
-	} serialnr;
-
-	len = cl_eeprom_read_som_name(buf);
-	fdt_setprop(blob, 0, "product-name", buf, len);
-
-	len = cl_eeprom_read_sb_name(buf);
-	fdt_setprop(blob, 0, "baseboard-name", buf, len);
-
-	cpl_get_som_serial(&serialnr.s);
-	fdt_setprop(blob, 0, "product-sn", buf, sprintf(buf, "%llx", serialnr.u) + 1);
-
-	cpl_get_sb_serial(&serialnr.s);
-	fdt_setprop(blob, 0, "baseboard-sn", buf, sprintf(buf, "%llx", serialnr.u) + 1);
-
-	rev = cl_eeprom_get_som_revision();
-	fdt_setprop(blob, 0, "product-revision", buf,
-		sprintf(buf, "%u.%02u", rev/100 , rev%100 ) + 1);
-
-	rev = cl_eeprom_get_sb_revision();
-	fdt_setprop(blob, 0, "baseboard-revision", buf,
-		sprintf(buf, "%u.%02u", rev/100 , rev%100 ) + 1);
-
-	len = cl_eeprom_read_som_options(buf);
-	fdt_setprop(blob, 0, "product-options", buf, len);
-
-	len = cl_eeprom_read_sb_options(buf);
-	fdt_setprop(blob, 0, "baseboard-options", buf, len);
-
-	return;
-}
-
-static int fdt_set_env_addr(void *blob)
-{
-	char tmp[32];
-	int nodeoff = fdt_add_subnode(blob, 0, "fw_env");
-	if(0 > nodeoff)
-		return nodeoff;
-
-	fdt_setprop(blob, nodeoff, "env_off", tmp, sprintf(tmp, "0x%x", CONFIG_ENV_OFFSET));
-	fdt_setprop(blob, nodeoff, "env_size", tmp, sprintf(tmp, "0x%x", CONFIG_ENV_SIZE));
-	if(0 < env_dev) {
-		switch(env_part) {
-		case 1 ... 2:
-			fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%iboot%i", env_dev, env_part - 1));
-			fdt_setprop(blob, nodeoff, "fw_env.config", tmp, sprintf(tmp, "/dev/mmcblk%iboot%i\t0x%x\t0x%x\n", env_dev, env_part - 1, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE));
-			break;
-		default:
-			fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%i", env_dev));
-			fdt_setprop(blob, nodeoff, "fw_env.config", tmp, sprintf(tmp, "/dev/mmcblk%i\t0x%x\t0x%x\n", env_dev, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE));
-			break;
-		}
-	}
-	return 0;
-}
-
 __weak int sub_ft_board_setup(void *blob, struct bd_info *bd)
 {
 	return 0;
