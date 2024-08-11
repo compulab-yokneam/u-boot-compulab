@@ -1,0 +1,7 @@
+config EXPORT_ENV_DEF_VIA_DT  
+	bool "Export default environment block via device tree"
+	default y
+	help
+	  Export content of the default environment array (compiled in the u-boot)
+          as a device tree node fw_env/default_env
+
