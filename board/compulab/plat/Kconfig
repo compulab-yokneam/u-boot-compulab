@@ -122,6 +122,7 @@ config TEE_LOAD_ADDR
 
 endmenu
 
+source "board/compulab/common/Kconfig"
 source "board/compulab/ucm-imx8m-mini/Kconfig"
 source "board/compulab/mcm-imx8m-mini/Kconfig"
 source "board/compulab/iot-gate-imx8/Kconfig"
