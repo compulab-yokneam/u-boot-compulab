@@ -6,7 +6,7 @@
 #include <asm/arch/ddr.h>
 #include "ddr.h"
 
-static unsigned int lpddr4_mr_read(unsigned int mr_rank, unsigned int mr_addr)
+static unsigned int _lpddr4_mr_read(unsigned int mr_rank, unsigned int mr_addr)
 {
 	unsigned int tmp;
 	reg32_write(DRC_PERF_MON_MRR0_DAT(0), 0x1);
@@ -41,7 +41,7 @@ unsigned int lpddr4_get_mr(void)
 	do {
 		for ( i = 0 ; i < ARRAY_SIZE(regs) ; i++ ) {
 			unsigned int data = 0;
-			data = lpddr4_mr_read(0xF, regs[i]);
+			data = _lpddr4_mr_read(0xF, regs[i]);
 			ddr_info <<= 8;
 			ddr_info += (data & 0xFF);
 		}
@@ -60,6 +60,12 @@ const struct lpddr4_desc *lpddr4_get_desc_by_id(unsigned int id) {
 	return NULL;
 }
 
+#ifdef SHARED_DDR_INFO
+size_t lppdr4_get_ramsize() {
+	struct lpddr4_tcm_desc *lpddr4_tcm_desc = (void *) SHARED_DDR_INFO;
+	return lpddr4_tcm_desc->size;
+}
+#else
 size_t lppdr4_get_ramsize() {
 	size_t ramsize = 0;
 	unsigned int id = lpddr4_get_mr();
@@ -68,3 +74,4 @@ size_t lppdr4_get_ramsize() {
 		ramsize = desc->size;
 	return ramsize;
 }
+#endif

@@ -9,3 +9,10 @@ config SPL_REPORT_FAKE_MEMSIZE
 	  size. For debug purposes ONLY!!!
 
 endmenu
+
+config DRAM_D2D4
+	bool "Enable D2D4 or D1D8 dram support"
+	default y
+	help
+	  If 'Y' then support for D2 and D4 configuration is enabled
+	  else support for D1 and D8 configuration is enabled
