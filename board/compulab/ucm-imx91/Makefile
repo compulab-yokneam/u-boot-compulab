@@ -10,3 +10,6 @@ ifdef CONFIG_SPL_BUILD
 obj-y += spl.o
 obj-$(CONFIG_UCM_IMX91_LPDDR4X) += lpddr4x_timing.o
 endif
+ifndef CONFIG_$(SPL_TPL_)SYSRESET
+obj-y   += ../common-imx9/reset-imx9.o
+endif

@@ -27,6 +27,10 @@
 #include <linux/delay.h>
 #include <stdio.h>
 
+__weak void reset_board(void)
+{
+}
+
 __weak void reset_misc(void)
 {
 }
@@ -37,7 +41,7 @@ int do_reset(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 	flush();
 
 	disable_interrupts();
-
+	reset_board();
 	reset_misc();
 	reset_cpu();
 
