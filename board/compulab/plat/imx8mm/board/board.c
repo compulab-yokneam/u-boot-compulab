@@ -86,6 +86,18 @@ __weak int sub_ft_board_setup(void *blob, struct bd_info *bd)
 	return 0;
 }
 
+static int fdt_set_soc_info(void *blob)
+{
+	char tmp[128];
+	u32 cpurev = get_cpu_rev();
+	int nodeoff = fdt_add_subnode(blob, 0, "soc.info");
+	if(0 > nodeoff)
+		return nodeoff;
+	fdt_setprop(blob, nodeoff, "imx.type", tmp, sprintf(tmp, "i.MX%s", get_imx_type((cpurev & 0x1FF000) >> 12)));
+	fdt_setprop(blob, nodeoff, "imx.rev", tmp, sprintf(tmp, "%d.%d", (cpurev & 0x000F0) >>4, cpurev & 0x0000F));
+	return 0;
+}
+
 #define FDT_PHYADDR "/soc@0/bus@30800000/ethernet@30be0000/mdio/ethernet-phy@0"
 #define FLIP_32B(val) (((val>>24)&0xff) | ((val<<8)&0xff0000) | ((val>>8)&0xff00) | ((val<<24)&0xff000000))
 static int fdt_set_fec_phy_addr(void *blob)
@@ -114,6 +126,7 @@ static int fdt_set_ram_size(void *blob)
 
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
+	fdt_set_soc_info(blob);
 	fdt_set_env_addr(blob);
 	fdt_set_sn(blob);
 	fdt_set_ram_size(blob);
