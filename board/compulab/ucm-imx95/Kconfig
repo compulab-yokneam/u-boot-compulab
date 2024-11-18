@@ -1,0 +1,18 @@
+if TARGET_UCM_IMX95
+
+config SYS_BOARD
+	default "ucm-imx95"
+
+config SYS_VENDOR
+	default "compulab"
+
+config SYS_CONFIG_NAME
+	default "ucm-imx95"
+
+config DEFAULT_DEVICE_TREE
+	default "ucm-imx95"
+
+config DEFAULT_FDT_FILE
+	default "ucm-imx95.dtb"
+
+endif
