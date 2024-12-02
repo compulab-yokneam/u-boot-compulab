@@ -13,7 +13,9 @@
 #include <log.h>
 #include <spl.h>
 #include <asm/global_data.h>
+#include <asm/arch/ddr.h>
 #include <asm/io.h>
+#include <asm/sections.h>
 #include <errno.h>
 #include <asm/io.h>
 #include <asm/mach-imx/iomux-v3.h>
