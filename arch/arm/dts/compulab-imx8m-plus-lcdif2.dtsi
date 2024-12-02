@@ -73,12 +73,12 @@
 };
 
 &lcdif2 {
-	u-boot,dm-spl;
+	bootph-pre-ram;
 	status = "disabled";
 };
 
 &ldb {
-	u-boot,dm-spl;
+	bootph-pre-ram;
 	status = "okay";
 	lvds-channel@0 {
 		fsl,data-mapping = "spwg";
@@ -94,7 +94,7 @@
 };
 
 &ldb_phy {
-	u-boot,dm-spl;
+	bootph-pre-ram;
 	status = "okay";
 
 };
