@@ -97,7 +97,7 @@
 					load = <0x56000000>;
 					entry = <0x56000000>;
 
-					blob-ext {
+					optee_blob: blob-ext {
 						filename = "tee.bin";
 					};
 				};
@@ -107,7 +107,7 @@
 					type = "flat_dt";
 					compression = "none";
 
-					uboot_fdt_blob: blob-ext {
+					blob-ext {
 						filename = "u-boot.dtb";
 					};
 				};
@@ -116,7 +116,7 @@
 			configurations {
 				default = "@config-DEFAULT-SEQ";
 
-				binman_configuration: @config-SEQ {
+				@config-SEQ {
 					description = "NAME";
 					fdt = "fdt-SEQ";
 					firmware = "uboot";
@@ -130,14 +130,16 @@
 		filename = "flash.bin";
 		pad-byte = <0x00>;
 
-		spl: blob-ext@1 {
+		spl {
 			filename = "spl.bin";
 			offset = <0x0>;
+			type = "blob-ext";
 		};
 
-		uboot: blob-ext@2 {
+		binman_uboot: uboot {
 			filename = "u-boot.itb";
 			offset = <0x58000>;
+			type = "blob-ext";
 		};
 	};
 };
