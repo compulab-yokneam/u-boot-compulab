@@ -18,8 +18,8 @@
 /* Forward declarations */
 u32 cl_eeprom_get_ddrinfo(void);
 u32 cl_eeprom_set_ddrinfo(u32 ddrinfo);
-u32 cl_eeprom_get_subind(void);
-u32 cl_eeprom_set_subind(u32 subind);
+u8 cl_eeprom_get_subind(void);
+u8 cl_eeprom_set_subind(u8 subind);
 void reset_misc(void);
 
 static void do_reset_spl(void) { reset_misc(); }
