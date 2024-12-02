@@ -1,5 +1,15 @@
+menu  "Compulab Boards Support"
+
+config COMPULAB_BOARD_SUPPORT
+        bool "Enable Compulab boards support"
+        default n
+        help
+          Enable CompuLab Boards support
+endmenu
+
 choice
 	prompt  "CompuLab i.MX8M select"
+	depends on COMPULAB_BOARD_SUPPORT
 
 config TARGET_UCM_IMX8M_MINI
 	bool "CompuLab ucm-imx8m-mini"
@@ -54,18 +64,6 @@ config TARGET_IOTDIN_IMX8P
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
 endchoice
-
-menu "Compulab i.MX8MM platform features"
-	depends on TARGET_UCM_IMX8M_MINI || TARGET_MCM_IMX8M_MINI || TARGET_IOT_GATE_IMX8
-
-config SPL_REPORT_FAKE_MEMSIZE
-	bool "SPL passes a fake DRAM size to U-Boot"
-	default n
-	help
-	  SPL passes to the U-Boot a value from EEPROM instead of a real memory
-	  size. For debug purposes ONLY!!!
-
-endmenu
 
 menu  "Compulab i.MX8MP platform features"
 	depends on TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_IOT_GATE_IMX8PLUS || TARGET_MCM_IMX8M_PLUS || TARGET_IOTDIN_IMX8P
