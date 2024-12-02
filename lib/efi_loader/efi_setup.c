@@ -322,10 +322,12 @@ efi_status_t efi_init_obj_list(void)
 		if (ret != EFI_SUCCESS)
 			goto out;
 	}
+#if 0
 #ifdef CONFIG_NETDEVICES
 	ret = efi_net_register();
 	if (ret != EFI_SUCCESS)
 		goto out;
+#endif
 #endif
 	if (IS_ENABLED(CONFIG_ACPI)) {
 		ret = efi_acpi_register();
