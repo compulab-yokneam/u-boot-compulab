@@ -1,0 +1,100 @@
+#include "imx8mp-lcdif2.dtsi"
+
+/ {
+	lvds_backlight: lvds_backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm2 0 300000 0>;
+		brightness-levels = <96 255>;
+		num-interpolated-steps = <12>;
+		default-brightness-level = <10>;
+		status = "okay";
+	};
+
+	lvds0_panel: lvds-panel {
+		compatible = "simple-panel";
+		power-supply = <&lvds_power_supply>;
+#ifdef CONFIG_SBEV_UCMIMX8PLUS
+		enable-gpios = <&pca9555 3 GPIO_ACTIVE_HIGH>;
+#else
+		enable-gpios = <&pca9555 6 GPIO_ACTIVE_HIGH>;
+#endif
+		backlight = <&lvds_backlight>;
+		status = "okay";
+
+		display-timings {
+			native-mode = <&timing0>;
+			timing0: timing0 {
+				clock-frequency = <42105000>;
+				hactive = <1024>;
+				vactive = <600>;
+				hfront-porch = <30>;
+				hback-porch = <30>;
+				hsync-len = <30>;
+				vback-porch = <10>;
+				vfront-porch = <10>;
+				vsync-len = <10>;
+
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <1>;
+				pixelclk-active = <0>;
+			};
+		};
+
+		port {
+			panel_lvds_in: endpoint {
+				remote-endpoint = <&lvds_out>;
+			};
+		};
+	};
+
+	lvds_power_supply: lvds-power-supply {
+		compatible = "regulator-fixed";
+		regulator-name = "lvds-power-supply";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+		regulator-always-on;
+	};
+};
+
+&iomuxc {
+	pinctrl_pwm2: pwm2grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SPDIF_RX__GPIO5_IO04	0x116
+		>;
+	};
+};
+
+&pwm2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm2>;
+	status = "okay";
+};
+
+&lcdif2 {
+	u-boot,dm-spl;
+	status = "disabled";
+};
+
+&ldb {
+	u-boot,dm-spl;
+	status = "okay";
+	lvds-channel@0 {
+		fsl,data-mapping = "spwg";
+		fsl,data-width = <24>;
+		status = "okay";
+		port@1 {
+			reg = <1>;
+			lvds_out: endpoint {
+				remote-endpoint = <&panel_lvds_in>;
+			};
+		};
+	};
+};
+
+&ldb_phy {
+	u-boot,dm-spl;
+	status = "okay";
+
+};

@@ -1,0 +1,52 @@
+/dts-v1/;
+
+/ {
+	description = "Configuration to load ATF and TEE before U-Boot";
+
+	images {
+		uboot@1 {
+			description = "U-Boot (64-bit)";
+			os = "u-boot";
+			data = /incbin/("u-boot-nodtb.bin");
+			type = "standalone";
+			arch = "arm64";
+			compression = "none";
+			load = <0x40200000>;
+		};
+		fdt@1 {
+			description = "Device Tree";
+			data = /incbin/("u-boot.dtb");
+			type = "flat_dt";
+			compression = "none";
+		};
+		atf@1 {
+			description = "ARM Trusted Firmware";
+			os = "arm-trusted-firmware";
+			data = /incbin/("bl31.bin");
+			type = "firmware";
+			arch = "arm64";
+			compression = "none";
+			load = <0x00970000>;
+			entry = <0x00970000>;
+		};
+		tee@1 {
+			description = "TEE firmware";
+			data = /incbin/("tee.bin");
+			type = "firmware";
+			arch = "arm64";
+			compression = "none";
+			load = <0x56000000>;
+			entry = <0x56000000>;
+		};
+	};
+	configurations {
+		default = "config@1";
+
+		config@1 {
+			description = "NAME";
+			firmware = "uboot@1";
+			loadables = "atf@1", "tee@1";
+			fdt = "fdt@1";
+		};
+	};
+};
