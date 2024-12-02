@@ -85,6 +85,7 @@ obj-$(CONFIG_VIDEO_SEPS525) += seps525.o
 obj-$(CONFIG_VIDEO_ZYNQMP_DPSUB) += zynqmp/
 obj-$(CONFIG_MXC_EPDC) += mxc_epdc_fb.o
 obj-$(CONFIG_VIDEO_LT8912B) += lontium-lt8912b.o
+obj-$(CONFIG_VIDEO_LCD_STARTEK_ILI9881C) += startek-ili9881c.o
 
 obj-y += bridge/
 obj-y += sunxi/
