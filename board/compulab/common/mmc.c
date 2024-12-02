@@ -4,6 +4,7 @@
 #include <hang.h>
 #include <asm/io.h>
 #include <asm/setup.h>
+#include <env.h>
 #include <mmc.h>
 #include "mmc.h"
 
