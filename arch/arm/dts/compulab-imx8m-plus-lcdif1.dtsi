@@ -26,9 +26,11 @@
 
 &mipi_dsi {
 	status = "okay";
-	port@1 {
-		ili9881c_to_dsim: endpoint {
-			remote-endpoint = <&ili9881c_from_dsim>;
+	ports {
+		port@1 {
+			ili9881c_to_dsim: endpoint {
+				remote-endpoint = <&ili9881c_from_dsim>;
+			};
 		};
 	};
 };
