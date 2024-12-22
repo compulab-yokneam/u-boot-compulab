@@ -12,12 +12,6 @@
 		wdt = <&wdog1>;
 		bootph-pre-ram;
 	};
-	firmware {
-		optee {
-			compatible = "linaro,optee-tz";
-			method = "smc";
-		};
-	};
 
 	mcu_rdc {
 		compatible = "imx8m,mcu_rdc";
