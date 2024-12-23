@@ -20,10 +20,12 @@
 #include <miiphy.h>
 #include <netdev.h>
 #include <asm/gpio.h>
+#include "../common/eeprom.h"
 #include <asm/arch/sys_proto.h>
 #include <i2c.h>
 #include <dm/uclass.h>
 #include <dm/uclass-internal.h>
+#include "eeprom.h"
 
 #ifdef CONFIG_SCMI_FIRMWARE
 #include <scmi_agent.h>
@@ -217,6 +219,20 @@ int board_phy_config(struct phy_device *phydev)
 }
 #endif
 
+
+#if defined(CONFIG_FEC_MXC) || defined(CONFIG_DWC_ETH_QOS)
+void imx_get_mac_from_fuse(int dev_id, unsigned char *mac) {
+	int ret;
+	cl_eeprom_read_n_mac_addr(mac, dev_id, CONFIG_SYS_I2C_EEPROM_BUS);
+	if (is_zero_ethaddr(mac) || !is_valid_ethaddr(mac)){
+		net_random_ethaddr(mac);
+	}
+	eth_env_set_enetaddr_by_index("eth",dev_id,mac);
+	return;
+}
+
+#endif
+
 int board_init(void)
 {
 	int ret;
@@ -301,4 +317,5 @@ int is_recovery_key_pressing(void)
 	return 0;
 }
 #endif /*CONFIG_ANDROID_RECOVERY*/
+#include "../common/eeprom.h"
 #endif /*CONFIG_FSL_FASTBOOT*/

@@ -1,0 +1,6 @@
+#ifndef _EEPROM_UCM_IMX95_
+#define _EEPROM_UCM_IMX95_
+#ifndef CONFIG_SYS_I2C_EEPROM_BUS
+#define CONFIG_SYS_I2C_EEPROM_BUS	1
+#endif
+#endif
