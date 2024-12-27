@@ -6,7 +6,7 @@
 
 	ili9881c_panel {
 		compatible = "startek,ili9881c";
-		reset-gpio = <&pca9555 2 GPIO_ACTIVE_LOW>;
+		reset-gpio = <&pca9555 4 GPIO_ACTIVE_LOW>;
 		dsi-lanes = <4>;
 		panel-width-mm = <63>;
 		panel-height-mm = <115>;
