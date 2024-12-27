@@ -153,7 +153,6 @@
 				"fi; " \
 			"fi; " \
 		"done; "
-#endif
 
 #define CONFIG_MMCROOT			"/dev/mmcblk1p2"  /* USDHC2 */
 
@@ -176,4 +175,5 @@
 #ifdef CONFIG_SYS_PROMPT
 #undef CONFIG_SYS_PROMPT
 #define CONFIG_SYS_PROMPT CONFIG_SYS_BOARD"=> "
+#endif
 #endif
