@@ -131,7 +131,7 @@
 };
 
 &i2c1 {
-	bootph-pre-ram;
+	bootph-all;
 };
 
 &i2c2 {
@@ -143,19 +143,19 @@
 };
 
 &pinctrl_i2c1 {
-	bootph-pre-ram;
+	bootph-all;
 };
 
 &pinctrl_i2c1_gpio {
-	bootph-pre-ram;
+	bootph-all;
 };
 
 &pinctrl_i2c2 {
-	bootph-pre-ram;
+	bootph-all;
 };
 
 &pinctrl_i2c2_gpio {
-	bootph-pre-ram;
+	bootph-all;
 };
 
 &usdhc1 {
@@ -188,15 +188,15 @@
 };
 
 &{/soc@0/bus@30800000/i2c@30a20000/pca9450@25} {
-	bootph-pre-ram;
+	bootph-all;
 };
 
 &{/soc@0/bus@30800000/i2c@30a20000/pca9450@25/regulators} {
-	bootph-pre-ram;
+	bootph-all;
 };
 
 &pinctrl_pmic {
-	bootph-pre-ram;
+	bootph-all;
 };
 
 &eqos {
