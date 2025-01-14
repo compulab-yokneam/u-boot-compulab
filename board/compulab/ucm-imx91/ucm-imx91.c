@@ -152,8 +152,8 @@ int board_late_init(void)
 #endif
 
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-	env_set("board_name", "11X11_EVK");
-	env_set("board_rev", "iMX93");
+	env_set("board_name", "UCM-iMX91");
+	env_set("board_rev", "iMX91");
 #endif
 	return 0;
 }

@@ -709,7 +709,7 @@ static int disable_parallel_display_nodes(void *blob)
 	return delete_fdt_nodes(blob, nodes_path_display, ARRAY_SIZE(nodes_path_display));
 }
 
-static int disable_npu_nodes(void *blob)
+int disable_npu_nodes(void *blob)
 {
 	static const char * const nodes_path_npu[] = {
 		"/ethosu",
