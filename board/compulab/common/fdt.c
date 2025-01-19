@@ -5,6 +5,7 @@
 #include <asm/io.h>
 #include <asm/setup.h>
 #include <mmc.h>
+#include <fdt_support.h>
 #include "mmc.h"
 #include "eeprom.h"
 
