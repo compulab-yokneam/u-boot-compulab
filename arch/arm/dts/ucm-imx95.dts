@@ -7,6 +7,7 @@
 
 #include <dt-bindings/phy/phy-imx8-pcie.h>
 #include <dt-bindings/usb/pd.h>
+#include <dt-bindings/leds/common.h>
 #include "imx95.dtsi"
 
 / {
@@ -41,6 +42,19 @@
 		gpio = <&gpio3 7 GPIO_ACTIVE_HIGH>;
 		off-on-delay-us = <12000>;
 		enable-active-high;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_leds>;
+
+		led-0 {
+			color = <LED_COLOR_ID_GREEN>;
+			default-state = "on";
+			function = LED_FUNCTION_INDICATOR;
+			gpios = <&gpio2 24 GPIO_ACTIVE_LOW>;
+		};
 	};
 };
 
@@ -241,6 +255,12 @@
 };
 
 &scmi_iomuxc {
+	pinctrl_leds: ledsgrp {
+		fsl,pins = <
+			IMX95_PAD_GPIO_IO24__GPIO2_IO_BIT24             0x3fe
+		>;
+	};
+
 	pinctrl_flexcan1: flexcan1grp {
 		fsl,pins = <
 			IMX95_PAD_PDM_CLK__AONMIX_TOP_CAN1_TX		0x39e
