@@ -291,9 +291,9 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 	}
 	if (sdram_size < 0x40000000) {
 		printf("disable M33 because its shared address is mapped above 500MB, you can enable it after changing this address in M33 code and in Linux device tree\n");
-		disable_m33_nodes(blob);
+		// disable_m33_nodes(blob);
 		printf("disable ELE because its shared address is mapped above 500MB\n");
-		disable_ele_nodes(blob);
+		// disable_ele_nodes(blob);
 	}
 	return 0;
 }
