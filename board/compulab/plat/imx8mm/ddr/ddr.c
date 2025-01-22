@@ -79,6 +79,8 @@ static const struct lpddr4_desc lpddr4_array[] = {
 #endif
 	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x04, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},
 	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x02, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
+	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x04, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},
+	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x02, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
 	{ .name = "Samsung",	.id = 0x01050008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_01050008},
 	{ .name = "Samsung",	.id = 0x01060008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_01050008},
 	{ .name = "Alliance",   .id = 0x52000008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_01050008},
