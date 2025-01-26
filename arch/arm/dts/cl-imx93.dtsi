@@ -516,6 +516,14 @@
 	status = "okay";
 };
 
+&cpu_alert {
+	temperature = <95000>;
+};
+
+&cpu_crit {
+	temperature = <105000>;
+};
+
 #if IS_ENABLED(CONFIG_VIDEO_IMX93_LVDS)
 #include "cl-imx93-lvds.dtsi"
 #endif
