@@ -72,6 +72,7 @@ static int _spl_dram_init(void)
 	unsigned char subind = 0xfF;
 	unsigned int ddr_info_mrr = 0xdeadbeef;
 	unsigned int ddr_found = 0;
+	unsigned int ddr_init_rc = 0;
 	int i = 0;
 
 	struct lpddr4_tcm_desc *lpddr4_tcm_desc = SPL_TCM_DATA;
@@ -101,11 +102,11 @@ static int _spl_dram_init(void)
 
 		SPL_TCM_INIT;
 
-        /* Let's check the latest training status */
-        if (lpddr4_tcm_desc->ddr_init_status == DDR_INIT_IN) {
-            printf("%s Bad attempt %d skip\n",__func__,(lpddr4_tcm_desc->index+1));
-			lpddr4_tcm_desc->index += 1;
-        }
+		/* Let's check the latest training status */
+		if (lpddr4_tcm_desc->ddr_init_status == DDR_INIT_IN) {
+		    printf("%s Bad attempt %d skip\n",__func__,(lpddr4_tcm_desc->index+1));
+				lpddr4_tcm_desc->index += 1;
+		}
 
 		if (lpddr4_tcm_desc->index < ARRAY_SIZE(lpddr4_array)) {
 			printf("DDRINFO: Cfg attempt: [ %d/%lu ]\n", lpddr4_tcm_desc->index+1, ARRAY_SIZE(lpddr4_array));
@@ -115,34 +116,31 @@ static int _spl_dram_init(void)
 			/* Ran out all available ddr setings */
 			SPL_TCM_CLR;
 			printf("DDRINFO: Ran out all [ %lu ] cfg attempts. A non supported configuration.\n", ARRAY_SIZE(lpddr4_array));
-            return -1;
+			return -1;
 		}
 
 		ddr_info = lpddr4_array[i].id;
+
+		/* This is a discovery case, save in ddr_init_status 'cause it can stack */
+		lpddr4_tcm_desc->ddr_init_status = DDR_INIT_IN;
+		/* Save the data before training */
+		lpddr4_data_set(SPL_TCM_DATA);
 	}
 
 	printf("DDRINFO(%s): %s %dMB @ %d MHz\n", (ddr_found ? "D" : "?" ), lpddr4_array[i].name,
 			lpddr4_array[i].size, lpddr4_array[i].timing->fsp_table[0]);
 
+	ddr_init_rc = ddr_init(lpddr4_array[i].timing);
 
 	if (ddr_found == 0) {
-        /* This is a discovery case, save in ddr_init_status 'cause it can stack */
-        lpddr4_tcm_desc->ddr_init_status = DDR_INIT_IN;
-        /* Save the data before training */
-        lpddr4_data_set(SPL_TCM_DATA);
-    }
-
-	if (ddr_init(lpddr4_array[i].timing)) {
-		SPL_TCM_INIT;
-		return 1;
+		/* This is a discovery case, save out ddr_init_status */
+		lpddr4_tcm_desc->ddr_init_status = DDR_INIT_OUT;
+		/* Save the data after training */
+		lpddr4_data_set(SPL_TCM_DATA);
 	}
 
-	if (ddr_found == 0) {
-        /* This is a discovery case, save out ddr_init_status */
-        lpddr4_tcm_desc->ddr_init_status = DDR_INIT_OUT;
-        /* Save the data after training */
-        lpddr4_data_set(SPL_TCM_DATA);
-    }
+	if (ddr_init_rc)
+		return 1;
 
 	ddr_info_mrr = lpddr4_get_mr();
 	if (ddr_info_mrr == 0xFFFFFFFF ) {
