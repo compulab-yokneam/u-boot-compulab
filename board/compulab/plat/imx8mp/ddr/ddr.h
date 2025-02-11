@@ -98,12 +98,17 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_01061010_2G
 #endif
 	},
+	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
 	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_2G
 #endif
 	},
-#else
+#else /* CONFIG_DRAM_D2D4 */
 	{ .name = "deadbeaf",	.id = 0xdeadbeaf, .subind = 0x1, .size = 1024, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_1G
