@@ -4,8 +4,10 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-#ifndef __UCM_IMX8M_MINI_H
-#define __UCM_IMX8M_MINI_H
+#ifndef __IOT-GATE-IMX8_H
+#define __IOT-GATE-IMX8_H
+
+#define BOOT_CANDIDATE_LIST usb_ul emmc_ul
 
 #include "cpl-imx8m-mini.h"
 

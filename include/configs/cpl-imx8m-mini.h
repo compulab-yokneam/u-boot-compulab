@@ -51,6 +51,8 @@
 	"bootcmd_mfg=run mfgtool_args;  if iminfo ${initrd_addr}; then "\
 					   "booti ${loadaddr} ${initrd_addr} ${fdt_addr};"\
 					"else echo \"Run fastboot ...\"; fastboot 0; fi\0" \
+
+#define ENV_CONSOLE console=ttymxc2,115200 earlycon=ec_imx6q,0x30880000,115200
 /* Initial environment variables */
 #define CFG_EXTRA_ENV_SETTINGS		\
 	CFG_MFG_ENV_SETTINGS \
@@ -64,17 +66,15 @@
 	"fdt_file="CONFIG_DEFAULT_FDT"\0" \
 	"initrd_addr=0x43800000\0"		\
 	"initrd_high=0xffffffffffffffff\0" \
-	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
-	"mmcpart=" __stringify(CONFIG_SYS_MMC_IMG_LOAD_PART) "\0" \
-	"mmcroot=" CONFIG_MMCROOT " rootwait rw\0" \
 	"mmcautodetect=yes\0" \
 	"root_opt=rootwait rw\0" \
+	"bootargs_common="__stringify(ENV_CONSOLE)" net.ifnames=0\0" \
 	"emmc_ul=setenv iface mmc; setenv dev 2; setenv part 1;" \
-	"setenv bootargs console=${console} root=/dev/mmcblk2p2 ${root_opt};\0" \
+	"setenv bootargs ${bootargs_common} root=/dev/mmcblk2p2 ${root_opt};\0" \
 	"sd_ul=setenv iface mmc; setenv dev 1; setenv part 1;" \
-	"setenv bootargs console=${console} root=/dev/mmcblk1p2 ${root_opt};\0" \
+	"setenv bootargs ${bootargs_common} root=/dev/mmcblk1p2 ${root_opt};\0" \
 	"usb_ul=usb start; setenv iface usb; setenv dev 0; setenv part 1;" \
-	"setenv bootargs console=${console} root=/dev/sda2 ${root_opt};\0" \
+	"setenv bootargs ${bootargs_common}  root=/dev/sda2 ${root_opt};\0" \
 	"ulbootscript=load ${iface} ${dev}:${part} ${loadaddr} ${script};\0" \
 	"ulimage=load ${iface} ${dev}:${part} ${loadaddr} ${image}\0" \
 	"ulfdt=if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
@@ -101,8 +101,13 @@
 		"else " \
 			"booti; " \
 		"fi;\0"
+
+#ifndef BOOT_CANDIDATE_LIST
+#define BOOT_CANDIDATE_LIST sd_ul usb_ul emmc_ul
+#endif
+
 #define CONFIG_BOOTCOMMAND \
-	"for src in sd_ul usb_ul emmc_ul; do " \
+	"for src in "__stringify(BOOT_CANDIDATE_LIST)"; do " \
 		"run ${src}; " \
 		"if run ulbootscript; then " \
 			"run bootscript; " \
