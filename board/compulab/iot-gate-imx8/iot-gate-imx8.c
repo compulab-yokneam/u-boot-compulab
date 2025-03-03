@@ -121,7 +121,7 @@ static void iot_gate_imx8_select_dtb(void)
 		fdt_src = "env"; // FDT name is gotten from environment
 	}
 
-	printf("FDT[%s]: %s\n", fdt_src, iot_gate_imx8_dtb[iot_gate_imx8_ext_id]);
+	printf("FDT[%s]: %s\n", fdt_src, env_fdt_file);
 }
 
 static iomux_v3_cfg_t const iot_gate_imx8_ext_ied_pads[] = {
