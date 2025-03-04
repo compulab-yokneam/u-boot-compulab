@@ -1525,7 +1525,7 @@ flash.bin: spl/u-boot-spl.bin u-boot.cnt FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 else
 ifeq ($(CONFIG_BINMAN),y)
-flash.bin: spl/u-boot-spl.bin $(INPUTS-y) FORCE
+flash.bin: spl/u-boot-spl.bin $(INPUTS-y) mk_firmware FORCE
 	$(call if_changed,binman)
 else
 flash.bin: spl/u-boot-spl.bin u-boot.itb FORCE
