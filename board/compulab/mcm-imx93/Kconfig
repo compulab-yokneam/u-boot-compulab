@@ -67,7 +67,7 @@ config SYS_MMC_ENV_PART
 	int
 	default 1
 
-config MCM_IMX93_LPDDR4X
+config IMX93_LPDDR4X
 	bool "Using LPDDR4X Timing and PMIC voltage"
 	default y
 	select IMX9_LPDDR4X

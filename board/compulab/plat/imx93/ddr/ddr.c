@@ -4,7 +4,7 @@
  */
 #include <common.h>
 #include <command.h>
-#include "../../common/eeprom.h"
+#include "../../../common/eeprom.h"
 #include <eeprom.h>
 #include <spl.h>
 #include <asm/io.h>

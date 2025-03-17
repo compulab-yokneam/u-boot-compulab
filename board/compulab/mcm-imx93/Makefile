@@ -3,10 +3,5 @@
 #
 # SPDX-License-Identifier:      GPL-2.0+
 #
-obj-y += mcm-imx93.o
-obj-y += ddr/
-ifdef CONFIG_SPL_BUILD
-obj-y += spl.o
-endif
-obj-$(CONFIG_SPL_BUILD) += eeprom_spl.o
-ccflags-y += -I$(srctree)/board/compulab/common
+ccflags-y += -I$(srctree)/board/compulab/plat/imx93
+obj-y += ../plat/imx93/
