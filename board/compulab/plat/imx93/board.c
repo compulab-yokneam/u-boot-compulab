@@ -177,7 +177,7 @@ int board_late_init(void)
 #endif
 
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-	env_set("board_name", "MCM-iMX93");
+	env_set("board_name", CONFIG_SYS_BOARD);
 	env_set("board_rev", "iMX93");
 #endif
 	board_get_mac_from_eeprom(0);
