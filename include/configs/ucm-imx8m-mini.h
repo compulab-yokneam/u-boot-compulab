@@ -9,7 +9,7 @@
 
 #include "cpl-imx8m-mini.h"
 
-#if defined(CONFIG_ANDROID_SUPPORT)
+#ifdef CONFIG_ANDROID_SUPPORT
 #include "ucm-imx8m-mini_android.h"
 #endif
 #endif
