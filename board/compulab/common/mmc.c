@@ -5,6 +5,7 @@
 #include <asm/io.h>
 #include <asm/setup.h>
 #include <mmc.h>
+#include <env.h>
 #include "mmc.h"
 
 static int env_dev = -1;
