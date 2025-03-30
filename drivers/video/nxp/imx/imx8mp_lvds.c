@@ -19,6 +19,7 @@
 #include <power-domain.h>
 #include <regmap.h>
 #include <syscon.h>
+#include <panel.h>
 
 #define DRIVER_NAME "imx8mp-ldb"
 
@@ -96,7 +97,6 @@ static int imx8mp_lvds_phy_power_on(struct udevice *dev)
 	struct imx8mp_ldb_priv *priv = dev_get_priv(dev);
 	
 	unsigned int val;
-	u32 ldb_ctrl;
 	bool bg_en;
 
  	media_blk_write(priv, LVDS_CTRL, HS_DISABLE);
@@ -211,7 +211,6 @@ static int imx8mp_ldb_probe(struct udevice *dev)
 
 static int imx8mp_ldb_bind(struct udevice *dev)
 {
-	struct imx8mp_ldb_priv *priv = dev_get_priv(dev);
 	ofnode lvds_ch_node;
 	int ret = 0;
 
