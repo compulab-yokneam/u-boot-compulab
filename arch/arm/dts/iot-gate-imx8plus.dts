@@ -5,6 +5,7 @@
 
 #include "ucm-imx8m-plus.dtsi"
 #include "sb-iotgimx8plus.dtsi"
+#include "iot-gate-imx8plus-m2tpm.dtsi"
 
 / {
 	model = "CompuLab IOT-GATE-IMX8PLUS";
