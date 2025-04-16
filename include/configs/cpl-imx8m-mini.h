@@ -36,6 +36,45 @@
 
 #endif
 
+#ifdef CONFIG_DISTRO_DEFAULTS
+#define BOOT_TARGET_DEVICES(func) \
+	func(USB, usb, 0) \
+	func(MMC, mmc, 1) \
+	func(MMC, mmc, 2)
+
+#include <config_distro_bootcmd.h>
+#else
+#define BOOTENV
+#endif
+
+#ifndef MACHINE_EXTRA_ENV_SETTINGS
+#define MACHINE_EXTRA_ENV_SETTINGS
+#endif
+
+#ifndef BOOT_CANDIDATE_LIST
+#define BOOT_CANDIDATE_LIST sd_ul usb_ul emmc_ul
+#endif
+
+#define BSP_BOOTCOMMAND \
+	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
+	"for src in "__stringify(BOOT_CANDIDATE_LIST)"; do " \
+		"run ${src}; " \
+		"if run ulbootscript; then " \
+			"run bootscript; " \
+		"else " \
+			"if run ulimage; then " \
+				"if run ulfdt; then " \
+					"booti ${loadaddr} - ${fdt_addr}; " \
+				"else " \
+					"if test ${boot_fdt} != yes; then " \
+						"booti ${loadaddr}; " \
+					"fi; " \
+				"fi; " \
+			"fi; " \
+		"fi; " \
+	"done; " \
+	"usb start; ums 0 mmc ${mmcdev};"
+
 #define CFG_MFG_ENV_SETTINGS \
 	"mfgtool_args=setenv bootargs console=${console},${baudrate} " \
 		"rdinit=/linuxrc " \
@@ -56,8 +95,12 @@
 /* Initial environment variables */
 #define CFG_EXTRA_ENV_SETTINGS		\
 	CFG_MFG_ENV_SETTINGS \
+	BOOTENV \
+	MACHINE_EXTRA_ENV_SETTINGS \
+	BSP_BOOTCOMMAND \
 	"autoload=off\0" \
 	"script=boot.scr\0" \
+	"kernel_addr_r=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
 	"image=Image\0" \
 	"console=ttymxc2,115200 earlycon=ec_imx6q,0x30880000,115200\0" \
 	"fdt_addr=0x43000000\0"			\
@@ -101,29 +144,6 @@
 		"else " \
 			"booti; " \
 		"fi;\0"
-
-#ifndef BOOT_CANDIDATE_LIST
-#define BOOT_CANDIDATE_LIST sd_ul usb_ul emmc_ul
-#endif
-
-#define CONFIG_BOOTCOMMAND \
-	"for src in "__stringify(BOOT_CANDIDATE_LIST)"; do " \
-		"run ${src}; " \
-		"if run ulbootscript; then " \
-			"run bootscript; " \
-		"else " \
-			"if run ulimage; then " \
-				"if run ulfdt; then " \
-					"booti ${loadaddr} - ${fdt_addr}; " \
-				"else " \
-					"if test ${boot_fdt} != yes; then " \
-						"booti ${loadaddr}; " \
-					"fi; " \
-				"fi; " \
-			"fi; " \
-		"fi; " \
-	"done; " \
-	"usb start; ums 0 mmc ${mmcdev};"
 
 /* Link Definitions */
 
