@@ -119,7 +119,7 @@ static int fdt_set_ram_size(void *blob)
 	if(0 > nodeoff)
 		return nodeoff;
 
-	fdt_setprop(blob, nodeoff, "size", tmp, sprintf(tmp, "%llu", (1L << 20) * lpddr4_tcm_desc->size));
+	fdt_setprop(blob, nodeoff, "size", tmp, sprintf(tmp, "%lu", (1L << 20) * lpddr4_tcm_desc->size));
 	fdt_setprop(blob, nodeoff, "id", tmp, sprintf(tmp, "0x%x", lpddr4_tcm_desc->sign));
 	return 0;
 }

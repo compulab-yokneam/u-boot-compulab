@@ -39,7 +39,7 @@ static void board_soft_otg(void)
 	_board_phy_mode=USB_INIT_DEVICE;
 }
 
-int spl_board_boot_device(enum boot_device boot_dev_spl)
+int spl_board_boot_device(u32 boot_dev_spl)
 {
 	switch (boot_dev_spl) {
 	case SD2_BOOT:

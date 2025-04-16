@@ -4,8 +4,8 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-#ifndef __IOT-GATE-IMX8_H
-#define __IOT-GATE-IMX8_H
+#ifndef __IOT_GATE_IMX8_H
+#define __IOT_GATE_IMX8_H
 
 #define BOOT_CANDIDATE_LIST usb_ul emmc_ul
 
