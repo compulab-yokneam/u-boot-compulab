@@ -52,7 +52,7 @@ int spl_start_uboot(void) {
 }
 #endif
 
-int spl_board_boot_device(enum boot_device boot_dev_spl)
+int spl_board_boot_device(u32 boot_dev_spl)
 {
 #ifdef CONFIG_SPL_BOOTROM_SUPPORT
 	return BOOT_DEVICE_BOOTROM;
