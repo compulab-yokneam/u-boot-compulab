@@ -86,3 +86,14 @@
 		};
 	};
 };
+
+#ifdef CONFIG_FASTBOOT_DEBUG
+&usbotg1 {
+	dr_mode = "peripheral";
+};
+
+&reg_vusb_5v {
+	/delete-property/ regulator-always-on;
+	regulator-boot-on;
+};
+#endif
