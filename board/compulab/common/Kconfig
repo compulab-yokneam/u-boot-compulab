@@ -5,3 +5,10 @@ config EXPORT_ENV_DEF_VIA_DT
 	  Export content of the default environment array (compiled in the u-boot)
           as a device tree node fw_env/default_env
 
+
+config LAB_TEMPERATURE_RANGE
+	bool "Extend temperature range"
+	default n
+	help
+		Never say yes, unless you are Compulab emploee
+
