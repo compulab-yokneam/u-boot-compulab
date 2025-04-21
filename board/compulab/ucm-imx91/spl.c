@@ -34,6 +34,8 @@
 #include <power/pmic.h>
 #include <power/pca9450.h>
 #include <asm/arch/trdc.h>
+#include <serial.h>
+#include "ddr/ddr.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -64,14 +66,6 @@ void spl_board_init(void)
 		printf("Fail to start RNG: %d\n", ret);
 
 	puts("Normal Boot\n");
-}
-
-void spl_dram_init(void)
-{
-	struct dram_timing_info *ptiming = &dram_timing;
-
-	printf("DDR: %uMTS\n", ptiming->fsp_msg[0].drate);
-	ddr_init(ptiming);
 }
 
 #if CONFIG_IS_ENABLED(DM_PMIC_PCA9450)

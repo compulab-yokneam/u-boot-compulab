@@ -21,6 +21,8 @@
 #include <usb.h>
 #include <dwc3-uboot.h>
 #include <asm/gpio.h>
+#include "../common/eeprom.h"
+#include "ddr/ddr.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -69,6 +71,24 @@ int board_early_init_f(void)
 	return 0;
 }
 
+
+size_t lppdr4_get_ramsize() {
+	struct lpddr4_tcm_desc *desc = (void *) SHARED_DDR_INFO;
+	if (desc)
+        return desc->size;
+    return 0;
+}
+
+int board_phys_sdram_size(phys_size_t *size)
+{
+	size_t dramsize;
+	if (!size)
+		return -EINVAL;
+	dramsize = lppdr4_get_ramsize();
+	//*size = get_ram_size((void *)PHYS_SDRAM, PHYS_SDRAM_SIZE);
+	*size = ((1L << 20) * dramsize );
+	return 0;
+}
 
 int board_phy_config(struct phy_device *phydev)
 {
