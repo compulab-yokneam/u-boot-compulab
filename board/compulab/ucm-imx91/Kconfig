@@ -67,6 +67,14 @@ config SYS_MMC_ENV_PART
 	int
 	default 1
 
+config SYS_I2C_EEPROM_BUS
+	int
+	default 0
+
+config SYS_I2C_EEPROM_ADDR_P1
+	hex
+	default 0x51
+
 config UCM_IMX91_LPDDR4X
 	bool "Using LPDDR4X Timing and PMIC voltage"
 	default y
