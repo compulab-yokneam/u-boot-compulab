@@ -59,6 +59,11 @@ static const struct lpddr4_desc lpddr4_array[] = {
 	.timing = &dram_timing
 #endif
 	},
+	{.name = "Micron",	.id = 0xff070018, .subind = 0x1, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+	.timing = &dram_timing
+#endif
+	},
 	{.name = "Samsung",	.id = 0x01061010, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 	.timing = &dram_timing_for_samsung_2G
