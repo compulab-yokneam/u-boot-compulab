@@ -6,7 +6,7 @@
 It is up to developers to prepare the host machine; it requires:
 
 * [Setup Cross Compiler](https://github.com/compulab-yokneam/meta-bsp-imx8mp/blob/kirkstone/Documentation/toolchain.md#linaro-toolchain-how-to)
-* Install these packages: ``shareutils, swing``
+* Install these packages: ``shareutils, swig``
 
 
 ## Setup U-Boot environment
