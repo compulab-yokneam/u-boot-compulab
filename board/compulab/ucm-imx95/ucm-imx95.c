@@ -247,7 +247,7 @@ int board_init(void)
 
 	netc_init();
 
-	power_on_m7("mx95cust");
+	power_on_m7("mx95cpl");
 
 	return 0;
 }
