@@ -192,7 +192,11 @@
 #define PHYS_SDRAM                      0x90000000
 /* Totally ???GB */
 #define PHYS_SDRAM_SIZE			0x70000000UL /* 2GB  - 256MB DDR */
+#ifdef CONFIG_DRAM_D8
 #define PHYS_SDRAM_2_SIZE 		0x180000000UL /* 4GB temp workaround, should be 8GB */
+#else
+#define PHYS_SDRAM_2_SIZE 		0x080000000UL
+#endif
 
 #define CFG_SYS_FSL_USDHC_NUM	2
 
