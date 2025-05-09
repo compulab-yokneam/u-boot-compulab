@@ -30,15 +30,6 @@
 		};
 	};
 
-	reg_can2_stby: regulator-can2-stby {
-		compatible = "regulator-fixed";
-		regulator-name = "can2-stby";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&adp5585gpio 5 GPIO_ACTIVE_LOW>;
-		enable-active-low;
-	};
-
 	reg_vref_1v8: regulator-adc-vref {
 		compatible = "regulator-fixed";
 		regulator-name = "vref_1v8";
@@ -207,13 +198,6 @@
 				regulator-always-on;
 			};
 		};
-	};
-
-	adp5585gpio: gpio@34 {
-		compatible = "adp5585";
-		reg = <0x34>;
-		gpio-controller;
-		#gpio-cells = <2>;
 	};
 };
 
@@ -502,12 +486,6 @@
 	pinctrl_usdhc2_gpio: usdhc2gpiogrp {
 		fsl,pins = <
 			MX91_PAD_SD2_CD_B__GPIO3_IO0		0x31e
-		>;
-	};
-
-	pinctrl_usdhc2_gpio_sleep: usdhc2gpiogrpsleep {
-		fsl,pins = <
-			MX91_PAD_SD2_CD_B__GPIO3_IO0		0x51e
 		>;
 	};
 
