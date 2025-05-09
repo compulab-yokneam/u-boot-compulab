@@ -34,13 +34,6 @@ static iomux_v3_cfg_t const uart_pads[] = {
 	MX91_PAD_UART1_TXD__LPUART1_TX | MUX_PAD_CTRL(UART_PAD_CTRL),
 };
 
-static iomux_v3_cfg_t const lcdif_gpio_pads[] = {
-	MX91_PAD_GPIO_IO00__GPIO2_IO0| MUX_PAD_CTRL(LCDIF_GPIO_PAD_CTRL),
-	MX91_PAD_GPIO_IO01__GPIO2_IO1 | MUX_PAD_CTRL(LCDIF_GPIO_PAD_CTRL),
-	MX91_PAD_GPIO_IO02__GPIO2_IO2 | MUX_PAD_CTRL(LCDIF_GPIO_PAD_CTRL),
-	MX91_PAD_GPIO_IO03__GPIO2_IO3 | MUX_PAD_CTRL(LCDIF_GPIO_PAD_CTRL),
-};
-
 #if CONFIG_IS_ENABLED(EFI_HAVE_CAPSULE_SUPPORT)
 #define IMX_BOOT_IMAGE_GUID \
 	EFI_GUID(0xbc550d86, 0xda26, 0x4b70, 0xac, 0x05, \
@@ -98,6 +91,79 @@ int board_phy_config(struct phy_device *phydev)
 	return 0;
 }
 
+#ifdef CONFIG_OF_BOARD_SETUP
+static void fdt_set_sn(void *blob)
+{
+	u32 rev;
+	char buf[100];
+	int len;
+	union {
+		struct tag_serialnr	s;
+		u64			u;
+	} serialnr;
+
+	len = cl_eeprom_read_som_name(buf);
+	fdt_setprop(blob, 0, "product-name", buf, len);
+
+	len = cl_eeprom_read_sb_name(buf);
+	fdt_setprop(blob, 0, "baseboard-name", buf, len);
+
+	cpl_get_som_serial(&serialnr.s);
+	fdt_setprop(blob, 0, "product-sn", buf, sprintf(buf, "%llx", serialnr.u) + 1);
+
+	cpl_get_sb_serial(&serialnr.s);
+	fdt_setprop(blob, 0, "baseboard-sn", buf, sprintf(buf, "%llx", serialnr.u) + 1);
+
+	rev = cl_eeprom_get_som_revision();
+	fdt_setprop(blob, 0, "product-revision", buf,
+		sprintf(buf, "%u.%02u", rev/100 , rev%100 ) + 1);
+
+	rev = cl_eeprom_get_sb_revision();
+	fdt_setprop(blob, 0, "baseboard-revision", buf,
+		sprintf(buf, "%u.%02u", rev/100 , rev%100 ) + 1);
+
+	len = cl_eeprom_read_som_options(buf);
+	fdt_setprop(blob, 0, "product-options", buf, len);
+
+	len = cl_eeprom_read_sb_options(buf);
+	fdt_setprop(blob, 0, "baseboard-options", buf, len);
+
+	return;
+}
+
+static int env_dev = -1;
+static int env_part= -1;
+
+static int fdt_set_env_addr(void *blob)
+{
+	char tmp[32];
+	int nodeoff = fdt_add_subnode(blob, 0, "fw_env");
+	if(0 > nodeoff)
+		return nodeoff;
+
+	fdt_setprop(blob, nodeoff, "env_off", tmp, sprintf(tmp, "0x%x", CONFIG_ENV_OFFSET));
+	fdt_setprop(blob, nodeoff, "env_size", tmp, sprintf(tmp, "0x%x", CONFIG_ENV_SIZE));
+	if(0 < env_dev) {
+		switch(env_part) {
+		case 1 ... 2:
+			fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%iboot%i", env_dev, env_part - 1));
+			break;
+		default:
+			fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%i", env_dev));
+			break;
+		}
+	}
+	return 0;
+}
+
+int ft_board_setup(void *blob, struct bd_info *bd)
+{
+	fdt_set_env_addr(blob);
+	fdt_set_sn(blob);
+	return 0;
+}
+#endif
+
 #if defined(CONFIG_FEC_MXC) || defined(CONFIG_DWC_ETH_QOS)
 void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 {
@@ -108,59 +174,9 @@ void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 }
 #endif
 
-struct gpio_desc ext_pwren_desc, exp_sel_desc;
-
 static void board_gpio_init(void)
 {
-	struct gpio_desc desc;
-	int ret;
-
-	/* Enable EXT1_PWREN for PCIE_3.3V */
-	ret = dm_gpio_lookup_name("gpio@22_13", &desc);
-	if (ret)
-		return;
-
-	ret = dm_gpio_request(&desc, "EXT1_PWREN");
-	if (ret)
-		return;
-
-	dm_gpio_set_dir_flags(&desc, GPIOD_IS_OUT);
-	dm_gpio_set_value(&desc, 1);
-
-	/* Deassert SD3_nRST */
-	ret = dm_gpio_lookup_name("gpio@22_12", &desc);
-	if (ret)
-		return;
-
-	ret = dm_gpio_request(&desc, "SD3_nRST");
-	if (ret)
-		return;
-
-	dm_gpio_set_dir_flags(&desc, GPIOD_IS_OUT);
-	dm_gpio_set_value(&desc, 1);
-
-	/* Enable EXT_PWREN for vRPi 5V */
-	ret = dm_gpio_lookup_name("gpio@22_8", &ext_pwren_desc);
-	if (ret)
-		return;
-
-	ret = dm_gpio_request(&ext_pwren_desc, "EXT_PWREN");
-	if (ret)
-		return;
-
-	dm_gpio_set_dir_flags(&ext_pwren_desc, GPIOD_IS_OUT);
-	dm_gpio_set_value(&ext_pwren_desc, 1);
-
-	ret = dm_gpio_lookup_name("adp5585-gpio4", &exp_sel_desc);
-	if (ret)
-		return;
-
-	ret = dm_gpio_request(&exp_sel_desc, "EXP_SEL");
-	if (ret)
-		return;
-
-	dm_gpio_set_dir_flags(&exp_sel_desc, GPIOD_IS_OUT);
-	dm_gpio_set_value(&exp_sel_desc, 1);
+	return;
 }
 
 int board_init(void)
@@ -188,11 +204,3 @@ int board_late_init(void)
 	return 0;
 }
 
-void board_quiesce_devices(void)
-{
-	/* Turn off 5V for backlight */
-	dm_gpio_set_value(&ext_pwren_desc, 0);
-
-	/* Turn off MUX for rpi */
-	dm_gpio_set_value(&exp_sel_desc, 0);
-}
