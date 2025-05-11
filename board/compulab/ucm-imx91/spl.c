@@ -123,6 +123,12 @@ int power_init_board(void)
 
 	/* I2C_LT_EN*/
 	pmic_reg_write(dev, 0xa, 0x3);
+
+	/* set WDOG_B_CFG to cold reset */
+	pmic_reg_write(dev, PCA9450_RESET_CTRL, 0xA1);
+
+	/* fix SD card detect fluctuations - When switch detects short circuit current turn off and restart in 100ms */
+	pmic_reg_write(dev, PCA9450_LOADSW_CTRL, 0x95);
 	return 0;
 }
 #endif
