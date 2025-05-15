@@ -84,7 +84,7 @@
 	"mmcpart=1\0" \
 	"mmcroot=" CONFIG_MMCROOT " rootwait rw\0" \
 	"mmcautodetect=yes\0" \
-	"mmcargs=setenv bootargs ${jh_clk} console=${console} root=${mmcroot}\0 " \
+	"mmcargs=setenv bootargs ${jh_clk} console=${console} root=${mmcroot} net.ifnames=0\0 " \
 	"loadbootscript=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source\0" \
@@ -112,7 +112,7 @@
 				"fi; " \
 			"fi;" \
 		"fi;\0" \
-	"netargs=setenv bootargs ${jh_clk} console=${console} " \
+	"netargs=setenv bootargs ${jh_clk} console=${console} net.ifnames=0" \
 		"root=/dev/nfs " \
 		"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
 	"netboot=echo Booting from net ...; " \
@@ -148,11 +148,11 @@
 		"boot_part=1\0" \
 		"root_opt=rootwait rw\0" \
 		"emmc_ul=setenv iface mmc; setenv dev ${emmc_dev}; setenv part ${boot_part};" \
-		"setenv bootargs console=${console} root=${emmc_root} ${root_opt};\0" \
+		"setenv bootargs console=${console} root=${emmc_root} ${root_opt} net.ifnames=0;\0" \
 		"sd_ul=setenv iface mmc; setenv dev ${sd_dev}; setenv part ${boot_part};" \
-			"setenv bootargs console=${console} root=${sd_root} ${root_opt};\0" \
+			"setenv bootargs console=${console} root=${sd_root} ${root_opt} net.ifnames=0;\0" \
 		"usb_ul=usb start; setenv iface usb; setenv dev ${usb_dev}; setenv part ${boot_part};" \
-			"setenv bootargs console=${console} root=${usb_root} ${root_opt};\0" \
+			"setenv bootargs console=${console} root=${usb_root} ${root_opt} net.ifnames=0;\0" \
 		"ulbootscript=load ${iface} ${dev}:${part} ${loadaddr} ${script};\0" \
 		"ulimage=load ${iface} ${dev}:${part} ${loadaddr} ${image}\0" \
 		"ulfdt=if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
