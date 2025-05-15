@@ -13,7 +13,7 @@ config DEFAULT_DTB
 	depends on TARGET_UCM_IMX8M_MINI
 	default "ucm-imx8m-mini.dtb"
 # Automatic selection of fdt_file requires the variable is empty
-config DEFAULT_FDT
+config DEFAULT_FDT_FILE
 	string
 	depends on TARGET_UCM_IMX8M_MINI
 	default ""
