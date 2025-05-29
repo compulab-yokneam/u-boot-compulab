@@ -13,7 +13,7 @@ config DEFAULT_DTB
 	depends on TARGET_MCM_IMX8M_MINI
 	default "sbc-mcm-imx8m-mini.dtb"
 
-config DEFAULT_FDT
+config DEFAULT_FDT_FILE
 	string
 	depends on TARGET_MCM_IMX8M_MINI
 	default "sbc-mcm-imx8m-mini.dtb"

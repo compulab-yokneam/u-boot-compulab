@@ -105,7 +105,7 @@
 	"fdt_addr=0x43000000\0"			\
 	"fdt_high=0xffffffffffffffff\0"		\
 	"boot_fdt=yes\0" \
-	"fdt_file="CONFIG_DEFAULT_FDT"\0" \
+	"fdt_file="CONFIG_DEFAULT_FDT_FILE"\0" \
 	"initrd_addr=0x43800000\0"		\
 	"initrd_high=0xffffffffffffffff\0" \
 	"mmcautodetect=yes\0" \
