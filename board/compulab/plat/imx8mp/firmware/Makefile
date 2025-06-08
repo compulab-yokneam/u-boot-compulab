@@ -4,7 +4,7 @@ fw_src=$(srctree)/board/compulab/plat/imx8mp/firmware
 all: $(files)
 
 $(files):
-	uudecode --output-file $@ $(fw_src)/$@.uue
+	gunzip -c  $(fw_src)/$@.gz > $@
 
 clean:
 	rm -rf $(files)
