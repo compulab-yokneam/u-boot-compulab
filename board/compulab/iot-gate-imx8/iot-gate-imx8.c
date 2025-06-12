@@ -265,6 +265,7 @@ static int iot_gate_imx8_update_ext_ied(void *blob)
 	int slot, bit;
 	int nodeoffset, err;
 	char alias[16];
+	int retval = -EINVAL; // Assume the worst
 
 	if (iot_gate_imx8_ext_id != IOT_GATE_EXT_IED)
 		return 0;
@@ -274,10 +275,10 @@ static int iot_gate_imx8_update_ext_ied(void *blob)
 		for (bit= 0; IED_BIT_PER_SLOT > bit; ++bit) {
 			char label[16];
 			sprintf(label, "id_s%ib%i", slot, bit);
-			if (gpio_request(ied_gpio_det[slot][bit], label)) {
-				printf("%s:%i ID GPIO %s request failure\n",
-					__func__, __LINE__, label);
-				return -ENOSYS;
+			err = gpio_request(ied_gpio_det[slot][bit], label);
+			if (err) {
+				printf("%s:%i ID GPIO %s request failure err = %i\n", __func__, __LINE__, label, err);
+				goto final;
 			}
 			else {
 				gpio_direction_input(ied_gpio_det[slot][bit]);
@@ -299,7 +300,8 @@ static int iot_gate_imx8_update_ext_ied(void *blob)
 			case IOT_GATE_IMX8_CARD_ID_DI4O4:
 				break;
 			default:
-				goto err_code;
+				printf("%s:%i invalid slot %c card ID: %x\n", __func__, __LINE__, ied_slot_letter[slot], code);
+				goto final;
 			}
 			continue;
 		}
@@ -327,13 +329,25 @@ static int iot_gate_imx8_update_ext_ied(void *blob)
 			pr_err_if_any("spi:subnode:status", err);
 			break;
 		default:
-			goto err_code;
+			printf("%s:%i invalid slot %c card ID: %x\n", __func__, __LINE__, ied_slot_letter[slot], code);
+			goto final;
 		}
 	}
-	return 0;
-err_code:
-	printf("%s:%i invalid slot %c card ID: %x\n", __func__, __LINE__, ied_slot_letter[slot], code);
-	return -EINVAL;
+	retval = 0;
+final:
+	if(!!retval)
+		printf("%s failure\n", __func__);
+
+	for (slot = 0; IED_SLOT_NUM > slot; ++slot) {
+		for (bit= 0; IED_BIT_PER_SLOT > bit; ++bit) {
+			err = gpio_free(ied_gpio_det[slot][bit]);
+			if (err)
+				printf("%s:%i ID GPIO %i[%i][%i] clearig error = %i\n",
+					__func__, __LINE__, ied_gpio_det[slot][bit], slot, bit, err);
+		}
+	}
+
+	return retval;
 }
 
 #define IOT_GATE_IMX8_DTB_UART1_MODE_GPIO_RS232 {0x29000000,		\
