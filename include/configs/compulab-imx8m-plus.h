@@ -46,8 +46,12 @@
 #define SERIAL_CONSOLE	"console=ttymxc1,115200"
 #endif
 
+#define CL_DEPLOY_CMD \
+	"cl-deploy=setenv boot_opt init=/usr/local/bin/cl-init; run bsp_bootcmd;\0"
+
 /* Initial environment variables */
 #define CFG_EXTRA_ENV_SETTINGS		\
+	CL_DEPLOY_CMD \
 	CFG_MFG_ENV_SETTINGS \
 	BOOTENV \
 	MACHINE_EXTRA_ENV_SETTINGS \
