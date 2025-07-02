@@ -247,7 +247,8 @@ char ied_card_name[IOT_GATE_IMX8_CARD_ID_END][8] = {
 #define  pr_err_if_any(path, val) \
 	if(0 > val) { \
 		fprintf(stderr, "%s:%i '%s' not found in DTB, err %d\n", 	__func__, __LINE__, path, val); \
-		return -ENOENT; \
+		retval = -ENOENT; \
+		goto final; \
 	}
 
 /*
