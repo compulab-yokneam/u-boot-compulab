@@ -746,6 +746,7 @@ static int eqos_phy_init(struct eqos_priv *eqos, struct udevice *dev)
 			eqos->config->interface(dev));
 	if (!eqos->phy) {
 		pr_err("phy_connect() failed");
+		ret = -ENODEV;
 		goto err_stop_resets;
 	}
 	if (eqos->max_speed) {
@@ -767,6 +768,7 @@ err_shutdown_phy:
 	phy_shutdown(eqos->phy);
 err_stop_resets:
 	eqos->config->ops->eqos_stop_resets(dev);
+	return ret;
 }
 
 static int eqos_start(struct udevice *dev)
