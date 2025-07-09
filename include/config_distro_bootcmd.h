@@ -138,8 +138,10 @@
 		"else "                                                   \
 			"bootefi bootmgr;"                                \
 		"fi\0"
+#define RUN_BOOT_EFI_BOOTMGR "run boot_efi_bootmgr;"
 #else
 #define BOOTENV_EFI_BOOTMGR
+#define RUN_BOOT_EFI_BOOTMGR
 #endif
 
 #define BOOTENV_SHARED_EFI                                                \
@@ -171,7 +173,7 @@
 				BOOTENV_RUN_EXTENSION_APPLY               \
 			"fi;"                                             \
 		"done;"                                                   \
-		"run boot_efi_bootmgr;"                                   \
+		RUN_BOOT_EFI_BOOTMGR                                      \
 		"if test -e ${devtype} ${devnum}:${distro_bootpart} "     \
 					"efi/boot/"BOOTEFI_NAME"; then "  \
 				"echo Found EFI removable media binary "  \
