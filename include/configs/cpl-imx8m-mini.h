@@ -72,7 +72,7 @@
 			"fi; " \
 		"fi; " \
 	"done; " \
-	"usb start; ums 0 mmc ${mmcdev};"
+	FALLBACK_COMMAND 
 
 #define CFG_MFG_ENV_SETTINGS \
 	"mfgtool_args=setenv bootargs console=${console},${baudrate} " \

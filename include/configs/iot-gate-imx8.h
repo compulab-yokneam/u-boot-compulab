@@ -9,6 +9,12 @@
 
 #define BOOT_CANDIDATE_LIST usb_ul emmc_ul
 
+#ifdef CONFIG_FASTBOOT_DEBUG
+#define FALLBACK_COMMAND "echo \"Run fastboot ...\"; fastboot 0; "
+#else 
+#define FALLBACK_COMMAND "echo \"No boot candidate found\";"
+#endif
+
 #include "cpl-imx8m-mini.h"
 
 #if defined(CONFIG_ANDROID_SUPPORT)
