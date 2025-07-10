@@ -20,13 +20,12 @@
 	model = "CompuLab IOT-GATE-iMX8";
 	compatible = "sb-iotgimx8", "cpl,ucm-imx8m-mini", "fsl,imx8mm-evk", "fsl,imx8mm";
 
-	reg_vusb_5v: regulator-usdhc2 {
+	reg_vusb_5v: regulator-vusb_5v {
 		compatible = "regulator-fixed";
 		regulator-name = "VUSB_5V";
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		gpio = <&gpio4 28 GPIO_ACTIVE_HIGH>;
-		regulator-always-on;
 		enable-active-high;
 	};
 
@@ -62,7 +61,6 @@
 
 &usbotg1 {
 	vbus-supply = <&reg_vusb_5v>;
-	dr_mode = "host";
 	status = "okay";
 };
 
@@ -91,9 +89,20 @@
 &usbotg1 {
 	dr_mode = "peripheral";
 };
-
+&gpio4 {
+	reg_vusb_5v_off {
+		gpio-hog;
+		output-low;
+		gpios = <28 0>;
+		line-name = "reg_vusb_5v";
+	};
+};
+#else
+&usbotg1 {
+	dr_mode = "host";
+};
 &reg_vusb_5v {
-	/delete-property/ regulator-always-on;
-	regulator-boot-on;
+	regulator-always-on;
+	enable-active-high;
 };
 #endif
