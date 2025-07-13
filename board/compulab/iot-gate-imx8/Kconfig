@@ -19,4 +19,9 @@ config FASTBOOT_DEBUG
 	default n
 	help
 	  Enable fastboot as a fallback instruction, instead of UMS
+
+config SYS_PROMPT
+	string
+	default "IOT-GATE-iMX8[fb] => " if FASTBOOT_DEBUG
+	default "IOT-GATE-iMX8 => " if !FASTBOOT_DEBUG
 endif
