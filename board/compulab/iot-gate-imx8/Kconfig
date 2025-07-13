@@ -14,4 +14,9 @@ config DEFAULT_FDT_FILE
 	depends on TARGET_IOT_GATE_IMX8
 	default ""
 
+config FASTBOOT_DEBUG
+	bool
+	default n
+	help
+	  Enable fastboot as a fallback instruction, instead of UMS
 endif
