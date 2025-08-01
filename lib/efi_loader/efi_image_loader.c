@@ -806,11 +806,11 @@ efi_status_t efi_check_pe(void *buffer, size_t size, void **nt_header)
 	return EFI_SUCCESS;
 }
 
-extern int autnenticate_buffer(void *buffer, size_t size);
+extern int authenticate_buffer(void *buffer, size_t size);
 efi_status_t efi_check_csf(void *buffer, size_t size, void **nt_header)
 {
 #if defined(CONFIG_IMX_HAB) && !defined(CONFIG_AVB_SUPPORT)
-	if (authenticate_buffer( (uint32_t) buffer, size )) {
+	if (authenticate_buffer( buffer, size )) {
 		return EFI_SECURITY_VIOLATION;
 	} else  {
 		return EFI_SUCCESS;
