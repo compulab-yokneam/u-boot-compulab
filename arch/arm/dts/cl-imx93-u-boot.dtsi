@@ -171,7 +171,7 @@
 };
 
 &ethphy1 {
-	reset-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
+	reset-gpios = <&gpio2 6 GPIO_ACTIVE_LOW>;
 	reset-assert-us = <15000>;
 	reset-deassert-us = <100000>;
 };
