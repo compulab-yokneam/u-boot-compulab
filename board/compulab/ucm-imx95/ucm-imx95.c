@@ -219,26 +219,6 @@ void netc_init(void)
 	pci_init();
 }
 
-void lvds_backlight_on(void)
-{
-	struct udevice *dev;
-	int ret;
-	u8 reg;
-
-	ret = i2c_get_chip_for_busnum(2, 0x62, 1, &dev);
-	if (ret) {
-		printf("%s: Cannot find pca9632 led dev\n",
-		       __func__);
-		return;
-	}
-
-	reg = 1;
-	dm_i2c_write(dev, 0x1, &reg, 1);
-
-	reg = 5;
-	dm_i2c_write(dev, 0x8, &reg, 1);
-}
-
 int board_init(void)
 {
 	int ret;
@@ -253,9 +233,7 @@ int board_init(void)
 
 	netc_init();
 
-	power_on_m7("mx95evkrpmsg");
-
-	lvds_backlight_on();
+	power_on_m7("mx95cpl");
 
 	return 0;
 }
