@@ -117,3 +117,5 @@
 	assigned-clocks = <&scmi_clk IMX95_CLK_MIPIPHYPLLBYPASS>;
 	assigned-clock-parents = <&scmi_clk IMX95_CLK_VIDEOPLL1>;
 };
+
+#include "ucm-imx95-lvds-panel.dtsi"
