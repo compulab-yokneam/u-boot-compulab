@@ -15,6 +15,12 @@ config DEFAULT_DEVICE_TREE
 config DEFAULT_FDT_FILE
 	default "ucm-imx95.dtb"
 
+config SYS_I2C_EEPROM_BUS
+	default 1
+
+config SYS_I2C_EEPROM_ADDR
+	default 0x50
+
 menu "i.MX95 CompuLab Config"
 
 choice
