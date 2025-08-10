@@ -7,6 +7,8 @@
 #include <init.h>
 #include <fdt_support.h>
 #include <asm/arch/clock.h>
+#include <netdev.h>
+#include <net-common.h>
 #include <usb.h>
 #include <dwc3-uboot.h>
 #include <linux/bitfield.h>
@@ -217,6 +219,15 @@ void netc_init(void)
 	netc_phy_rst("GPIO4_14", "ENET2_RST_B");
 
 	pci_init();
+}
+
+void imx_get_mac_from_fuse(int dev_id, unsigned char *mac) {
+	cl_eeprom_read_n_mac_addr(mac, dev_id, CONFIG_SYS_I2C_EEPROM_BUS);
+	if (is_zero_ethaddr(mac) || !is_valid_ethaddr(mac)){
+		net_random_ethaddr(mac);
+	}
+	eth_env_set_enetaddr_by_index("eth",dev_id,mac);
+	return;
 }
 
 int board_init(void)
