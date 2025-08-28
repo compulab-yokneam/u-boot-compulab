@@ -21,10 +21,22 @@ config SYS_I2C_EEPROM_BUS
 config SYS_I2C_EEPROM_ADDR
 	default 0x50
 
-menu "i.MX95 CompuLab Config"
+config ENV_OFFSET
+	hex "Environment Size"
+	default 0x3F0000
+
+config ENV_SIZE
+	hex "Environment Size"
+	default 0x4000
+
+config SYS_MMC_ENV_PART
+	default 0
+
+config SYS_MMC_ENV_PART
+	default 1
 
 choice
-	prompt "CompuLab i.MX8 dram config"
+	prompt "CompuLab i.MX95 dram config"
 
 config DRAM_D8
 	bool "D8 dram support"
@@ -34,5 +46,4 @@ config DRAM_D4
 
 endchoice
 
-endmenu
 endif
