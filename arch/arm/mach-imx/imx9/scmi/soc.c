@@ -702,10 +702,7 @@ int power_on_m7(char *name)
 		return ret;
 	}
 
-	if (strncmp(out.cfgname, name, MISC_MAX_CFGNAME)) {
-		printf("cfg name not match %s:%s, ignore\n", name, out.cfgname);
-		return -EINVAL;
-	}
+	printf("M7: m33_name: %s;  a55_name: %s\n", out.cfgname, name);
 
 	if (!arch_auxiliary_core_check_up(1)) {
 		/* Power up M7MIX */
