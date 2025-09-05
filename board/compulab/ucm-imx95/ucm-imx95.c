@@ -23,6 +23,7 @@
 #include <dm/uclass.h>
 #include <dm/uclass-internal.h>
 #include "../common/eeprom.h"
+#include "../common/fdt.h"
 #include "eeprom.h"
 
 extern int board_fix_fdt_fuse(void *fdt);
@@ -263,7 +264,15 @@ int board_late_init(void)
 }
 
 #ifdef CONFIG_OF_BOARD_SETUP
-int ft_board_setup(void *blob, struct bd_info *bd)
+static int ft_board_setup_compulab(void *blob, struct bd_info *bd)
+{
+
+	fdt_set_env_addr(blob);
+	fdt_set_sn(blob);
+	return 0;
+}
+
+static int ft_board_setup_nxp(void *blob, struct bd_info *bd)
 {
 	char *p, *b, *s;
 	char *token = NULL;
@@ -301,6 +310,13 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 
 	return 0;
 }
+
+int ft_board_setup(void *blob, struct bd_info *bd){
+	ft_board_setup_nxp(blob, bd);
+	ft_board_setup_compulab(blob, bd);
+	return 0;
+}
+
 #endif
 
 int board_phys_sdram_size(phys_size_t *size)
