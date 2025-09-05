@@ -12,6 +12,7 @@
 extern struct dram_timing_info ucm_dram_timing_01061010_2G;
 extern struct dram_timing_info ucm_dram_timing_ff000010;
 extern struct dram_timing_info ucm_dram_timing_01061010_4G;
+extern struct dram_timing_info ucm_dram_timing_13000210_2G;
 #endif
 extern struct dram_timing_info ucm_dram_timing_01061010_1G;
 extern struct dram_timing_info ucm_dram_timing_01061010_1G_4000;
@@ -106,6 +107,11 @@ static const struct lpddr4_desc lpddr4_array[] = {
 	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+	{ .name = "Issi",	.id = 0x13000210, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_13000210_2G
 #endif
 	},
 #else /* CONFIG_DRAM_D2D4 */
