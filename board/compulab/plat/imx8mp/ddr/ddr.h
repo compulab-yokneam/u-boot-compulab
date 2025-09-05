@@ -14,6 +14,7 @@ extern struct dram_timing_info ucm_dram_timing_ff000010;
 extern struct dram_timing_info ucm_dram_timing_01061010_4G;
 extern struct dram_timing_info ucm_dram_timing_13000210_2G;
 #endif
+extern struct dram_timing_info ucm_dram_timing_1b000008_1G;
 extern struct dram_timing_info ucm_dram_timing_01061010_1G;
 extern struct dram_timing_info ucm_dram_timing_01061010_1G_4000;
 extern struct dram_timing_info ucm_dram_timing_ff060018;
@@ -118,6 +119,11 @@ static const struct lpddr4_desc lpddr4_array[] = {
 	{ .name = "deadbeaf",	.id = 0xdeadbeaf, .subind = 0x1, .size = 1024, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_1G
+#endif
+	},
+	{ .name = "Issi",	.id = 0x1b000008, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_1b000008_1G
 #endif
 	},
 	{ .name = "Samsung",	.id = 0x01050008, .subind = 0x1, .size = 1024, .count = 1,
