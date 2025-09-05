@@ -13,11 +13,12 @@ extern struct dram_timing_info ucm_dram_timing_01061010_2G;
 extern struct dram_timing_info ucm_dram_timing_ff000010;
 extern struct dram_timing_info ucm_dram_timing_01061010_4G;
 extern struct dram_timing_info ucm_dram_timing_13000210_2G;
-#endif
+#else
 extern struct dram_timing_info ucm_dram_timing_1b000008_1G;
 extern struct dram_timing_info ucm_dram_timing_01061010_1G;
 extern struct dram_timing_info ucm_dram_timing_01061010_1G_4000;
 extern struct dram_timing_info ucm_dram_timing_ff060018;
+#endif
 #endif
 
 void spl_dram_init(void);
