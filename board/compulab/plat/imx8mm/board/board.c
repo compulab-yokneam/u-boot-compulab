@@ -110,6 +110,21 @@ static int fdt_set_fec_phy_addr(void *blob)
 		(blob, FDT_PHYADDR, "reg", (const void*)&val, sizeof(val), 0);
 }
 
+#define FDT_CMA "/reserved-memory/linux,cma"
+static int fdt_fix_cma(void *blob)
+{
+	struct lpddr4_tcm_desc *lpddr4_tcm_desc = (struct lpddr4_tcm_desc *) TCM_DATA_CFG;
+	const u32 size[] = {0, cpu_to_fdt32(0x1c800000)};
+	const u32 alloc_ranges[] = {0, cpu_to_fdt32(0x40000000), 0, cpu_to_fdt32(0x80000000)};
+
+	// Shrink CMA on the device with 1G of DRAM
+	if (1024 >= lpddr4_tcm_desc->size) {
+		fdt_find_and_setprop(blob, FDT_CMA, "size", (const void*)&size, sizeof(size), 0);
+		fdt_find_and_setprop(blob, FDT_CMA, "alloc-ranges", (const void*)&alloc_ranges, sizeof(alloc_ranges), 0);
+	}
+}
+
+
 static int fdt_set_ram_size(void *blob)
 {
 	char tmp[32];
@@ -130,6 +145,7 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 	fdt_set_env_addr(blob);
 	fdt_set_sn(blob);
 	fdt_set_ram_size(blob);
+	fdt_fix_cma(blob);
 	fdt_set_fec_phy_addr(blob);
 	return sub_ft_board_setup(blob, bd);
 }
