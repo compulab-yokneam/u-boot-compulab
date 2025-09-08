@@ -120,7 +120,7 @@
 		"usb_root=/dev/sda2\0" \
 		"usb_dev=0\0" \
 		"boot_part=1\0" \
-		"root_opt=rootwait rw\0" \
+		"root_opt=rootwait ro fsck.mode=force fsck.repair=yes\0" \
 		"emmc_ul=setenv iface mmc; setenv dev ${emmc_dev}; setenv part ${boot_part};" \
 		"setenv bootargs console=${console} root=${emmc_root} ${root_opt};\0" \
 		"sd_ul=setenv iface mmc; setenv dev ${sd_dev}; setenv part ${boot_part};" \
