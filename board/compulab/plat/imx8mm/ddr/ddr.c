@@ -72,6 +72,7 @@ struct lpddr4_desc {
 
 #define DEFAULT (('D' << 24) + ('E' << 16 ) + ( 'F' << 8 ) + 'A')
 static const struct lpddr4_desc lpddr4_array[] = {
+	{ .name = "ISSI",	.id = 0x1b000008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_1b000008},
 #ifdef CONFIG_TARGET_MCM_IMX8M_MINI
 	{ .name = "Nanya",	.id = 0x05000010, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
 #else
