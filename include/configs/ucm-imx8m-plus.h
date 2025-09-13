@@ -36,3 +36,10 @@
 #include "ucm-imx8m-plus_android.h"
 #endif
 #endif
+
+#ifdef CONFIG_SBEV_UCMIMX8PLUS
+#ifdef CFG_FEC_MXC_PHYADDR
+#undef CFG_FEC_MXC_PHYADDR
+#define CFG_FEC_MXC_PHYADDR 4
+#endif
+#endif
