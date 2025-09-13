@@ -484,7 +484,7 @@ u32 get_cpu_temp_grade(int *minc, int *maxc)
 	*maxc = 125;
 	printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	printf("This is a LABORATORY build.\n");
-	printf("The temperature range is extended to %d C -- %d C\n");
+	printf("The temperature range is extended to %d C -- %d C\n", *minc, *maxc);
 	printf("Don't run anywhere but Compulab laboratory!\n");
 	printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 #endif
