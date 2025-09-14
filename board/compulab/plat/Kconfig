@@ -90,6 +90,12 @@ config DRAM_ISSI
 	help
 	  If 'Y' then support ISSI configuration is enabled
 
+config DRAM_ETRON
+	bool "Enable ETRON dram vendor support"
+	default n
+	help
+	  If 'Y' then support ISSI configuration is enabled
+
 menu  "Compulab IOT-GATE-IMX8PLUS features"
 	depends on TARGET_IOT_GATE_IMX8PLUS
 
