@@ -6,6 +6,7 @@
 /dts-v1/;
 
 #include <dt-bindings/pwm/pwm.h>
+#include <dt-bindings/leds/common.h>
 #include "imx95.dtsi"
 
 #define FALLING_EDGE			1
@@ -123,6 +124,19 @@
 			cpu {
 				sound-dai = <&micfil>;
 			};
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_leds>;
+
+		led-0 {
+			color = <LED_COLOR_ID_GREEN>;
+			default-state = "on";
+			function = LED_FUNCTION_INDICATOR;
+			gpios = <&gpio2 24 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
@@ -289,6 +303,12 @@
 };
 
 &scmi_iomuxc {
+	pinctrl_leds: ledsgrp {
+		fsl,pins = <
+			IMX95_PAD_GPIO_IO24__GPIO2_IO_BIT24             0x3fe
+		>;
+	};
+
 	pinctrl_flexspi1: flexspi1grp {
 		fsl,pins = <
 			IMX95_PAD_XSPI1_SS0_B__FLEXSPI1_A_SS0_B			0x3fe
