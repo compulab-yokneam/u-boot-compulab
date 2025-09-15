@@ -14,6 +14,7 @@ extern struct dram_timing_info ucm_dram_timing_ff000010;
 extern struct dram_timing_info ucm_dram_timing_01061010_4G;
 extern struct dram_timing_info ucm_dram_timing_13000210_2G;
 extern struct dram_timing_info ucm_dram_timing_ff070010_2G;
+extern struct dram_timing_info ucm_dram_timing_ff070018_4G;
 #else
 extern struct dram_timing_info ucm_dram_timing_1a000008_1G;
 extern struct dram_timing_info ucm_dram_timing_1b000008_1G;
@@ -124,6 +125,11 @@ static const struct lpddr4_desc lpddr4_array[] = {
 	{ .name = "Etron",	.id = 0xff070010, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_ff070010_2G
+#endif
+	},
+	{ .name = "Etron",	.id = 0xff070018, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff070018_4G
 #endif
 	},
 #endif
