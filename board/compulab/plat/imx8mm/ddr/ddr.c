@@ -72,6 +72,7 @@ struct lpddr4_desc {
 
 #define DEFAULT (('D' << 24) + ('E' << 16 ) + ( 'F' << 8 ) + 'A')
 static const struct lpddr4_desc lpddr4_array[] = {
+#if 0
 	{ .name = "ISSI",	.id = 0x13000210, .subind = 0xff, .size = 4096, .count = 1, .timing = &ucm_dram_timing_13000210}, // TBD -- fake assignement!
 	{ .name = "ISSI",	.id = 0x13000210, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_13000210},
 	{ .name = "ISSI",	.id = 0x1b000008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_1b000008},
@@ -80,10 +81,11 @@ static const struct lpddr4_desc lpddr4_array[] = {
 #else
 	{ .name = "Nanya",	.id = 0x05000010, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_05000010},
 #endif
+#endif
 	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x04, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},
 	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x02, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
 	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x04, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},
-	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x02, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
+	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x02, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01080010},
 	{ .name = "Samsung",	.id = 0x01050008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_01050008},
 	{ .name = "Samsung",	.id = 0x01060008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_01050008},
 	{ .name = "Alliance",	.id = 0x52000008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_01050008},
