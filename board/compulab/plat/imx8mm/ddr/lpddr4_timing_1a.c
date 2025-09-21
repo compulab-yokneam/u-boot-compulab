@@ -13,7 +13,7 @@
 
 #include <linux/kernel.h>
 #include <asm/arch/ddr.h>
-
+// Etron EM6LF32MBAJB
 static struct dram_cfg_param ddr_ddrc_cfg[] = {
 	/** Initialize DDRC registers **/
 	{0x3d400304,0x1},
@@ -21,7 +21,7 @@ static struct dram_cfg_param ddr_ddrc_cfg[] = {
 	{0x3d400000,0xa1080020},
 	{0x3d400020,0x223},
 	{0x3d400024,0x3a980},
-	{0x3d400064,0x5b00d2},
+	{0x3d400064,0x5b0087},
 	{0x3d4000d0,0xc00305ba},
 	{0x3d4000d4,0x940000},
 	{0x3d4000dc,0xd4002d},
@@ -37,7 +37,7 @@ static struct dram_cfg_param ddr_ddrc_cfg[] = {
 	{0x3d40011c,0x402},
 	{0x3d400130,0x20600},
 	{0x3d400134,0xc100002},
-	{0x3d400138,0xd8},
+	{0x3d400138,0x8d},
 	{0x3d400144,0x96004b},
 	{0x3d400180,0x2ee0017},
 	{0x3d400184,0x2605b8e},
@@ -58,7 +58,7 @@ static struct dram_cfg_param ddr_ddrc_cfg[] = {
 	{0x3d400210,0x1f1f},
 	{0x3d400204,0x80808},
 	{0x3d400214,0x7070707},
-	{0x3d400218,0x7070707},
+	{0x3d400218,0xf070707},
 	{0x3d40021c,0xf0f},
 	{0x3d400250,0x29001701},
 	{0x3d400254,0x2c},
@@ -74,7 +74,7 @@ static struct dram_cfg_param ddr_ddrc_cfg[] = {
 	{0x3d402020,0x21},
 	{0x3d402024,0x7d00},
 	{0x3d402050,0x20d040},
-	{0x3d402064,0xc001c},
+	{0x3d402064,0xc0012},
 	{0x3d4020dc,0x840000},
 	{0x3d4020e0,0x310000},
 	{0x3d4020e8,0x66004d},
@@ -89,7 +89,7 @@ static struct dram_cfg_param ddr_ddrc_cfg[] = {
 	{0x3d40211c,0x302},
 	{0x3d402130,0x20300},
 	{0x3d402134,0xa100002},
-	{0x3d402138,0x1d},
+	{0x3d402138,0x13},
 	{0x3d402144,0x14000a},
 	{0x3d402180,0x640004},
 	{0x3d402190,0x3818200},
@@ -99,7 +99,7 @@ static struct dram_cfg_param ddr_ddrc_cfg[] = {
 	{0x3d403020,0x21},
 	{0x3d403024,0x1f40},
 	{0x3d403050,0x20d040},
-	{0x3d403064,0x30007},
+	{0x3d403064,0x30005},
 	{0x3d4030dc,0x840000},
 	{0x3d4030e0,0x310000},
 	{0x3d4030e8,0x66004d},
@@ -114,7 +114,7 @@ static struct dram_cfg_param ddr_ddrc_cfg[] = {
 	{0x3d40311c,0x302},
 	{0x3d403130,0x20300},
 	{0x3d403134,0xa100002},
-	{0x3d403138,0x8},
+	{0x3d403138,0x5},
 	{0x3d403144,0x50003},
 	{0x3d403180,0x190004},
 	{0x3d403190,0x3818200},
@@ -1115,7 +1115,7 @@ static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
 };
 
 /* ddr timing config params */
-struct dram_timing_info ucm_dram_timing_01080010 = {
+struct dram_timing_info ucm_dram_timing_1a000008 = {
 	.ddrc_cfg = ddr_ddrc_cfg,
 	.ddrc_cfg_num = ARRAY_SIZE(ddr_ddrc_cfg),
 	.ddrphy_cfg = ddr_ddrphy_cfg,
@@ -1124,5 +1124,5 @@ struct dram_timing_info ucm_dram_timing_01080010 = {
 	.fsp_msg_num = ARRAY_SIZE(ddr_dram_fsp_msg),
 	.ddrphy_pie = ddr_phy_pie,
 	.ddrphy_pie_num = ARRAY_SIZE(ddr_phy_pie),
-	.fsp_table = {3000,400, 100,},
+	.fsp_table = {3000,400,100,},
 };

@@ -1,6 +1,6 @@
 obj-y += ddr.o
-obj-y += lpddr4_timing_13-2.o
-obj-y += lpddr4_timing_1b.o
+obj-y += lpddr4_timing_1a.o
+obj-y += lpddr4_timing_01-2.o
 obj-y += lpddr4_timing_ff.o
 obj-y += lpddr4_timing_01.o
 ifndef CONFIG_TARGET_MCM_IMX8M_MINI
