@@ -72,7 +72,7 @@ struct lpddr4_desc {
 
 #define DEFAULT (('D' << 24) + ('E' << 16 ) + ( 'F' << 8 ) + 'A')
 static const struct lpddr4_desc lpddr4_array[] = {
-	{ .name = "Etron",	.id = 0xff070010, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_ff070010},
+	{ .name = "Etron",	.id = 0xff070018, .subind = 0xff, .size = 4096, .count = 1, .timing = &dram_timing_ff070018},
 #if 0
 	{ .name = "Etron",	.id = 0x1a000008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_1a000008},
 	{ .name = "ISSI",	.id = 0x13000210, .subind = 0xff, .size = 4096, .count = 1, .timing = &ucm_dram_timing_13000210}, // TBD -- fake assignement!

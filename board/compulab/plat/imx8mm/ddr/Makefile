@@ -1,5 +1,5 @@
 obj-y += ddr.o
-obj-y += lpddr4_timing_ff070010.o
+obj-y += lpddr4_timing_ff070018.o
 obj-y += lpddr4_timing_01-2.o
 obj-y += lpddr4_timing_ff.o
 obj-y += lpddr4_timing_01.o
