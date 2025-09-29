@@ -16,6 +16,7 @@ extern struct dram_timing_info ucm_dram_timing_1b000008;
 extern struct dram_timing_info ucm_dram_timing_13000210;
 extern struct dram_timing_info ucm_dram_timing_01080010;
 extern struct dram_timing_info ucm_dram_timing_1a000008;
+extern struct dram_timing_info ucm_dram_timing_ff070010;
 void spl_dram_init(void);
 
 #define TCM_DATA_CFG 0x7e0000
