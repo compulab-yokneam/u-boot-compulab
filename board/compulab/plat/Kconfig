@@ -72,6 +72,12 @@ config SPL_REPORT_FAKE_MEMSIZE
 	  SPL passes to the U-Boot a value from EEPROM instead of a real memory
 	  size. For debug purposes ONLY!!!
 
+config LPDDR4_TIMINGS_BIN_SECTOR
+	int "Where LPDDR timing tables are placed in boot loader binary"
+	default 3072
+	help
+	  Timing tables are written after the u-boot binary. SPL looks for them 
+	  there during DDR detection and training.
 endmenu
 
 menu  "Compulab i.MX8MP platform features"

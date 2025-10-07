@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 NXP
+ * Copyright 2021 Compulab Ltd.
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
@@ -7,17 +7,6 @@
 #ifndef __DDR_H__
 #define __DDR_H__
 
-extern struct dram_timing_info ucm_dram_timing_ff020008;
-extern struct dram_timing_info ucm_dram_timing_ff000110;
-extern struct dram_timing_info ucm_dram_timing_01061010;
-extern struct dram_timing_info ucm_dram_timing_01050008;
-extern struct dram_timing_info ucm_dram_timing_05000010;
-extern struct dram_timing_info ucm_dram_timing_1b000008;
-extern struct dram_timing_info ucm_dram_timing_13000210;
-extern struct dram_timing_info ucm_dram_timing_01080010;
-extern struct dram_timing_info ucm_dram_timing_1a000008;
-extern struct dram_timing_info ucm_dram_timing_ff070010;
-extern struct dram_timing_info dram_timing_ff070018;
 void spl_dram_init(void);
 
 #define TCM_DATA_CFG 0x7e0000

@@ -1,8 +1,11 @@
 obj-y += ddr.o
-obj-y += lpddr4_timing_ff070018.o
-obj-y += lpddr4_timing_01-2.o
-obj-y += lpddr4_timing_ff.o
-obj-y += lpddr4_timing_01.o
-ifndef CONFIG_TARGET_MCM_IMX8M_MINI
-obj-y += lpddr4_timing_05.o
-endif
+
+lib-m += lpddr4_timing_term.bin
+lib-m += lpddr4_timing_01061010.bin
+
+lpddr4_timing_%.bin: lpddr4_timing_%.o
+	${OBJCOPY} -O binary $< $@.tmp
+	@dd if=$@.tmp of=$@ bs=512 conv=sync
+
+clean:
+	rm *.o *.bin *.tmp
