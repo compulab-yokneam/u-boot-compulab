@@ -59,11 +59,31 @@ __weak void board_save_phyaddr(int phy_addr) {
 	return;
 }
 
+__weak int fdt_set_soc_info(void *blob) {
+	char tmp[128];
+	u32 cpurev = get_cpu_rev();
+	u32 max_freq = get_cpu_speed_grade_hz() / 1000000;
+
+	int nodeoff = fdt_add_subnode(blob, 0, "soc.info");
+	if(0 > nodeoff)
+		return nodeoff;
+
+	fdt_setprop(blob, nodeoff, "imx.type", tmp,
+		    sprintf(tmp, "i.MX%s", get_imx_type((cpurev & 0x1FF000) >> 12)));
+	fdt_setprop(blob, nodeoff, "imx.rev", tmp,
+		    sprintf(tmp, "%d.%d", (cpurev & 0x000F0) >> 4, (cpurev & 0x0000F) >> 0));
+	fdt_setprop(blob, nodeoff, "imx.freq", tmp,
+		    sprintf(tmp, "%d",  max_freq));
+
+	return 0;
+}
+
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
 
 	fdt_set_env_addr(blob);
 	fdt_set_sn(blob);
+	fdt_set_soc_info(blob);
 	fdt_board_vendor_setup(blob);
 	return 0;
 }
