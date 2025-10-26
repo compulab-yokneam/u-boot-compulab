@@ -36,7 +36,7 @@ cd u-boot-compulab
 
 ## Create U-boot binary
 
-* Apply the machine Config
+* Apply the default machine config
 ```
 make O=${BUILD} ${MACHINE}_defconfig
 ```
@@ -54,4 +54,26 @@ make O=${BUILD} u-boot-initial-env
 * Results
 ```
 ls -al ${BUILD}/{flash.bin,u-boot-initial-env}
+```
+
+## Extra
+
+### Configuration fragments compatibility matrix:
+
+|_|_|d2d4|d1d8|etron|lab_temp|spl_size|
+|---|---|---|---|---|---|---|
+|Dram D2/D4 support|d2d4|.|n/a|v|v|v|
+|Dram D1/D8 support|d1d8|n/a|.|v|v|v|
+|Dram Etron support|etron|v|v|.|v|v|
+|Extended temp range|lab_temp|v|v|v|.|v|
+|Extra spl size|spl_size|v|v|v|v|.|
+
+### Examples for applying configuration fragments:
+* d2d4 with all options:
+```
+make O=${BUILD} ${MACHINE}_defconfig d2d4.config etron.config lab_temp.config spl_size.config
+```
+* d1d8 with all options:
+```
+make O=${BUILD} ${MACHINE}_defconfig d1d8.config etron.config lab_temp.config spl_size.config
 ```
