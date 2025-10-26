@@ -12,3 +12,10 @@ config LAB_TEMPERATURE_RANGE
 	help
 		Never say yes, unless you are Compulab emploee
 
+config LAB_TEMPERATURE_RANGE_WARNING
+	bool "Extend temperature range warning"
+	default n
+	depends on LAB_TEMPERATURE_RANGE
+	help
+		Never say yes, unless you are Compulab emploee
+
