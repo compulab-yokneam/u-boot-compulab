@@ -78,6 +78,7 @@ static void setup_fec(void)
 	setbits_le32(&gpr->gpr[1], BIT(22));
 }
 
+int set_clk_eqos(enum enet_freq type);
 static int setup_eqos(void)
 {
 	struct iomuxc_gpr_base_regs *gpr =

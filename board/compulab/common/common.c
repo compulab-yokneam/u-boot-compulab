@@ -14,6 +14,7 @@
 
 #include "common.h"
 #include "eeprom.h"
+#include <linux/delay.h>
 
 void cl_print_pcb_info(void)
 {
