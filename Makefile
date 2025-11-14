@@ -1127,7 +1127,7 @@ ifeq ($(CONFIG_BINMAN),y)
 endif
 	@touch $@
 
-all: .binman_stamp
+all: .binman_stamp mk_firmware
 
 ifeq ($(CONFIG_DEPRECATED),y)
 	$(warning "You have deprecated configuration options enabled in your .config! Please check your configuration.")
@@ -1475,6 +1475,9 @@ else
 SPL_PAYLOAD := u-boot.bin
 endif
 
+export ATF_LOAD_ADDR=$(CONFIG_ATF_LOAD_ADDR)
+export TEE_LOAD_ADDR=$(CONFIG_TEE_LOAD_ADDR)
+
 SPL_IMAGE := $(CONFIG_SPL_IMAGE:"%"=%)
 
 OBJCOPYFLAGS_u-boot-with-spl.bin = -I binary -O binary \
@@ -1511,6 +1514,17 @@ tpl/u-boot-with-tpl.bin: tpl/u-boot-tpl.bin u-boot.bin FORCE
 SPL: spl/u-boot-spl.bin FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 
+ifeq ($(CONFIG_BINMAN),y)
+mk_firmware:
+	$(Q)$(MAKE) $(build)=board/compulab/plat/imx8mp/firmware all
+
+rm_firmware:
+	$(Q)$(MAKE) $(build)=board/compulab/plat/imx8mp/firmware clean
+else
+mk_firmware:
+	@echo mk_firmware
+endif
+
 #ifeq ($(CONFIG_ARCH_IMX8M)$(CONFIG_ARCH_IMX8), y)
 ifeq ($(CONFIG_SPL_LOAD_IMX_CONTAINER), y)
 u-boot.cnt: u-boot.bin FORCE
@@ -1527,6 +1541,19 @@ flash.bin: spl/u-boot-spl.bin u-boot.itb FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 endif
 endif
+
+UBOOT_ENV_OFFSET=$(shell echo $$(( $(CONFIG_ENV_OFFSET) >> 9)))
+
+# Create an emmc flash.bin-with-env
+flash.bin-with-env: flash.bin u-boot-initial-env FORCE
+	@dd if=/dev/zero  of=$@ bs=512 count=8192 2>/dev/null
+	@dd if=flash.bin  of=$@ bs=512 seek=0 conv=notrunc 2>/dev/null
+	@cat u-boot-initial-env | mkenvimage -s $(CONFIG_ENV_SIZE) | dd of=$@ bs=512 seek=$(UBOOT_ENV_OFFSET) conv=notrunc 2>/dev/null
+
+flash.bin-with-custom-env: flash.bin u-boot-custom-env FORCE
+	@dd if=/dev/zero  of=$@ bs=512 count=8192 2>/dev/null
+	@dd if=flash.bin  of=$@ bs=512 seek=0 conv=notrunc 2>/dev/null
+	@cat u-boot-custom-env | mkenvimage -s $(CONFIG_ENV_SIZE) | dd of=$@ bs=512 seek=$(UBOOT_ENV_OFFSET) conv=notrunc 2>/dev/null
 #endif
 
 u-boot.uim: u-boot.bin FORCE
