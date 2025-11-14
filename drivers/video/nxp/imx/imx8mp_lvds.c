@@ -19,6 +19,7 @@
 #include <power-domain.h>
 #include <regmap.h>
 #include <syscon.h>
+#include <panel.h>
 
 #define DRIVER_NAME "imx8mp-ldb"
 
