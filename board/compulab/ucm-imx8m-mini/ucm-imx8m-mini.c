@@ -37,12 +37,15 @@ static void ucm_imx8_mini_select_dtb(void)
 	const char *fdt_src;
 	const char *env_fdt_file = env_get(ENV_FDT_FILE);
 	char buf[PRODUCT_OPTION_SIZE * PRODUCT_OPTION_NUM + 1];
+	u32 board_revision = 0;
 // Variable fdt_file unset or empty -- choose FDT, basing on the device options
 	if (NULL == env_fdt_file || 0 == env_fdt_file[0]) {
 		env_fdt_file = CONFIG_DEFAULT_FDT_WB5; //Valid DTB for all PCB revisions, but 1.4
+		board_revision = cl_eeprom_get_board_rev();
+		board_revision &= 0xff;
 		if (cl_eeprom_read_som_options(buf)) {
-			buf[-1] = 0; // Precaution, sinse we dont have strnstr function
-			if (strstr(buf, TYPE_2L_OPT))
+			buf[-1] = 0; // Precaution, since we dont have strnstr function
+			if (strstr(buf, TYPE_2L_OPT) || board_revision >= 0x8c )
 				env_fdt_file = CONFIG_DEFAULT_FDT_2EL;
 
 			fdt_src = "eeprom"; // board revision determines FDT name
