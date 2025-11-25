@@ -69,6 +69,10 @@
 	};
 };
 
+&pinctrl_tpm_reset {
+	u-boot,dm-spl;
+};
+
 &pinctrl_usb_hub_rst {
 	u-boot,dm-spl;
 };
