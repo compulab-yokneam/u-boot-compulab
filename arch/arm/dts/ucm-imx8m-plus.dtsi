@@ -40,6 +40,9 @@
 	snps,force_thresh_dma_mode;
 	snps,mtl-tx-config = <&mtl_tx_setup>;
 	snps,mtl-rx-config = <&mtl_rx_setup>;
+	reset-gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
+	reset-assert-us = <15000>;
+	reset-deassert-us = <100000>;
 	status = "okay";
 
 	mdio {
@@ -51,9 +54,6 @@
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <0>;
 			eee-broken-1000t;
-			reset-gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
-			reset-assert-us = <15000>;
-			reset-deassert-us = <100000>;
 			realtek,clkout-disable;
 		};
 	};
