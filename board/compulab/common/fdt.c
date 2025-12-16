@@ -77,7 +77,10 @@ int fdt_set_env_addr(void *blob)
 				break;
 		}
 	}
+	char const * src = default_environment;
 	char * dst = env_to_export;
+	char * const brk = dst + CONFIG_ENV_SIZE;
+	int element_len = 0;
 #ifdef CONFIG_EXPORT_ENV_DEF_VIA_DT
 	while (0 != src[0]) { // Environment is terminated with double zero
 		element_len = strnlen(src, CONFIG_ENV_SIZE);
