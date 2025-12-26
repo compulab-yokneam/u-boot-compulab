@@ -123,18 +123,16 @@ static const struct lpddr4_desc lpddr4_array[] = {
 #endif
 	},
 #endif
-#if CONFIG_DRAM_KINGSTON
-	{ .name = "Kingston_4G",	.id = 0xff070010, .subind = 0x4, .size = 4096, .count = 1,
+	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x4, .size = 4096, .count = 1,
 #ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_ff070010_kingston_4G
+		.timing = &ucm_dram_timing_01061010_4G
 #endif
 	},
-	{ .name = "Kingston_2G",	.id = 0xff070010, .subind = 0x2, .size = 2048, .count = 1,
+	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_ff070010_2G
+		.timing = &ucm_dram_timing_01061010_2G
 #endif
 	},
-#endif
 #if CONFIG_DRAM_ETRON
 	{ .name = "Etron",	.id = 0xff070010, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
