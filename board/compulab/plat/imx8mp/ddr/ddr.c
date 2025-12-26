@@ -109,7 +109,7 @@ static int _spl_dram_init(void)
 		}
 
 		if (lpddr4_tcm_desc->index < ARRAY_SIZE(lpddr4_array)) {
-			printf("DDRINFO: Cfg attempt: [ %d/%lu ]\n", lpddr4_tcm_desc->index+1, ARRAY_SIZE(lpddr4_array));
+			printf("DDRINFO: Cfg attempt: [ %d/%lu ; ( %s / 0x%x) ]\n", lpddr4_tcm_desc->index+1, ARRAY_SIZE(lpddr4_array), lpddr4_array[lpddr4_tcm_desc->index].name ,  lpddr4_array[lpddr4_tcm_desc->index].id );
 			i = lpddr4_tcm_desc->index;
 			lpddr4_tcm_desc->index += 1;
 		} else {

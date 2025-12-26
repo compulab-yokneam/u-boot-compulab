@@ -4,6 +4,8 @@ obj-$(CONFIG_SPL_BUILD) += lpddr4_timing_01061010_4G.o
 obj-$(CONFIG_SPL_BUILD) += lpddr4_timing_01061010_2G.o
 obj-$(CONFIG_SPL_BUILD) += lpddr4_timing_13000210_2G.o
 obj-$(CONFIG_SPL_BUILD) += lpddr4_timing_ff070010_2G.o
+obj-$(CONFIG_SPL_BUILD) += lpddr4_timing_ff070010_kingston_2G.o
+obj-$(CONFIG_SPL_BUILD) += lpddr4_timing_ff070010_kingston_4G.o
 obj-$(CONFIG_SPL_BUILD) += lpddr4_timing_ff070018_4G.o
 else
 obj-$(CONFIG_SPL_BUILD) += lpddr4_timing_ff060018.o
