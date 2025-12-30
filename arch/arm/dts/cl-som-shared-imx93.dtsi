@@ -15,6 +15,20 @@
 		ethernet0 = &eqos;
 	};
 
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		linux,cma {
+			compatible = "shared-dma-pool";
+			reusable;
+			alloc-ranges = <0 0x80000000 0 0x40000000>;
+			size = <0 0x8000000>;
+			linux,cma-default;
+		};
+	};
+
 	reg_usdhc2_vmmc: regulator-usdhc2 {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
@@ -37,6 +51,36 @@
 		regulator-max-microvolt = <1800000>;
 	};
 
+};
+
+&mu1 {
+	status = "okay";
+};
+
+&mu2 {
+	status = "okay";
+};
+
+
+&eqos {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_eqos>;
+	phy-mode = "rgmii-id";
+	phy-handle = <&ethphy1>;
+	status = "okay";
+
+	mdio {
+		compatible = "snps,dwmac-mdio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		clock-frequency = <5000000>;
+
+		ethphy1: ethernet-phy-eqos {
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <4>;
+			eee-broken-1000t;
+		};
+	};
 };
 
 &lpi2c1 {
@@ -227,27 +271,6 @@
 	status = "disabled";
 };
 
-&eqos {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_eqos>;
-	phy-mode = "rgmii-id";
-	phy-handle = <&ethphy1>;
-	status = "okay";
-
-	mdio {
-		compatible = "snps,dwmac-mdio";
-		#address-cells = <1>;
-		#size-cells = <0>;
-		clock-frequency = <5000000>;
-
-		ethphy1: ethernet-phy-eqos {
-			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <4>;
-			eee-broken-1000t;
-		};
-	};
-};
-
 &flexcan2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan2>;
@@ -268,6 +291,10 @@
 		spi-tx-bus-width = <4>;
 		spi-rx-bus-width = <4>;
 	};
+};
+
+&wdog3 {
+	status = "okay";
 };
 
 &iomuxc {
@@ -393,10 +420,6 @@
 			MX93_PAD_GPIO_IO24__GPIO2_IO24			0x31e
 		>;
 	};
-};
-
-&wdog3 {
-	status = "okay";
 };
 
 &cpu_alert {

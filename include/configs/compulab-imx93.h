@@ -170,6 +170,12 @@
 		"for src in ${bootlist}; do " \
 			"run ${src}; " \
 			"env exist boot_opt && env exists bootargs && setenv bootargs ${bootargs} ${boot_opt}; " \
+           "if test ${sec_boot} = yes; then " \
+               "if run loadcntr; then " \
+                   "run mmcboot; " \
+               "else run netboot; " \
+               "fi; " \
+           "fi; " \
 			"if run ulbootscript; then " \
 				"run bootscript; " \
 			"else " \
