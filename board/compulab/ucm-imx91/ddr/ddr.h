@@ -11,7 +11,7 @@
 #define REG_DDR_SDRAM_MPR4      	      (DDR_CTL_BASE + 0x28C)
 
 #ifdef CONFIG_SPL_BUILD
-#ifdef CONFIG_UCM_IMX93_LPDDR4X
+#ifdef CONFIG_UCM_IMX91_LPDDR4X
 extern struct dram_timing_info dram_timing;
 extern struct dram_timing_info dram_timing_for_samsung_2G;
 extern struct dram_timing_info lp4x_timing;
