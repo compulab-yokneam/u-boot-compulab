@@ -184,12 +184,12 @@ static inline void share_ddr_info_on_ocram(void) {
 static bool initialize_ddr(const struct lpddr4_desc* ddr_desc) {
 	if (ddr_init(ddr_desc->timing))
 	{
-		printf("DDRINFO: failed applying cfg: %s %dMB @ %d MHz\n", ddr_desc->name, ddr_desc->size, ddr_desc->timing->fsp_table[0]);
+		printf("DDRINFO: failed applying cfg: %s %dMB @ %d MHz (id %x, subind %x)\n", ddr_desc->name, ddr_desc->size, ddr_desc->timing->fsp_table[0], ddr_desc->id, ddr_desc->subind);
 		return false;
 	}
 	else
 	{
-		printf("DDRINFO: applied cfg: %s %dMB @ %d MHz\n", ddr_desc->name, ddr_desc->size, ddr_desc->timing->fsp_table[0]);
+		printf("DDRINFO: applied cfg: %s %dMB @ %d MHz (id %x, subind %x)\n", ddr_desc->name, ddr_desc->size, ddr_desc->timing->fsp_table[0], ddr_desc->id, ddr_desc->subind);
 		return true;
 	}
 }
