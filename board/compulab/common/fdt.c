@@ -8,6 +8,7 @@
 #include <fdt_support.h>
 #include "mmc.h"
 #include "eeprom.h"
+#include <env_internal.h>
 
 void fdt_set_sn(void *blob)
 {
@@ -54,6 +55,8 @@ int fdt_set_env_addr(void *blob)
 	int nodeoff = fdt_add_subnode(blob, 0, "fw_env");
 	int env_dev = get_env_dev();
 	int env_part = get_env_part();
+	char env_to_export[CONFIG_ENV_SIZE];
+
 	if(0 > nodeoff)
 		return nodeoff;
 
@@ -65,11 +68,27 @@ int fdt_set_env_addr(void *blob)
 			case 2:
 			case 1:
 				fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%iboot%i", env_dev, env_part - 1));
+				fdt_setprop(blob, nodeoff, "fw_env.config", tmp, sprintf(tmp, "/dev/mmcblk%iboot%i\t0x%x\t0x%x\n", env_dev, env_part - 1, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE));
 				break;
 			default:
 				fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%i", env_dev));
+				fdt_setprop(blob, nodeoff, "fw_env.config", tmp, sprintf(tmp, "/dev/mmcblk%i\t0x%x\t0x%x\n", env_dev, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE));
 				break;
 		}
 	}
+	char const * src = default_environment;
+	char * dst = env_to_export;
+	char * const brk = dst + CONFIG_ENV_SIZE;
+	int element_len = 0;
+
+	while (0 != src[0]) { // Environment block is terminated with double zero
+		element_len = strnlen(src, CONFIG_ENV_SIZE);
+		strncpy (dst, src, brk - dst);
+		dst[element_len] = '\n';
+		dst += element_len + 1;
+		src += element_len + 1;
+	}
+	dst = 0;
+	fdt_setprop(blob, nodeoff, "default_env", env_to_export, strlen(env_to_export));
 	return 0;
 }
