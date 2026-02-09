@@ -1,11 +1,17 @@
-obj-y += ddr.o
+obj-$(CONFIG_SPL_BUILD) += ddr.o
+#obj-y += ddr.o
 
-lib-m += lpddr4_timing_term.bin
-lib-m += lpddr4_timing_01061010.bin
+TIMING_SRC = $(notdir $(wildcard $(srctree)/$(src)/lpddr4_timing_*.c))
+TIMING_BIN = $(sort $(TIMING_SRC:.c=.bin))
 
-lpddr4_timing_%.bin: lpddr4_timing_%.o
-	${OBJCOPY} -O binary $< $@.tmp
-	@dd if=$@.tmp of=$@ bs=512 conv=sync
+lib-m += lpddr4_block.bin
+
+$(obj)/lpddr4_timing_%.bin: $(obj)/lpddr4_timing_%.o
+	${OBJCOPY} -O binary $< $@
+#	@dd if=$@.tmp of=$@ bs=512 conv=sync
+
+$(obj)/lpddr4_block.bin: $(addprefix $(obj)/,$(TIMING_BIN))
+	cat $^ > $@
 
 clean:
 	rm *.o *.bin *.tmp

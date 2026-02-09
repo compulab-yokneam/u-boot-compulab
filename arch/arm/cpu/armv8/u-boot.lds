@@ -174,4 +174,10 @@ SECTIONS
 #ifdef CONFIG_LINUX_KERNEL_IMAGE_HEADER
 #include "linux-kernel-image-header-vars.h"
 #endif
+	//. = 0x000f2000;
+	//. = ALIGN(8);
+	//.lpddrtiming : {
+	//	KEEP(*(.lpddrtiming))
+	//}
+
 }

@@ -8,11 +8,11 @@
  */
 
 #include <linux/kernel.h>
-#include <asm/arch/imx8m_ddr.h>
 #include "lpddr_timing_block.h"
 
-static struct lpddr4_timing_block timing_block
-__attribute__((section (".data"), used)) = {
+__attribute__ ((section (".lpddrtiming"),used, aligned(8)))
+const struct timing_block timing_block_01061010 = {
+	.magic = LPDDR_BLOCK_MAGIC,
 	.name = "Samsung",
 	.size = 2048,
 	.id = 0x01061010,
@@ -1812,28 +1812,29 @@ __attribute__((section (".data"), used)) = {
 			/* P0 3000mts 1D */
 			.drate = 3000,
 			.fw_type = FW_1D_IMAGE,
-			.fsp_cfg_num = ARRAY_SIZE(timing_block.ddr_fsp0_cfg),
+			//.fsp_cfg_num = ARRAY_SIZE(timing_block.ddr_fsp0_cfg),
 		},
 		{
 			/* P1 400mts 1D */
 			.drate = 400,
 			.fw_type = FW_1D_IMAGE,
-			.fsp_cfg_num = ARRAY_SIZE(timing_block.ddr_fsp1_cfg),
+			//.fsp_cfg_num = ARRAY_SIZE(timing_block.ddr_fsp1_cfg),
 		},
 		{
 			/* P2 100mts 1D */
 			.drate = 100,
 			.fw_type = FW_1D_IMAGE,
-			.fsp_cfg_num = ARRAY_SIZE(timing_block.ddr_fsp2_cfg),
+			//.fsp_cfg_num = ARRAY_SIZE(timing_block.ddr_fsp2_cfg),
 		},
 		{
 			/* P0 3000mts 2D */
 			.drate = 3000,
 			.fw_type = FW_2D_IMAGE,
-			.fsp_cfg_num = ARRAY_SIZE(timing_block.ddr_fsp0_2d_cfg),
+			//.fsp_cfg_num = ARRAY_SIZE(timing_block.ddr_fsp0_2d_cfg),
 		},
 	},
 	/* ddr timing config params */
+#if 0
 	.dram_timing = {
 		.ddrc_cfg_num = ARRAY_SIZE(timing_block.ddr_ddrc_cfg),
 		.ddrphy_cfg_num = ARRAY_SIZE(timing_block.ddr_ddrphy_cfg),
@@ -1842,4 +1843,7 @@ __attribute__((section (".data"), used)) = {
 		.ddrphy_pie_num = ARRAY_SIZE(timing_block.ddr_phy_pie),
 		.fsp_table = {3000,400,100,},
 	},
+#endif
 };
+
+EXPORT(timing_block_01061010);

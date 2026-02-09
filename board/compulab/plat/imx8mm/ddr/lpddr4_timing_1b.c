@@ -14,6 +14,8 @@
 #include <linux/kernel.h>
 #include <asm/arch/ddr.h>
 
+// Samsung 1G
+
 static struct dram_cfg_param ddr_ddrc_cfg[] = {
 	/** Initialize DDRC registers **/
 	{0x3d400304,0x1},

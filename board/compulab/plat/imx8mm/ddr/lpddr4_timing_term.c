@@ -11,7 +11,7 @@
 #include <asm/arch/imx8m_ddr.h>
 #include "lpddr_timing_block.h"
 // Termination block
-static struct lpddr4_timing_block timing_block
+static struct timing_block timing_block_term
 __attribute__((section (".data"), used)) = {
 	.name = "TheLast",
 	.id = 0xffffffff,

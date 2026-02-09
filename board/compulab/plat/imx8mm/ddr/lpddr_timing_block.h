@@ -5,9 +5,12 @@
  */
 
 #ifndef __LPDDR_TIMING_BLOCK_H__
-#define __LPDDR_TIMING_BLOCK_H_
+#define __LPDDR_TIMING_BLOCK_H__
+#include <asm/arch-imx8m/ddr.h>
 
-struct lpddr4_timing_block {
+#define LPDDR_BLOCK_MAGIC "LPDDRBLOCKMAGIC"
+struct timing_block {
+	char magic[sizeof(LPDDR_BLOCK_MAGIC)];
 	/* Data, read from MR5-8, DRAM chip identifier, assigned by a vendor */
 	unsigned long id;
 	/* An optional field to distiguish DRAM chips that

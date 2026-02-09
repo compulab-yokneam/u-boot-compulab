@@ -76,6 +76,9 @@ SECTIONS
 	.interp : { *(.interp*) }
 	.gnu : { *(.gnu*) }
 	.ARM.exidx : { *(.ARM.exidx*) }
+	.kkkdata : {
+		KEEP(*(.kkkdata))
+	}
 }
 
 #if defined(IMAGE_MAX_SIZE)

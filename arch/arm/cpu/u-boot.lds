@@ -141,6 +141,12 @@ SECTIONS
 	. = ALIGN(4);
 	.rodata : { *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*))) }
 
+	//. = 0x000bf000;
+	//. = ALIGN(4);
+	//.kkkdata : {
+	//	KEEP(*(.kkkdata))
+	//}
+
 	. = ALIGN(4);
 	.data : {
 		*(.data*)

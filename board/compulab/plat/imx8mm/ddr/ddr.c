@@ -26,7 +26,7 @@ u8 cl_eeprom_get_subind(void);
 u8 cl_eeprom_set_subind(u8 subind);
 
 /* Placeholder to be filled with a real timing table read from MMC */
-struct lpddr4_timing_block timing_block __attribute__((section (".data")));
+struct timing_block timing_block __attribute__((section (".data")));
 
 int spl_mmc_find_device(struct mmc **mmcp, u32 boot_device);
 int mmc_init(struct mmc *mmc);
@@ -143,7 +143,7 @@ static void spl_tcm_fini(struct lpddr4_tcm_desc *lpddr4_tcm_desc) {
     lpddr4_tcm_desc->index = 0;
 }
 
-#define UBOOT_START_SECTOR 33
+#define UBOOT_START_SECTOR 66
 //#define UBOOT_START_SECTOR (CONFIG_IMX_BOOT_SEEK * 2) /*Convert kB to secs*/
 static void read_timing_from_mmc(int idx)
 {
