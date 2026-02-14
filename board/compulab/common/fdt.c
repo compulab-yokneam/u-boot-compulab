@@ -81,7 +81,6 @@ int fdt_set_env_addr(void *blob)
 	char * dst = env_to_export;
 	char * const brk = dst + CONFIG_ENV_SIZE;
 	int element_len = 0;
-#ifdef CONFIG_EXPORT_ENV_DEF_VIA_DT
 	while (0 != src[0]) { // Environment is terminated with double zero
 		element_len = strnlen(src, CONFIG_ENV_SIZE);
 		strncpy (dst, src, brk - dst);
@@ -91,7 +90,6 @@ int fdt_set_env_addr(void *blob)
 	}
 	dst = 0;
 	fdt_setprop(blob, nodeoff, "default_env", env_to_export, strlen(env_to_export));
-#endif
 #endif
 	return 0;
 }
