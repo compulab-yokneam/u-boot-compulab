@@ -1,61 +1,56 @@
 menu  "Compulab i.MX8MP platform features"
 	depends on TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_IOT_GATE_IMX8PLUS || TARGET_MCM_IMX8M_PLUS || TARGET_IOTDIN_IMX8P
 
-config DRAM_D2D4
-	bool "Enable D2D4 or D1D8 dram support"
-	default y
-	help
-	  If 'Y' then support for D2 and D4 configuration is enabled
-	  else support for D1 and D8 configuration is enabled
+choice
+	prompt  "CompuLab i.MX8MP dram options"
+	default DRAM_D2
 
-config DRAM_ISSI
-	bool "Enable ISSI dram vendor support"
-	default n
+config DRAM_D2
+	bool "Enable D2 dram support"
 	help
-	  If 'Y' then support ISSI configuration is enabled
+	  If 'Y' then support for D2 is enabled
 
-config DRAM_ETRON
-	bool "Enable ETRON dram vendor support"
-	default n
+config DRAM_D4
+	bool "Enable D4 dram support"
 	help
-	  If 'Y' then support ETRON configuration is enabled
+	  If 'Y' then support for D1 is enabled
 
-config DRAM_KINGSTON
-	bool "Enable KINGSTON dram vendor support"
-	default n
+config DRAM_D1D8
+	bool "Enable D1D8"
 	help
-	  If 'Y' then support KINGSTON configuration is enabled
+	If 'Y' then support for D1 and D8 configuration is enabled
+
+endchoice
 
 menu  "Compulab IOT-GATE-IMX8PLUS features"
 	depends on TARGET_IOT_GATE_IMX8PLUS
 
 config ADDON_SMART_SETUP
-        bool "CompuLab i.MX8M-Plus Add-on Board Smart Setup"
-        default y
-        help
-          CompuLab i.MX8M-Plus Add-on Board Smart Setup feature allows detecting an extension board
-          and enabling it in Linux kernel by choosing a proper device tree
+	bool "CompuLab i.MX8M-Plus Add-on Board Smart Setup"
+	default y
+	help
+	  CompuLab i.MX8M-Plus Add-on Board Smart Setup feature allows detecting an extension board
+	  and enabling it in Linux kernel by choosing a proper device tree
 
 choice
-        prompt "Select Add-on Board Smart Setup default strategy"
-
-        depends on ADDON_SMART_SETUP
-        help
-          Choose a default strategy for CompuLab i.MX8M-Plus Add-on Board Smart Setup: either Enabled or Disabled.
-          The default strategy can be overriden by "addon_smart_setup" environment variable
+	prompt "Select Add-on Board Smart Setup default strategy"
+	depends on ADDON_SMART_SETUP
+	help
+	  Choose a default strategy for CompuLab i.MX8M-Plus Add-on Board Smart Setup: either Enabled or Disabled.
+	  The default strategy can be overriden by "addon_smart_setup" environment variable
 
 config ADDON_SMART_SETUP_DEFAULT_OFF
-        bool "Disabled"
+	bool "Disabled"
 	help
-          Do not enable add-on boards in Linux kernel by default.
-          Can be overriden by setting "addon_smart_setup" environment variable
+	  Do not enable add-on boards in Linux kernel by default.
+	  Can be overriden by setting "addon_smart_setup" environment variable
 	  to the true value (1/Y/y/T/t)
 
 config ADDON_SMART_SETUP_DEFAULT_ON
-        bool "Enabled"
+	bool "Enabled"
 	help
-          Detect an add-on board type and enaible it in Linux kernel by default.
-          Can be overriden by setting "addon_smart_setup" environment variable
+	  Detect an add-on board type and enaible it in Linux kernel by default.
+	  Can be overriden by setting "addon_smart_setup" environment variable
 	  to the false value (neither one of following: 1/Y/y/T/t)
 
 endchoice
