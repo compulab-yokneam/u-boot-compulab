@@ -1,45 +1,72 @@
-if TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_MCM_IMX8M_PLUS || TARGET_IOT_GATE_IMX8PLUS
-
-menu "i.MX8MP CompuLab Common Config"
-
-choice
-	prompt "CompuLab i.MX8 dram config"
+menu  "Compulab i.MX8MP platform features"
+	depends on TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_IOT_GATE_IMX8PLUS || TARGET_MCM_IMX8M_PLUS || TARGET_IOTDIN_IMX8P
 
 config DRAM_D2D4
-	bool "D2,D4 dram support"
-	select SAMSUNG_2G
+	bool "Enable D2D4 or D1D8 dram support"
+	default y
+	help
+	  If 'Y' then support for D2 and D4 configuration is enabled
+	  else support for D1 and D8 configuration is enabled
 
-config SAMSUNG_2G
-	bool "Samsung 2G"
-	depends on DRAM_D2D4
+config DRAM_ISSI
+	bool "Enable ISSI dram vendor support"
+	default n
+	help
+	  If 'Y' then support ISSI configuration is enabled
 
-config SAMSUNG_4G
-	bool "Samsung 4G"
-	depends on DRAM_D2D4
+config DRAM_ETRON
+	bool "Enable ETRON dram vendor support"
+	default n
+	help
+	  If 'Y' then support ETRON configuration is enabled
 
-config MICRON_4G
-	bool "Micron 4G"
-	depends on DRAM_D2D4
+config DRAM_KINGSTON
+	bool "Enable KINGSTON dram vendor support"
+	default n
+	help
+	  If 'Y' then support KINGSTON configuration is enabled
 
-config DRAM_D1D8
-	bool "D1,D8 dram support"
-	select SAMSUNG_1G
+menu  "Compulab IOT-GATE-IMX8PLUS features"
+	depends on TARGET_IOT_GATE_IMX8PLUS
 
-config SAMSUNG_1G
-	bool "Samsung 1G"
-	depends on DRAM_D1D8
+config ADDON_SMART_SETUP
+        bool "CompuLab i.MX8M-Plus Add-on Board Smart Setup"
+        default y
+        help
+          CompuLab i.MX8M-Plus Add-on Board Smart Setup feature allows detecting an extension board
+          and enabling it in Linux kernel by choosing a proper device tree
 
-config MICRON_8G
-	bool "Micron 8G"
-	depends on DRAM_D1D8
+choice
+        prompt "Select Add-on Board Smart Setup default strategy"
+
+        depends on ADDON_SMART_SETUP
+        help
+          Choose a default strategy for CompuLab i.MX8M-Plus Add-on Board Smart Setup: either Enabled or Disabled.
+          The default strategy can be overriden by "addon_smart_setup" environment variable
+
+config ADDON_SMART_SETUP_DEFAULT_OFF
+        bool "Disabled"
+	help
+          Do not enable add-on boards in Linux kernel by default.
+          Can be overriden by setting "addon_smart_setup" environment variable
+	  to the true value (1/Y/y/T/t)
+
+config ADDON_SMART_SETUP_DEFAULT_ON
+        bool "Enabled"
+	help
+          Detect an add-on board type and enaible it in Linux kernel by default.
+          Can be overriden by setting "addon_smart_setup" environment variable
+	  to the false value (neither one of following: 1/Y/y/T/t)
 
 endchoice
-
-config COMPULAB_IMX8MP_HDMI
-	bool "i.MX8MP HDMI support for CompuLab SOM"
-	default y
-	select VIDEO_IMX8MP_HDMI
-
 endmenu
 
-endif
+config ATF_LOAD_ADDR
+	hex
+	default 0x00970000
+
+config TEE_LOAD_ADDR
+	hex
+	default 0x56000000
+
+endmenu
