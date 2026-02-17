@@ -58,22 +58,26 @@ ls -al ${BUILD}/{flash.bin,u-boot-initial-env}
 
 ## Extra
 
-### Configuration fragments compatibility matrix:
+### Available configuration fragments:
 
-|_|_|d2d4|d1d8|etron|lab_temp|spl_size|
-|---|---|---|---|---|---|---|
-|Dram D2/D4 support|d2d4|.|n/a|v|v|v|
-|Dram D1/D8 support|d1d8|n/a|.|v|v|v|
-|Dram Etron support|etron|v|v|.|v|v|
-|Extended temp range|lab_temp|v|v|v|.|v|
-|Extra spl size|spl_size|v|v|v|v|.|
+|conf fragmen file name|description|
+|---|---|
+|d2.config|Dram D2 support
+|d4.config|Dram D4 support|
+|d1d8.config|Dram D1/D8 support|
+|lab_temp.config|Extended temp range|
+|spl_size.config|Extra spl size|
 
 ### Examples for applying configuration fragments:
-* d2d4 with all options:
+* d2 with all options:
 ```
-make O=${BUILD} ${MACHINE}_defconfig d2d4.config etron.config lab_temp.config spl_size.config
+make O=${BUILD} ${MACHINE}_defconfig d2.config lab_temp.config spl_size.config
+```
+* d4 with all options:
+```
+make O=${BUILD} ${MACHINE}_defconfig d4.config lab_temp.config spl_size.config
 ```
 * d1d8 with all options:
 ```
-make O=${BUILD} ${MACHINE}_defconfig d1d8.config etron.config lab_temp.config spl_size.config
+make O=${BUILD} ${MACHINE}_defconfig d1d8.config lab_temp.config spl_size.config
 ```
