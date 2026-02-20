@@ -78,12 +78,27 @@ __weak int fdt_set_soc_info(void *blob) {
 	return 0;
 }
 
+static  int fdt_set_som_info(void *blob) {
+	char tmp[128];
+	size_t dramsize = lppdr4_get_ramsize();
+
+	int nodeoff = fdt_add_subnode(blob, 0, "som.info");
+	if(0 > nodeoff)
+		return nodeoff;
+
+	fdt_setprop(blob, nodeoff, "dram.size", tmp,
+		    sprintf(tmp, "%ld",  dramsize));
+
+	return 0;
+}
+
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
 
 	fdt_set_env_addr(blob);
 	fdt_set_sn(blob);
 	fdt_set_soc_info(blob);
+	fdt_set_som_info(blob);
 	fdt_board_vendor_setup(blob);
 	return 0;
 }
