@@ -78,9 +78,15 @@
 	u-boot,dm-spl;
 };
 
+#ifdef CONFIG_COMPULAB_DEBUG_UART4
 &pinctrl_uart4 {
 	u-boot,dm-spl;
 };
+
+&uart4 {
+	u-boot,dm-spl;
+};
+#endif
 
 &pinctrl_usdhc2_gpio {
 	u-boot,dm-spl;
@@ -119,10 +125,6 @@
 };
 
 &uart2 {
-	u-boot,dm-spl;
-};
-
-&uart4 {
 	u-boot,dm-spl;
 };
 
