@@ -77,6 +77,10 @@ static const struct lpddr4_desc lpddr4_array[] = {
 #else
 	{ .name = "Nanya",	.id = 0x05000010, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_05000010},
 #endif
+	{ .name = "ISSI",	.id = 0x1b000008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_1b000008}, //IS43LQ32256B-062BLI
+	{ .name = "ISSI",	.id = 0x1b010008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_1b000008}, //IS43LQ32256C-046BLI
+	{ .name = "Etron",	.id = 0x1a000008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_1b000008}, //EM6LF32MBAJB-46ISH
+	{ .name = "Winbond",	.id = 0x08000008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_1b000008}, //W66DP2RQQAGJ
 	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x04, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},
 	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x02, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
 	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x04, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},

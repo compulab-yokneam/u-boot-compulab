@@ -12,6 +12,7 @@ extern struct dram_timing_info ucm_dram_timing_ff000110;
 extern struct dram_timing_info ucm_dram_timing_01061010;
 extern struct dram_timing_info ucm_dram_timing_01050008;
 extern struct dram_timing_info ucm_dram_timing_05000010;
+extern struct dram_timing_info ucm_dram_timing_1b000008;
 
 void spl_dram_init(void);
 
