@@ -80,14 +80,24 @@ __weak int fdt_set_soc_info(void *blob) {
 
 static  int fdt_set_som_info(void *blob) {
 	char tmp[128];
-	size_t dramsize = lppdr4_get_ramsize();
+	char dram_name[16];
+	size_t dram_size = lppdr4_get_ramsize();
+	unsigned int dram_id = lpddr4_get_mr();
 
 	int nodeoff = fdt_add_subnode(blob, 0, "som.info");
 	if(0 > nodeoff)
 		return nodeoff;
 
 	fdt_setprop(blob, nodeoff, "dram.size", tmp,
-		    sprintf(tmp, "%ld",  dramsize));
+		    sprintf(tmp, "%ld",  dram_size));
+
+	fdt_setprop(blob, nodeoff, "dram.id", tmp,
+		    sprintf(tmp, "0x%x",  dram_id));
+
+	if (lppdr4_get_ram_name(dram_name) == 0) {
+		fdt_setprop(blob, nodeoff, "dram.name", tmp,
+			sprintf(tmp, "%s",  dram_name));
+	}
 
 	return 0;
 }
