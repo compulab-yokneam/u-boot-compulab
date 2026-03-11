@@ -179,4 +179,5 @@ static const struct lpddr4_desc lpddr4_array[] = {
 unsigned int lpddr4_get_mr(void);
 const struct lpddr4_desc *lpddr4_get_desc_by_id(unsigned int id);
 size_t lppdr4_get_ramsize(void);
+int lppdr4_get_ram_name(char *name);
 #endif
