@@ -97,6 +97,7 @@ U_BOOT_CMD(
 
 static char ddr_help_text[] =
 	"rdmr -- read mr[5-8] registers\n"
+	"ddr name -- read dram vendor name\n"
 	"ddr read -- read eeprom values [ mrs, subid, size ]\n"
 	"ddr clear -- clean up eeprom\n";
 
@@ -104,6 +105,12 @@ unsigned int lpddr4_get_mr(void);
 void do_ddr_rdmr(void) {
    unsigned int data = lpddr4_get_mr();
    printf("mr[5-8]: [0x%x]\n", data);
+}
+
+void do_ddr_name(void) {
+   char dram_name[16];
+   lppdr4_get_ram_name(dram_name);
+   printf("Vendor: [%s]\n", dram_name);
 }
 
 u32 cl_eeprom_get_ddrinfo(void);
@@ -127,6 +134,8 @@ int do_ddr(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 
 	if (strcmp(argv[1], "rdmr") == 0) {
 		do_ddr_rdmr();
+	} else if (strcmp(argv[1], "name") == 0 ) {
+		do_ddr_name();
 	} else if (strcmp(argv[1], "read") == 0 ) {
 		do_ddr_read();
 	} else if (strcmp(argv[1], "clear") == 0 ) {
