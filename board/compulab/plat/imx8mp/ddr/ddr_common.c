@@ -75,3 +75,12 @@ size_t lppdr4_get_ramsize() {
 	return ramsize;
 }
 #endif
+int lppdr4_get_ram_name(char *name) {
+    unsigned int id = lpddr4_get_mr();
+    const struct lpddr4_desc *desc = lpddr4_get_desc_by_id(id);
+    if (desc) {
+        memcpy(name, desc->name, 16);
+        return 0;
+    }
+    return 1;
+}
