@@ -78,6 +78,7 @@ __weak int fdt_set_soc_info(void *blob) {
 	return 0;
 }
 
+extern char version_string[];
 static  int fdt_set_som_info(void *blob) {
 	char tmp[128];
 	char dram_name[16];
@@ -87,6 +88,12 @@ static  int fdt_set_som_info(void *blob) {
 	int nodeoff = fdt_add_subnode(blob, 0, "som.info");
 	if(0 > nodeoff)
 		return nodeoff;
+
+	fdt_setprop(blob, nodeoff, "uboot.version", tmp,
+			sprintf(tmp, "%s",  version_string));
+
+	fdt_setprop(blob, nodeoff, "board.name", tmp,
+			sprintf(tmp, "%s",  CONFIG_SYS_BOARD));
 
 	fdt_setprop(blob, nodeoff, "dram.size", tmp,
 		    sprintf(tmp, "%ld",  dram_size));
