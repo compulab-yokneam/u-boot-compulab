@@ -16,7 +16,6 @@
 #include <asm-generic/gpio.h>
 #include <asm/arch/imx8mp_pins.h>
 #include <asm/arch/clock.h>
-#include <asm/arch/sys_proto.h>
 #include <asm/mach-imx/gpio.h>
 #include <asm/mach-imx/mxc_i2c.h>
 #include <spl.h>
@@ -28,7 +27,6 @@
 #include "common/fdt.h"
 #include <usb.h>
 #include <dwc3-uboot.h>
-#include <imx_sip.h>
 #include <linux/arm-smccc.h>
 #include "ddr/ddr.h"
 #include "common/eeprom.h"
@@ -146,9 +144,13 @@ int do_ddr(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
    return 0;
 }
 
-#ifdef CONFIG_DRAM_D2D4
-#define SUPPORTED_CONF "D2,D4"
-#else
+#ifdef CONFIG_DRAM_D2
+#define SUPPORTED_CONF "D2"
+#endif
+#ifdef CONFIG_DRAM_D4
+#define SUPPORTED_CONF "D4"
+#endif
+#ifdef CONFIG_DRAM_D1D8
 #define SUPPORTED_CONF "D1,D8"
 #endif
 
