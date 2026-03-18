@@ -1,0 +1,7 @@
+U-Boot CompuLab dram subsets changes
+
+Introduced the 3-dramsubset configuration.
+Reason:
+	d2d4 subset can't fit the 0x26000 allowed SPL size.
+Solution:
+	to split the d2d4 subset into two d2 and d4 subsets.
