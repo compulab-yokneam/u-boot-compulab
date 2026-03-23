@@ -75,6 +75,11 @@ static const struct lpddr4_desc lpddr4_array[] = {
 	.timing = &lp4x_timing
 #endif
 	},
+	{.name = "Samsung",	.id = 0x1080010, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+	.timing = &lp4x_timing
+#endif
+	},
 	{.name = "Samsung",	.id = 0x01050008, .subind = 0x1, .size = 512, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &lp4x_timing
@@ -86,6 +91,11 @@ static const struct lpddr4_desc lpddr4_array[] = {
 #endif
 	},
 	{.name = "Nanya",	.id = 0x5000010, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &dram_timing
+#endif
+	},
+	{.name = "Etron",	.id = 0xff070010, .subind = 0x1, .size = 1024, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &dram_timing
 #endif
