@@ -43,6 +43,26 @@
 			default-state = "on";
 		};
 	};
+
+	dsi_host: dsi-host {
+		compatible = "samsung,sec-mipi-dsi";
+		status = "okay";
+	};
+
+	ili9881c_panel {
+		compatible = "startek,ili9881c";
+		reset-gpio = <&pca9555 6 GPIO_ACTIVE_LOW>;
+		dsi-lanes = <4>;
+		panel-width-mm = <63>;
+		panel-height-mm = <115>;
+		status = "okay";
+
+		port {
+			ili9881c_from_dsim: endpoint {
+				remote-endpoint = <&ili9881c_to_dsim>;
+			};
+		};
+	};
 };
 
 &iomuxc {
@@ -245,6 +265,12 @@
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = "okay";
 
+        pca9555:pca9555@20 {
+                compatible = "nxp,pca9555";
+                gpio-controller;
+                #gpio-cells = <2>;
+                reg = <0x20>;
+        };
 };
 
 &i2c2 {
@@ -410,6 +436,24 @@
 	status = "disabled";
 };
 
+&lcdif {
+	display = <&display0>;
+	status = "okay";
+	display0: display@0 {
+		bits-per-pixel = <24>;
+		bus-width = <24>;
+	};
+};
+
+&mipi_dsi {
+	status = "okay";
+	port@1 {
+		ili9881c_to_dsim: endpoint {
+			remote-endpoint = <&ili9881c_from_dsim>;
+		};
+	};
+};
+
 &fec1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_fec1>;
@@ -488,4 +532,17 @@
 };
 &cpu_crit0 {
 	temperature = <115000>;
+};
+
+&lcdif {
+	enable_polarity_low;
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-parents;
+	/delete-property/ assigned-clock-rates;
+};
+
+&mipi_dsi {
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-parents;
+	/delete-property/ assigned-clock-rates;
 };

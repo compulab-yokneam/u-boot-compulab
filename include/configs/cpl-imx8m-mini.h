@@ -97,6 +97,7 @@
 	BOOTENV \
 	MACHINE_EXTRA_ENV_SETTINGS \
 	BSP_BOOTCOMMAND \
+	"splashimage=0x50000000\0" \
 	"autoload=off\0" \
 	"script=boot.scr\0" \
 	"kernel_addr_r=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
