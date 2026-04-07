@@ -1,24 +1,17 @@
 /*
- * Copyright 2018 NXP
- *
+ * Copyright 2026 Compulab
  * SPDX-License-Identifier:	GPL-2.0+
- *
- * Generated code from MX8M_DDR_tool
- * Align with uboot-imx_v2018.03_4.14.78_1.0.0_ga
  */
 
 #include <linux/kernel.h>
-#include "lpddr_timing_block.h"
+#include "lpddr4_timing_block.h"
 
 __attribute__ ((section (".lpddrtiming"),used, aligned(8)))
-const struct timing_block timing_block_01061010 = {
+static const struct lpddr4_timing_block timing_block = {
+//const struct lpddr4_timing_block timing_block_01061010 = {
 	.magic = LPDDR_BLOCK_MAGIC,
-	.name = "Samsung",
-	.size = 2048,
 	.id = 0x01061010,
-	.subind = 0x02,
 	.ddr_ddrc_cfg = {
-		/** Initialize DDRC registers **/
 		{0x3d400304,0x1},
 		{0x3d400030,0x1},
 		{0x3d400000,0xa1080020},
@@ -123,9 +116,7 @@ const struct timing_block timing_block_01061010 = {
 		{0x3d4031b4,0x100},
 		{0x3d400028,0x0},
 	},
-
-	/* PHY Initialize Configuration */
-		.ddr_ddrphy_cfg = {
+	.ddr_ddrphy_cfg = {
 		{0x100a0,0x0},
 		{0x100a1,0x1},
 		{0x100a2,0x2},
@@ -327,9 +318,7 @@ const struct timing_block timing_block_01061010 = {
 		{0x1200ca,0x24},
 		{0x2200ca,0x24},
 	},
-
-	/* ddr phy trained csr */
-		.ddr_ddrphy_trained_csr = {
+	.ddr_ddrphy_trained_csr = {
 		{0x200b2,0x0},
 		{0x1200b2,0x0},
 		{0x2200b2,0x0},
@@ -1050,8 +1039,7 @@ const struct timing_block timing_block_01061010 = {
 		{0x13730,0x0},
 		{0x13830,0x0},
 	},
-	/* P0 message block paremeter for training firmware */
-		.ddr_fsp0_cfg = {
+	.ddr_fsp0_cfg = {
 		{0xd0000,0x0},
 		{0x54003,0xbb8},
 		{0x54004,0x2},
@@ -1088,10 +1076,7 @@ const struct timing_block timing_block_01061010 = {
 		{0x5403d,0x1600},
 		{0xd0000,0x1},
 	},
-
-
-	/* P1 message block paremeter for training firmware */
-		.ddr_fsp1_cfg = {
+	.ddr_fsp1_cfg = {
 		{0xd0000,0x0},
 		{0x54002,0x101},
 		{0x54003,0x190},
@@ -1127,12 +1112,9 @@ const struct timing_block timing_block_01061010 = {
 		{0x5403b,0x4d},
 		{0x5403c,0x4d},
 		{0x5403d,0x1600},
-		{0xd0000,0x1},
+		{0xd0000,0x1}
 	},
-
-
-	/* P2 message block paremeter for training firmware */
-		.ddr_fsp2_cfg = {
+	.ddr_fsp2_cfg = {
 		{0xd0000,0x0},
 		{0x54002,0x102},
 		{0x54003,0x64},
@@ -1170,10 +1152,7 @@ const struct timing_block timing_block_01061010 = {
 		{0x5403d,0x1600},
 		{0xd0000,0x1},
 	},
-
-
-	/* P0 2D message block paremeter for training firmware */
-		.ddr_fsp0_2d_cfg = {
+	.ddr_fsp0_2d_cfg = {
 		{0xd0000,0x0},
 		{0x54003,0xbb8},
 		{0x54004,0x2},
@@ -1211,9 +1190,7 @@ const struct timing_block timing_block_01061010 = {
 		{0x5403d,0x1600},
 		{0xd0000,0x1},
 	},
-
-	/* DRAM PHY init engine image */
-		.ddr_phy_pie = {
+	.ddr_phy_pie = {
 		{0xd0000,0x0},
 		{0x90000,0x10},
 		{0x90001,0x400},
@@ -1807,43 +1784,43 @@ const struct timing_block timing_block_01061010 = {
 		{0xc0080,0x2},
 		{0xd0000,0x1}
 	},
+//These ugly constants are here due to training payload size vary due to DS script version
+#define DDR_DDRC_CFG_NUM 103
+#define DDR_DDRPHY_CFG_NUM 200
+#define DDR_DDRPHY_TRAINED_CSR_NUM 719
+#define DDR_FSP0_CFG_NUM 35
+#define DDR_FSP1_CFG_NUM 36
+#define DDR_FSP2_CFG_NUM 36
+#define DDR_FSP2D_CFG_NUM 36
+#define DDR_PHY_PIE_NUM 592
 	.ddr_dram_fsp_msg = {
 		{
-			/* P0 3000mts 1D */
 			.drate = 3000,
 			.fw_type = FW_1D_IMAGE,
-			//.fsp_cfg_num = ARRAY_SIZE(timing_block.ddr_fsp0_cfg),
+			.fsp_cfg_num = DDR_FSP0_CFG_NUM,
 		},
 		{
-			/* P1 400mts 1D */
 			.drate = 400,
 			.fw_type = FW_1D_IMAGE,
-			//.fsp_cfg_num = ARRAY_SIZE(timing_block.ddr_fsp1_cfg),
+			.fsp_cfg_num = DDR_FSP1_CFG_NUM,
 		},
 		{
-			/* P2 100mts 1D */
 			.drate = 100,
 			.fw_type = FW_1D_IMAGE,
-			//.fsp_cfg_num = ARRAY_SIZE(timing_block.ddr_fsp2_cfg),
+			.fsp_cfg_num = DDR_FSP2_CFG_NUM,
 		},
 		{
-			/* P0 3000mts 2D */
 			.drate = 3000,
 			.fw_type = FW_2D_IMAGE,
-			//.fsp_cfg_num = ARRAY_SIZE(timing_block.ddr_fsp0_2d_cfg),
+			.fsp_cfg_num = DDR_FSP2D_CFG_NUM,
 		},
 	},
-	/* ddr timing config params */
-#if 0
 	.dram_timing = {
-		.ddrc_cfg_num = ARRAY_SIZE(timing_block.ddr_ddrc_cfg),
-		.ddrphy_cfg_num = ARRAY_SIZE(timing_block.ddr_ddrphy_cfg),
-		.fsp_msg_num = ARRAY_SIZE(timing_block.ddr_dram_fsp_msg),
-		.ddrphy_trained_csr_num = ARRAY_SIZE(timing_block.ddr_ddrphy_trained_csr),
-		.ddrphy_pie_num = ARRAY_SIZE(timing_block.ddr_phy_pie),
+		.ddrc_cfg_num = DDR_DDRC_CFG_NUM,
+		.ddrphy_cfg_num = DDR_DDRPHY_CFG_NUM,
+		.ddrphy_trained_csr_num = DDR_DDRPHY_TRAINED_CSR_NUM,
+		.ddrphy_pie_num = DDR_PHY_PIE_NUM,
+		.fsp_msg_num = DDR_DRAM_FSP_MSG_NUM,
 		.fsp_table = {3000,400,100,},
 	},
-#endif
 };
-
-EXPORT(timing_block_01061010);

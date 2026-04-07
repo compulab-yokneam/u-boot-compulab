@@ -136,6 +136,7 @@ static int fdt_set_ram_size(void *blob)
 
 	fdt_setprop(blob, nodeoff, "size", tmp, sprintf(tmp, "%lu", (1L << 20) * lpddr4_tcm_desc->size));
 	fdt_setprop(blob, nodeoff, "id", tmp, sprintf(tmp, "0x%x", lpddr4_tcm_desc->sign));
+	fdt_setprop(blob, nodeoff, "timing", tmp, sprintf(tmp, "0x%x", lpddr4_tcm_desc->timing));
 	return 0;
 }
 

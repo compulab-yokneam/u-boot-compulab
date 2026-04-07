@@ -13,9 +13,9 @@ void spl_dram_init(void);
 
 struct lpddr4_tcm_desc {
 	unsigned int size;
-	unsigned int sign;
+	unsigned int sign; // DDR quirq, read from MRR
 	unsigned int index;
-	unsigned int count;
+	unsigned int timing; // A sign of timing block, the DDR was trained with
 };
 
 #endif
