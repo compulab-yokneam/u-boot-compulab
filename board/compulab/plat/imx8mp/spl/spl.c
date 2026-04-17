@@ -27,11 +27,12 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-int spl_board_boot_device(enum boot_device boot_dev_spl)
+int spl_board_boot_device(u32 _boot_dev_spl)
 {
 #ifdef CONFIG_SPL_BOOTROM_SUPPORT
 	return BOOT_DEVICE_BOOTROM;
 #else
+	enum boot_device boot_dev_spl = (enum boot_device) _boot_dev_spl;
 	switch (boot_dev_spl) {
 	case SD1_BOOT:
 	case MMC1_BOOT:
@@ -273,4 +274,9 @@ int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	reset_cpu(WDOG1_BASE_ADDR);
 
 	return 0;
+}
+
+void reset_misc(void) {
+	puts("resetting ...\n");
+	reset_cpu(WDOG1_BASE_ADDR);
 }
