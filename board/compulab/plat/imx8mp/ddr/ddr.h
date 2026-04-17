@@ -12,10 +12,18 @@
 extern struct dram_timing_info ucm_dram_timing_01061010_2G;
 extern struct dram_timing_info ucm_dram_timing_ff000010;
 extern struct dram_timing_info ucm_dram_timing_01061010_4G;
-#endif
+extern struct dram_timing_info ucm_dram_timing_13000210_2G;
+extern struct dram_timing_info ucm_dram_timing_ff070010_2G;
+extern struct dram_timing_info ucm_dram_timing_ff070010_kingston_2G;
+extern struct dram_timing_info ucm_dram_timing_ff070010_kingston_4G;
+extern struct dram_timing_info ucm_dram_timing_ff070018_4G;
+#else
+extern struct dram_timing_info ucm_dram_timing_1a000008_1G;
+extern struct dram_timing_info ucm_dram_timing_1b000008_1G;
 extern struct dram_timing_info ucm_dram_timing_01061010_1G;
 extern struct dram_timing_info ucm_dram_timing_01061010_1G_4000;
 extern struct dram_timing_info ucm_dram_timing_ff060018;
+#endif
 #endif
 
 void spl_dram_init(void);
@@ -98,12 +106,65 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_01061010_2G
 #endif
 	},
-#else
+	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+#if CONFIG_DRAM_ISSI
+	{ .name = "Issi",	.id = 0x13000210, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_13000210_2G
+#endif
+	},
+#endif
+	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+#if CONFIG_DRAM_ETRON
+	{ .name = "Etron",	.id = 0xff070010, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff070010_2G
+#endif
+	},
+	{ .name = "Etron",	.id = 0xff070018, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff070018_4G
+#endif
+	},
+#endif
+#else /* CONFIG_DRAM_D2D4 */
 	{ .name = "deadbeaf",	.id = 0xdeadbeaf, .subind = 0x1, .size = 1024, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_1G
 #endif
 	},
+#if CONFIG_DRAM_ETRON
+	{ .name = "Etron",	.id = 0x1a000008, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_1a000008_1G
+#endif
+	},
+#endif
+#if CONFIG_DRAM_ISSI
+	{ .name = "Issi",	.id = 0x1b000008, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_1b000008_1G
+#endif
+	},
+#endif
 	{ .name = "Samsung",	.id = 0x01050008, .subind = 0x1, .size = 1024, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_1G

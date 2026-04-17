@@ -18,11 +18,11 @@
 /* Forward declarations */
 u32 cl_eeprom_get_ddrinfo(void);
 u32 cl_eeprom_set_ddrinfo(u32 ddrinfo);
-u32 cl_eeprom_get_subind(void);
-u32 cl_eeprom_set_subind(u32 subind);
+u8 cl_eeprom_get_subind(void);
+u8 cl_eeprom_set_subind(u8 subind);
 void reset_misc(void);
 
-static void do_reset_spl(void) { do_reset(NULL,0,0,NULL); }
+static void do_reset_spl(void) { reset_misc(); }
 
 #define DEFAULT (('D' << 24) + ('E' << 16 ) + ( 'F' << 8 ) + 'A')
 #define VALID 0xCAFECAFE
@@ -72,6 +72,7 @@ static int _spl_dram_init(void)
 	unsigned char subind = 0xfF;
 	unsigned int ddr_info_mrr = 0xdeadbeef;
 	unsigned int ddr_found = 0;
+	unsigned int ddr_init_rc = 0;
 	int i = 0;
 
 	struct lpddr4_tcm_desc *lpddr4_tcm_desc = SPL_TCM_DATA;
@@ -101,48 +102,45 @@ static int _spl_dram_init(void)
 
 		SPL_TCM_INIT;
 
-        /* Let's check the latest training status */
-        if (lpddr4_tcm_desc->ddr_init_status == DDR_INIT_IN) {
-            printf("%s Bad attempt %d skip\n",__func__,(lpddr4_tcm_desc->index+1));
-			lpddr4_tcm_desc->index += 1;
-        }
+		/* Let's check the latest training status */
+		if (lpddr4_tcm_desc->ddr_init_status == DDR_INIT_IN) {
+		    printf("%s Bad attempt %d skip\n",__func__,(lpddr4_tcm_desc->index+1));
+				lpddr4_tcm_desc->index += 1;
+		}
 
 		if (lpddr4_tcm_desc->index < ARRAY_SIZE(lpddr4_array)) {
-			printf("DDRINFO: Cfg attempt: [ %d/%lu ]\n", lpddr4_tcm_desc->index+1, ARRAY_SIZE(lpddr4_array));
+			printf("DDRINFO: Cfg attempt: [ %d/%lu ; ( %s / 0x%x) ]\n", lpddr4_tcm_desc->index+1, ARRAY_SIZE(lpddr4_array), lpddr4_array[lpddr4_tcm_desc->index].name ,  lpddr4_array[lpddr4_tcm_desc->index].id );
 			i = lpddr4_tcm_desc->index;
 			lpddr4_tcm_desc->index += 1;
 		} else {
 			/* Ran out all available ddr setings */
 			SPL_TCM_CLR;
 			printf("DDRINFO: Ran out all [ %lu ] cfg attempts. A non supported configuration.\n", ARRAY_SIZE(lpddr4_array));
-            return -1;
+			return -1;
 		}
 
 		ddr_info = lpddr4_array[i].id;
+
+		/* This is a discovery case, save in ddr_init_status 'cause it can stack */
+		lpddr4_tcm_desc->ddr_init_status = DDR_INIT_IN;
+		/* Save the data before training */
+		lpddr4_data_set(SPL_TCM_DATA);
 	}
 
 	printf("DDRINFO(%s): %s %dMB @ %d MHz\n", (ddr_found ? "D" : "?" ), lpddr4_array[i].name,
 			lpddr4_array[i].size, lpddr4_array[i].timing->fsp_table[0]);
 
+	ddr_init_rc = ddr_init(lpddr4_array[i].timing);
 
 	if (ddr_found == 0) {
-        /* This is a discovery case, save in ddr_init_status 'cause it can stack */
-        lpddr4_tcm_desc->ddr_init_status = DDR_INIT_IN;
-        /* Save the data before training */
-        lpddr4_data_set(SPL_TCM_DATA);
-    }
-
-	if (ddr_init(lpddr4_array[i].timing)) {
-		SPL_TCM_INIT;
-		return 1;
+		/* This is a discovery case, save out ddr_init_status */
+		lpddr4_tcm_desc->ddr_init_status = DDR_INIT_OUT;
+		/* Save the data after training */
+		lpddr4_data_set(SPL_TCM_DATA);
 	}
 
-	if (ddr_found == 0) {
-        /* This is a discovery case, save out ddr_init_status */
-        lpddr4_tcm_desc->ddr_init_status = DDR_INIT_OUT;
-        /* Save the data after training */
-        lpddr4_data_set(SPL_TCM_DATA);
-    }
+	if (ddr_init_rc)
+		return 1;
 
 	ddr_info_mrr = lpddr4_get_mr();
 	if (ddr_info_mrr == 0xFFFFFFFF ) {
