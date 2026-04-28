@@ -17,14 +17,13 @@ struct timing_desc {
 	 * Default value 0xff
 	 */
 	u8	subind;
-	u16	size; // Total size, MB, to be displayed
-	u64	timing_sign; // A uniq signature of timing block to be loaded for this chip
+	u32	timing_sign; // A uniq signature of timing block to be loaded for this chip
 };
 
 // Array sizes are assigned bigger than required. An actual length is assigned in each timing file individually
 #define LPDDR_EMPTY_MAGIC "LPDDREMPTYMAGIC"
-#define LPDDR_SINGLE_MAGIC "LPDDRONEMAGIC"
-#define LPDDR_BLOCK_MAGIC "LPDDRBLOCKMAGIC"
+#define LPDDR_BLOCK_MAGIC "LPDDRBLOCKMAGIC"	// All magics are the same size
+#define LPDDR_SINGLE_MAGIC "LPDDRSINGLMAGIC"
 #define _DDR_DDRC_CFG_NUM 110
 #define _DDR_DDRPHY_CFG_NUM 210
 #define _DDR_DDRPHY_TRAINED_CSR_NUM 730
@@ -34,11 +33,12 @@ struct timing_desc {
 #define DDR_DRAM_FSP_MSG_NUM 4
 struct lpddr4_timing_block {
 	char magic[sizeof(LPDDR_BLOCK_MAGIC)];
+	int size;
 	u32 id;
 	// Training payload
 	struct dram_cfg_param ddr_ddrc_cfg[_DDR_DDRC_CFG_NUM];
 	struct dram_cfg_param ddr_ddrphy_cfg[_DDR_DDRPHY_CFG_NUM];
-	struct dram_cfg_param ddr_ddrphy_trained_csr[_DDR_DDRPHY_TRAINED_CSR_NUM];
+	struct dram_cfg_param* ddr_ddrphy_trained_csr;
 	struct dram_cfg_param ddr_fsp0_cfg[_DDR_FSP_CFG_NUM];
 	struct dram_cfg_param ddr_fsp1_cfg[_DDR_FSP_CFG_NUM];
 	struct dram_cfg_param ddr_fsp2_cfg[_DDR_FSP_CFG_NUM];
