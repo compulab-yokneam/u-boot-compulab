@@ -60,7 +60,7 @@ static const struct lpddr4_desc lpddr4_array[] = {
 	.timing = &lp4x_timing
 #endif
 	},
-	{.name = "Kingston",	.id = 0xff070018, .subind = 0x1, .size = 2048, .count = 1,
+	{.name = "Micron",	.id = 0xff070018, .subind = 0x1, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 	.timing = &lp4x_timing
 #endif
