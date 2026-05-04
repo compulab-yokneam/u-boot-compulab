@@ -261,7 +261,8 @@ static int rtl8211f_config(struct phy_device *phydev)
 	/* Set green LED0 for Active, yellow LED for Link*/
 	phy_write(phydev, MDIO_DEVAD_NONE,
 		  MIIM_RTL8211F_PAGE_SELECT, 0xd04);
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x10,  (0b11011 | 0b1011 << 10)); // led0 - link all speeds (bits 0,1,3), active (4) (active only is NA) , led2 - link all speeds(10,11,13)
+	reg = (0b1011 << 10 | 0b1011 << 5 | 0b11011); // led1,2 (offset 5,10) - link all speeds, led0 (offset 0) - link all speeds and active (active only mode NA)
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x10, reg);
 	phy_write(phydev, MDIO_DEVAD_NONE,
 		  MIIM_RTL8211F_PAGE_SELECT, 0x0);
 
