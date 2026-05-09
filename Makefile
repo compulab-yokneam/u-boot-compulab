@@ -1538,16 +1538,20 @@ endif
 
 UBOOT_ENV_OFFSET=$(shell echo $$(( $(CONFIG_ENV_OFFSET) >> 9)))
 
+ifeq ($(CONFIG_DRAM_D1),y)
+	DRAM_CONF := $(DRAM_CONF)d1
+endif
+
 ifeq ($(CONFIG_DRAM_D2),y)
-	DRAM_CONF := "d2"
+	DRAM_CONF := $(DRAM_CONF)d2
 endif
 
 ifeq ($(CONFIG_DRAM_D4),y)
-	DRAM_CONF := "d4"
+	DRAM_CONF := $(DRAM_CONF)d4
 endif
 
-ifeq ($(CONFIG_DRAM_D1D8),y)
-	DRAM_CONF := "d1d8"
+ifeq ($(CONFIG_DRAM_D8),y)
+	DRAM_CONF := $(DRAM_CONF)d8
 endif
 
 # Create an emmc flash.bin-with-env
