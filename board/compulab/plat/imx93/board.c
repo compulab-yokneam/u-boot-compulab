@@ -138,7 +138,7 @@ static void board_gpio_init(void)
 }
 
 #if defined(CONFIG_FEC_MXC) || defined(CONFIG_DWC_ETH_QOS)
-static void board_get_mac_from_eeprom(int dev_id) {
+void board_get_mac_from_eeprom(int dev_id) {
 	unsigned char mac[6];
 	cl_eeprom_read_n_mac_addr(mac, dev_id, CONFIG_SYS_I2C_EEPROM_BUS);
 
@@ -149,7 +149,7 @@ static void board_get_mac_from_eeprom(int dev_id) {
 	return;
 }
 #else
-static void board_get_mac_from_eeprom(int dev_id) { return;}
+void board_get_mac_from_eeprom(int dev_id) { return;}
 #endif
 
 int board_init(void)
@@ -165,7 +165,7 @@ int board_init(void)
 	return 0;
 }
 
-int board_late_init(void)
+__weak int board_late_init(void)
 {
 #ifdef CONFIG_ENV_IS_IN_MMC
 	board_late_mmc_env_init();

@@ -4,3 +4,4 @@
 #
 ccflags-y += -I$(srctree)/board/compulab/plat/imx93
 obj-y += ../plat/imx93/
+obj-y += iot-link.o
