@@ -21,10 +21,10 @@
 	reg_usb_vbus: regulator-vbus {
 		compatible = "regulator-fixed";
 		regulator-name = "USB_VBUS";
+		gpio = <&pca9555 1 GPIO_ACTIVE_HIGH>;
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
-		regulator-always-on;
 	};
 };
 
