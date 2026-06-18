@@ -6,6 +6,7 @@
 #ifndef __IOT_LINK_H
 #define __IOT_LINK_H
 
+#define CONFIG_IOT_LINK
 #include "compulab-imx93.h"
 #define CONFIG_SYS_I2C_EEPROM_ADDR_SB	0x50
 

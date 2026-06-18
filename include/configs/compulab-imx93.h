@@ -59,6 +59,18 @@
 	"sd_dev=1\0" \
 
 /* Initial environment variables */
+#ifdef CONFIG_IOT_LINK
+#define CFG_IMX93_SETTINGS \
+	"image=fitImage\0" \
+	"boot_fit=yes\0" \
+	"boot_os=bootm ${loadaddr}#conf-iot-link.dtb${overlays};\0"
+#else
+#define CFG_IMX93_SETTINGS \
+	"image=Image\0" \
+	"boot_fit=no\0" \
+	"boot_os=booti ${loadaddr} - ${fdt_addr_r};\0"
+#endif
+
 #define CFG_EXTRA_ENV_SETTINGS		\
 	JAILHOUSE_ENV \
 	CFG_MFG_ENV_SETTINGS \
@@ -68,7 +80,7 @@
 	"scriptaddr=0x83500000\0" \
 	"script=boot.scr\0" \
 	"kernel_addr_r=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
-	"image=Image\0" \
+	CFG_IMX93_SETTINGS \
 	"splashimage=0x90000000\0" \
 	"console=ttyLP0,115200 earlycon\0" \
 	"fdt_addr_r=0x83000000\0"			\
@@ -77,7 +89,6 @@
 	"fdt_high=0xffffffffffffffff\0"		\
 	"cntr_addr=0x98000000\0"			\
 	"cntr_file=os_cntr_signed.bin\0" \
-	"boot_fit=no\0" \
 	"fdtfile=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"bootm_size=0x10000000\0" \
 	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
@@ -92,7 +103,6 @@
 	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr_r} ${fdtfile}\0" \
 	"loadcntr=fatload mmc ${mmcdev}:${mmcpart} ${cntr_addr} ${cntr_file}\0" \
 	"auth_os=auth_cntr ${cntr_addr}\0" \
-	"boot_os=booti ${loadaddr} - ${fdt_addr_r};\0" \
 	"mmcboot=echo Booting from mmc ...; " \
 		"run mmcargs; " \
 		"if test ${sec_boot} = yes; then " \
@@ -103,7 +113,7 @@
 			"fi; " \
 		"else " \
 			"if test ${boot_fit} = yes || test ${boot_fit} = try; then " \
-				"bootm ${loadaddr}; " \
+				"run boot_os; " \
 			"else " \
 				"if run loadfdt; then " \
 					"run boot_os; " \
@@ -132,7 +142,7 @@
 		"else " \
 			"${get_cmd} ${loadaddr} ${image}; " \
 			"if test ${boot_fit} = yes || test ${boot_fit} = try; then " \
-				"bootm ${loadaddr}; " \
+				"run boot_os; " \
 			"else " \
 				"if ${get_cmd} ${fdt_addr_r} ${fdtfile}; then " \
 					"run boot_os; " \
@@ -180,6 +190,9 @@
 				"run bootscript; " \
 			"else " \
 				"if run ulimage; then " \
+					"if test ${boot_fit} = yes || test ${boot_fit} = try; then " \
+						"run boot_os; " \
+				"else " \
 					"if run ulfdt; then " \
 						"booti ${loadaddr} - ${fdt_addr_r}; " \
 					"else " \
@@ -189,14 +202,7 @@
 					"fi; " \
 				"fi; " \
 			"fi; " \
-		"done; "
-
-/* Link Definitions */
-
-#define CONFIG_SYS_INIT_RAM_ADDR        0x80000000
-#define CONFIG_SYS_INIT_RAM_SIZE        0x200000
-#define CONFIG_SYS_INIT_SP_OFFSET \
-	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+		"fi; done; \0"
 #define CONFIG_SYS_INIT_SP_ADDR \
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
