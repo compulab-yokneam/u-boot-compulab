@@ -63,12 +63,76 @@
 #define CFG_IMX93_SETTINGS \
 	"image=fitImage\0" \
 	"boot_fit=yes\0" \
-	"boot_os=bootm ${loadaddr}#conf-iot-link.dtb${overlays};\0"
+	"boot_os=bootm ${loadaddr}#conf-iot-link.dtb${overlays};\0" \
+	"load_image_explicit=load ${iface} ${dev}:${part} ${loadaddr} Image\0" \
+	"load_fdt_explicit=load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}\0" \
+	"boot_image_with_overlays=setenv bootargs ${bootargs} console=ttyLP0,115200 earlycon net.ifnames=0; " \
+		"if run load_image_explicit; then " \
+			"if run load_fdt_explicit; then " \
+				"fdt addr ${fdt_addr_r}; fdt resize 0x2000; " \
+				"for ov in ${overlays_files}; do load ${iface} ${dev}:${part} ${fdto_addr_r} ${ov} && fdt apply ${fdto_addr_r}; done; " \
+				"booti ${loadaddr} - ${fdt_addr_r}; " \
+			"fi; " \
+		"fi; \0"
+#define BSP_BOOTCMD \
+	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
+		"for src in ${bootlist}; do " \
+			"run ${src}; " \
+			"env exist boot_opt && env exists bootargs && setenv bootargs ${bootargs} ${boot_opt}; " \
+            "if test ${sec_boot} = yes; then " \
+				"if run loadcntr; then " \
+                   "run mmcboot; " \
+				"else run netboot; " \
+                "fi; " \
+            "fi; " \
+			"if run ulbootscript; then " \
+				"run bootscript; " \
+			"else " \
+				"if run ulimage; then " \
+					"if test ${boot_fit} = yes || test ${boot_fit} = try; then " \
+						"run boot_os; " \
+					"else " \
+						"run boot_image_with_overlays; " \
+					"fi; " \
+				"else " \
+					"run boot_image_with_overlays; " \
+				"fi; " \
+			"fi; " \
+		"done; \0"
 #else
 #define CFG_IMX93_SETTINGS \
 	"image=Image\0" \
 	"boot_fit=no\0" \
 	"boot_os=booti ${loadaddr} - ${fdt_addr_r};\0"
+#define BSP_BOOTCMD \
+	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
+		"for src in ${bootlist}; do " \
+			"run ${src}; " \
+			"env exist boot_opt && env exists bootargs && setenv bootargs ${bootargs} ${boot_opt}; " \
+            "if test ${sec_boot} = yes; then " \
+				"if run loadcntr; then " \
+                   "run mmcboot; " \
+				"else run netboot; " \
+                "fi; " \
+            "fi; " \
+			"if run ulbootscript; then " \
+				"run bootscript; " \
+			"else " \
+				"if run ulimage; then " \
+					"if test ${boot_fit} = yes || test ${boot_fit} = try; then " \
+						"run boot_os; " \
+					"else " \
+						"if run ulfdt; then " \
+							"booti ${loadaddr} - ${fdt_addr_r}; " \
+						"else " \
+							"if test ${boot_fdt} != yes; then " \
+								"booti ${loadaddr}; " \
+							"fi; " \
+						"fi; " \
+					"fi; " \
+				"fi; " \
+			"fi; " \
+		"done; \0"
 #endif
 
 #define CFG_EXTRA_ENV_SETTINGS		\
@@ -98,111 +162,94 @@
 	"mmcargs=setenv bootargs ${jh_clk} console=${console} root=${mmcroot} net.ifnames=0\0 " \
 	"loadbootscript=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
-		"source\0" \
+	"source\0" \
 	"loadimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${image}\0" \
 	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr_r} ${fdtfile}\0" \
 	"loadcntr=fatload mmc ${mmcdev}:${mmcpart} ${cntr_addr} ${cntr_file}\0" \
 	"auth_os=auth_cntr ${cntr_addr}\0" \
 	"mmcboot=echo Booting from mmc ...; " \
-		"run mmcargs; " \
-		"if test ${sec_boot} = yes; then " \
+	"run mmcargs; " \
+	"if test ${sec_boot} = yes; then " \
 			"if run auth_os; then " \
-				"run boot_os; " \
+			"run boot_os; " \
 			"else " \
 				"echo ERR: failed to authenticate; " \
 			"fi; " \
-		"else " \
-			"if test ${boot_fit} = yes || test ${boot_fit} = try; then " \
-				"run boot_os; " \
 			"else " \
-				"if run loadfdt; then " \
-					"run boot_os; " \
+			"if run loadimage; then " \
+				"if test ${boot_fit} = yes || test ${boot_fit} = try; then " \
+				"run boot_os; " \
 				"else " \
-					"echo WARN: Cannot load the DT; " \
+					"run boot_image_with_overlays; " \
 				"fi; " \
-			"fi;" \
-		"fi;\0" \
+			"else " \
+			"if run load_image_explicit; then " \
+			"run boot_image_with_overlays; " \
+			"else " \
+			"if run loadfdt; then " \
+						"run boot_os; " \
+					"else " \
+					"echo WARN: Cannot load the DT; " \
+					"fi; " \
+					"fi; " \
+					"fi;" \
+					"fi;\0" \
 	"netargs=setenv bootargs ${jh_clk} console=${console} net.ifnames=0" \
 		"root=/dev/nfs " \
 		"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
-	"netboot=echo Booting from net ...; " \
+		"netboot=echo Booting from net ...; " \
 		"run netargs;  " \
 		"if test ${ip_dyn} = yes; then " \
-			"setenv get_cmd dhcp; " \
+		"setenv get_cmd dhcp; " \
 		"else " \
-			"setenv get_cmd tftp; " \
+		"setenv get_cmd tftp; " \
 		"fi; " \
 		"if test ${sec_boot} = yes; then " \
 			"${get_cmd} ${cntr_addr} ${cntr_file}; " \
 			"if run auth_os; then " \
-				"run boot_os; " \
+			"run boot_os; " \
 			"else " \
-				"echo ERR: failed to authenticate; " \
+			"echo ERR: failed to authenticate; " \
 			"fi; " \
 		"else " \
-			"${get_cmd} ${loadaddr} ${image}; " \
+		"${get_cmd} ${loadaddr} ${image}; " \
 			"if test ${boot_fit} = yes || test ${boot_fit} = try; then " \
-				"run boot_os; " \
+			"run boot_os; " \
 			"else " \
-				"if ${get_cmd} ${fdt_addr_r} ${fdtfile}; then " \
-					"run boot_os; " \
+			"if ${get_cmd} ${fdt_addr_r} ${fdtfile}; then " \
+			"run boot_os; " \
 				"else " \
 					"echo WARN: Cannot load the DT; " \
 				"fi; " \
 			"fi;" \
 		"fi;\0" \
-		"emmc_root=/dev/mmcblk0p2\0" \
-		"sd_root=/dev/mmcblk1p2\0" \
-		"usb_root=/dev/sda2\0" \
-		"usb_dev=0\0" \
-		"boot_part=1\0" \
-		"root_opt=rootwait rw\0" \
-		"emmc_ul=setenv iface mmc; setenv dev ${emmc_dev}; setenv part ${boot_part};" \
-		"setenv bootargs console=${console} root=${emmc_root} ${root_opt} net.ifnames=0;\0" \
-		"sd_ul=setenv iface mmc; setenv dev ${sd_dev}; setenv part ${boot_part};" \
-			"setenv bootargs console=${console} root=${sd_root} ${root_opt} net.ifnames=0;\0" \
-		"usb_ul=usb start; setenv iface usb; setenv dev ${usb_dev}; setenv part ${boot_part};" \
-			"setenv bootargs console=${console} root=${usb_root} ${root_opt} net.ifnames=0;\0" \
-		"ulbootscript=load ${iface} ${dev}:${part} ${loadaddr} ${script};\0" \
-		"ulimage=load ${iface} ${dev}:${part} ${loadaddr} ${image}\0" \
-		"ulfdt=if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"echo load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; " \
-			"load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; " \
-				"if itest.s x != x${fdtofile}; then " \
-				    "load ${iface} ${dev}:${part} ${fdto_addr_r} ${fdtofile};"\
-				    "fdt addr ${fdt_addr_r}; fdt resize 0x8000; fdt apply ${fdto_addr_r};" \
-				"else " \
-				    "true;" \
-				"fi;" \
-			"fi;\0" \
-		"bootlist=sd_ul usb_ul emmc_ul\0" \
-	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
-		"for src in ${bootlist}; do " \
-			"run ${src}; " \
-			"env exist boot_opt && env exists bootargs && setenv bootargs ${bootargs} ${boot_opt}; " \
-           "if test ${sec_boot} = yes; then " \
-               "if run loadcntr; then " \
-                   "run mmcboot; " \
-               "else run netboot; " \
-               "fi; " \
-           "fi; " \
-			"if run ulbootscript; then " \
-				"run bootscript; " \
+	"emmc_root=/dev/mmcblk0p2\0" \
+	"sd_root=/dev/mmcblk1p2\0" \
+	"usb_root=/dev/sda2\0" \
+	"usb_dev=0\0" \
+	"boot_part=1\0" \
+	"root_opt=rootwait rw\0" \
+	"emmc_ul=setenv iface mmc; setenv dev ${emmc_dev}; setenv part ${boot_part};" \
+	"setenv bootargs console=${console} root=${emmc_root} ${root_opt} net.ifnames=0;\0" \
+	"sd_ul=setenv iface mmc; setenv dev ${sd_dev}; setenv part ${boot_part};" \
+		"setenv bootargs console=${console} root=${sd_root} ${root_opt} net.ifnames=0;\0" \
+	"usb_ul=usb start; setenv iface usb; setenv dev ${usb_dev}; setenv part ${boot_part};" \
+		"setenv bootargs console=${console} root=${usb_root} ${root_opt} net.ifnames=0;\0" \
+	"ulbootscript=load ${iface} ${dev}:${part} ${loadaddr} ${script};\0" \
+	"ulimage=load ${iface} ${dev}:${part} ${loadaddr} ${image}\0" \
+	"ulfdt=if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
+		"echo load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; " \
+		"load ${iface} ${dev}:${part} ${fdt_addr_r} ${fdtfile}; " \
+			"if itest.s x != x${fdtofile}; then " \
+				"load ${iface} ${dev}:${part} ${fdto_addr_r} ${fdtofile};"\
+				"fdt addr ${fdt_addr_r}; fdt resize 0x8000; fdt apply ${fdto_addr_r};" \
 			"else " \
-				"if run ulimage; then " \
-					"if test ${boot_fit} = yes || test ${boot_fit} = try; then " \
-						"run boot_os; " \
-				"else " \
-					"if run ulfdt; then " \
-						"booti ${loadaddr} - ${fdt_addr_r}; " \
-					"else " \
-						"if test ${boot_fdt} != yes; then " \
-							"booti ${loadaddr}; " \
-						"fi; " \
-					"fi; " \
-				"fi; " \
-			"fi; " \
-		"fi; done; \0"
+				"true;" \
+			"fi;" \
+		"fi;\0" \
+	"bootlist=sd_ul usb_ul emmc_ul\0" \
+	BSP_BOOTCMD
+
 #define CONFIG_SYS_INIT_SP_ADDR \
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 

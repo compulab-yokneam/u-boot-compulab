@@ -5,6 +5,7 @@
 #include <asm/arch/sys_proto.h>
 #include "../common/eeprom.h"
 #include <dm/of.h>
+#include <string.h>
 
 int board_late_init(void)
 {
@@ -21,21 +22,41 @@ int board_late_init(void)
 		printf("EEPROM: Read failed\n");
 		goto do_boot;
 	}
-	char overlays[128] = "";
+	char overlays[256] = "";
+	char overlays_files[256] = "";
+	int overlays_found = 0;
 	for (int i = 0x90; i < sizeof(eeprom_buf) - 5; i++) {
 		if (memcmp(&eeprom_buf[i], "FARS4", 5) == 0) {
 			strcat(overlays, "#conf-iot-link-fars485.dtbo");
+			if (strlen(overlays_files)) strcat(overlays_files, " ");
+			strcat(overlays_files, "iot-link-fars485.dtbo");
+			overlays_found = 1;
 			i += 5;
 		} else if (memcmp(&eeprom_buf[i], "FACAN", 5) == 0) {
 			strcat(overlays, "#conf-iot-link-facan.dtbo");
+			if (strlen(overlays_files)) strcat(overlays_files, " ");
+			strcat(overlays_files, "iot-link-facan.dtbo");
+			overlays_found = 1;
 			i += 5;
 		} else if (memcmp(&eeprom_buf[i], "FBCAN", 5) == 0) {
 			strcat(overlays, "#conf-iot-link-fbcan.dtbo");
+			if (strlen(overlays_files)) strcat(overlays_files, " ");
+			strcat(overlays_files, "iot-link-fbcan.dtbo");
+			overlays_found = 1;
 			break;
 		} else if (memcmp(&eeprom_buf[i], "FBRS4", 5) == 0) {
 			strcat(overlays, "#conf-iot-link-fbrs485.dtbo");
+			if (strlen(overlays_files)) strcat(overlays_files, " ");
+			strcat(overlays_files, "iot-link-fbrs485.dtbo");
+			overlays_found = 1;
 			break;
 		}
+	}
+
+	if (!overlays_found) {
+		/* Apply all overlays when none specifically detected */
+		strcpy(overlays, "#conf-iot-link-fars485.dtbo#conf-iot-link-facan.dtbo#conf-iot-link-fbcan.dtbo#conf-iot-link-fbrs485.dtbo");
+		strcpy(overlays_files, "iot-link-fars485.dtbo iot-link-facan.dtbo iot-link-fbcan.dtbo iot-link-fbrs485.dtbo");
 	}
 
 do_boot:
@@ -43,6 +64,7 @@ do_boot:
 	board_late_mmc_env_init();
 #endif
 	env_set("overlays", overlays);
+	env_set("overlays_files", overlays_files);
 	env_set("sec_boot", "no");
 #ifdef CONFIG_AHAB_BOOT
 	env_set("sec_boot", "yes");
