@@ -4,8 +4,6 @@
  */
 #include <common.h>
 #include <command.h>
-#include "../../common/eeprom.h"
-#include <eeprom.h>
 #include <spl.h>
 #include <asm/io.h>
 #include <errno.h>
@@ -17,6 +15,7 @@
 #include <asm/arch/ddr.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/clock.h>
+#include <asm/arch/imx-regs.h>
 #include <asm/mach-imx/gpio.h>
 #include <linux/delay.h>
 
@@ -25,20 +24,27 @@
 #define REG_DDR_SDRAM_MPR5 (DDR_CTL_BASE + 0x290)
 #define REG_DDR_SDRAM_MPR4 (DDR_CTL_BASE + 0x28C)
 
-/* Forward declarations */
-u32 cl_eeprom_get_ddrinfo(void);
-u32 cl_eeprom_set_ddrinfo(u32 ddrinfo);
-u32 cl_eeprom_get_subind(void);
-u32 cl_eeprom_set_subind(u32 subind);
-int cl_eeprom_write(uint offset, uchar* buf, int len);
-int cl_eeprom_read(uint offset, uchar* buf, int len);
+#define DDRINFO_SRC_GPR_DDRINFO	1
+#define DDRINFO_SRC_GPR_SUBIND	2
+
+static u32 src_gpr_get(u32 index) {
+	struct src_general_regs *src = (struct src_general_regs *)SRC_GLOBAL_RBASE;
+
+	return readl(&src->gpr[index]);
+}
+
+static void src_gpr_set(u32 index, u32 value) {
+	struct src_general_regs *src = (struct src_general_regs *)SRC_GLOBAL_RBASE;
+
+	writel(value, &src->gpr[index]);
+}
 
 static inline void lpddr4_data_get(struct lpddr4_tcm_desc* lpddr4_tcm_desc) {
-	cl_eeprom_read(0, (uchar*)lpddr4_tcm_desc, sizeof(struct lpddr4_tcm_desc));
+	memset(lpddr4_tcm_desc, 0, sizeof(struct lpddr4_tcm_desc));
 }
 
 static inline void lpddr4_data_set(struct lpddr4_tcm_desc* lpddr4_tcm_desc) {
-	cl_eeprom_write(0, (uchar*)lpddr4_tcm_desc, sizeof(struct lpddr4_tcm_desc));
+	memset(lpddr4_tcm_desc, 0, sizeof(struct lpddr4_tcm_desc));
 }
 
 static struct lpddr4_tcm_desc spl_tcm_data;
@@ -106,11 +112,12 @@ u32 lpddr4_get_mr(void) {
 	return ddr_info;
 }
 
-static void write_ddr_info_to_eeprom(u32 id_in) {
+static void write_ddr_info_to_src_gpr(u32 id_in) {
 	u32 id_out = 0xdeadbeef;
-	cl_eeprom_set_ddrinfo(id_in);
+
+	src_gpr_set(DDRINFO_SRC_GPR_DDRINFO, id_in);
 	mdelay(10);
-	id_out = cl_eeprom_get_ddrinfo();
+	id_out = src_gpr_get(DDRINFO_SRC_GPR_DDRINFO);
 	mdelay(10);
 	if (id_in != id_out)
 	{
@@ -118,16 +125,15 @@ static void write_ddr_info_to_eeprom(u32 id_in) {
 	}
 }
 
-static void write_subind_to_eeprom(unsigned char subind_in) {
+static void write_subind_to_src_gpr(unsigned char subind_in) {
 	unsigned char subind_out = 0;
-	cl_eeprom_set_subind(subind_in);
-	mdelay(20);
-	subind_out = cl_eeprom_get_subind();
+
+	src_gpr_set(DDRINFO_SRC_GPR_SUBIND, subind_in);
+	mdelay(10);
+	subind_out = src_gpr_get(DDRINFO_SRC_GPR_SUBIND);
 	if (subind_in != subind_out)
 	{
 		printf("DDRINFO: %s subind mismatch wrote 0x%x, read back 0x%x\n", __func__, subind_in, subind_out);
-		printf("DDRINFO: make sure that eeprom is accessible\n");
-		printf("DDRINFO: i2c dev 0; i2c md 0x51 0x40 0x50\n");
 	}
 }
 
@@ -200,15 +206,14 @@ static const struct lpddr4_desc* get_ddr_desc(unsigned char i) {
 
 /*
 testing:
-after ddr came up check current eeprom state:
-i2c dev 0;
-i2c md 0x51 0x0 0x50
+after ddr came up check current SRC GPR state:
+md 0x4E20xxxx? (use the relevant SRC register dump)
 
 sabotage subind to check recovery after reset:
-i2c mw 0x51 0x44 0xff
+set the SRC GPR used for subind to an invalid value
 
 sabotage ddrinfo to check recovery after reset:
-i2c mw 0x51 0x40 0x10; i2c mw 0x51 0x41 0x01; i2c mw 0x51 0x42 0x00; i2c mw 0x51 0x43 0xff
+set the SRC GPR used for ddrinfo to an invalid value
 */
 
 void initialize_ddr_info(void) {
@@ -217,14 +222,14 @@ void initialize_ddr_info(void) {
 	if (ddr_desc->id == 0xdeadbeef) {
 		do_reset(NULL, 0, 0, NULL);
 	}
-	write_ddr_info_to_eeprom(ddr_info);
-	write_subind_to_eeprom(ddr_desc->subind);
+	write_ddr_info_to_src_gpr(ddr_info);
+	write_subind_to_src_gpr(ddr_desc->subind);
 }
 
 void spl_dram_init(void) {
 	const struct lpddr4_desc* ddr_desc;
-	u32 ddr_info = cl_eeprom_get_ddrinfo();
-	unsigned char subind = cl_eeprom_get_subind();
+	u32 ddr_info = src_gpr_get(DDRINFO_SRC_GPR_DDRINFO);
+	unsigned char subind = src_gpr_get(DDRINFO_SRC_GPR_SUBIND);
 	int i = get_valid_ddr_timing_index(ddr_info, subind);
 	if (i == 0) {
 		printf("DDRINFO: set dummy cfg to enable reading mr[5-8]\n");
@@ -232,7 +237,7 @@ void spl_dram_init(void) {
 	lpddr4_data_get(SPL_TCM_DATA);
 	ddr_desc = get_ddr_desc(i);
 	if (initialize_ddr(ddr_desc) == false) {
-		write_subind_to_eeprom(get_next_subind(ddr_info, subind));
+		write_subind_to_src_gpr(get_next_subind(ddr_info, subind));
 		do_reset(NULL, 0, 0, NULL);
 	}
 	if (i == 0) {
