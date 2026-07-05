@@ -1,0 +1,61 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// Copyright 2025 Compulab
+
+/dts-v1/;
+
+#include "cl-som-shared-imx93.dtsi"
+#include <dt-bindings/leds/common.h>
+
+/{
+	model = "CompuLab IOT-LINK board";
+
+    leds {
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_power_leds>;
+        compatible = "gpio-leds";
+        blue {
+            color = <LED_COLOR_ID_BLUE>;
+            gpios = <&gpio2 23 GPIO_ACTIVE_HIGH>;
+            default-state = "on";
+        };
+        amber {
+            color = <LED_COLOR_ID_AMBER>;
+            gpios = <&gpio4 15 GPIO_ACTIVE_HIGH>;
+            default-state = "off";
+        };
+    };
+};
+
+&iomuxc {
+	pinctrl-0 = <&pinctrl_leds>;
+	pinctrl_leds: ledsgrp {
+		fsl,pins = <
+			MX93_PAD_DAP_TCLK_SWCLK__GPIO3_IO30	0x31e
+			MX93_PAD_DAP_TDO_TRACESWO__GPIO3_IO31	0x31e
+		>;
+	};
+	pinctrl_power_leds: powerledsgrp {
+		fsl,pins = <
+			MX93_PAD_GPIO_IO23__GPIO2_IO23	0x31e
+			MX93_PAD_ENET2_MDIO__GPIO4_IO15	0x31e
+		>;
+	};
+};
+
+&lpi2c3 {
+        tpm@2e {
+		compatible = "tcg,tpm-tis-i2c";
+		reset-gpios = <&gpio2 19 GPIO_ACTIVE_LOW>;
+                reg = <0x2e>;
+        };
+
+	eeprom@50 {
+		compatible = "atmel,24c08";
+		reg = <0x50>;
+		pagesize = <16>;
+	};
+};
+
+&ethphy1 {
+    reg = <0>;
+};

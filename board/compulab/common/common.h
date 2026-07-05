@@ -1,8 +1,9 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2014 CompuLab, Ltd. <www.compulab.co.il>
  *
  * Authors: Igor Grinberg <grinberg@compulab.co.il>
+ *
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _CL_COMMON_
@@ -24,10 +25,10 @@ static inline void cl_usb_hub_deinit(int gpio) {}
 #endif /* CONFIG_CMD_USB */
 
 #ifdef CONFIG_SMC911X
-int cl_omap3_smc911x_init(int id, int cs, u32 base_addr,
+int cl_omap3_smc911x_init(int id, int cs, unsigned int base_addr,
 			  int (*reset)(int), int rst_gpio);
 #else /* !CONFIG_SMC911X */
-static inline int cl_omap3_smc911x_init(int id, int cs, u32 base_addr,
+static inline int cl_omap3_smc911x_init(int id, int cs, unsigned int base_addr,
 					int (*reset)(int), int rst_gpio)
 {
 	return -ENOSYS;

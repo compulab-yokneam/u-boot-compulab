@@ -1,0 +1,7 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2024 NXP
+ */
+
+#include "ucm-imx95-evk.dts"
+#include "ucm-imx95-u-boot.dtsi"

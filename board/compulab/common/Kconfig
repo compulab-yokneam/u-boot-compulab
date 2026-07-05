@@ -1,0 +1,6 @@
+config LAB_TEMPERATURE_RANGE
+	bool "Extend temperature range"
+	default n
+	help
+		Never say yes, unless you are Compulab emploee
+

@@ -105,7 +105,18 @@ static int tpm_tis_i2c_probe(struct udevice *udev)
 	struct tpm_chip_priv *priv = dev_get_uclass_priv(udev);
 	int rc;
 	u8 loc = 0;
+	int ret;
 
+	if (CONFIG_IS_ENABLED(DM_GPIO)) {
+		struct gpio_desc reset_gpio;
+		ret = gpio_request_by_name(udev, "reset-gpios", 0,
+					   &reset_gpio, GPIOD_IS_OUT);
+		if (!dm_gpio_is_valid(&reset_gpio)) {
+			printf("Invalid GPIO!\n");
+		}
+		dm_gpio_set_value(&reset_gpio, 0);
+		mdelay(11);
+	}
 	tpm_tis_ops_register(udev, &phy_ops);
 
 	/*
