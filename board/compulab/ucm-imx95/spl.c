@@ -32,8 +32,6 @@ int spl_board_boot_device(enum boot_device boot_dev_spl)
 	case USB_BOOT:
 	case USB2_BOOT:
 		return BOOT_DEVICE_BOARD;
-	case QSPI_BOOT:
-		return BOOT_DEVICE_SPI;
 	default:
 		return BOOT_DEVICE_NONE;
 	}
@@ -44,17 +42,12 @@ void spl_board_init(void)
 	int ret;
 	u32 bd;
 
+	printf("%s %d\n",__func__,__LINE__);
 	puts("Normal Boot\n");
 
 	ret = ele_start_rng();
 	if (ret)
 		printf("Fail to start RNG: %d\n", ret);
-
-#ifdef CONFIG_SPL_IMX_BBSM
-	ret = bbsm_tamper_detect_enable();
-	if (ret)
-		printf("Failed to enable BBSM Tamper Detection: %d\n", ret);
-#endif
 
 	bd = spl_boot_device();
 	if (bd == BOOT_DEVICE_BOARD) { /* USB */
@@ -63,35 +56,8 @@ void spl_board_init(void)
 			printf("power on hsio is failed\n");
 	}
 
-	if (IS_ENABLED(CONFIG_SPL_IMX_QB))
-		spl_qb_save();
-}
 
-static void flexspi_nor_reset(void)
-{
-	int ret;
-	struct gpio_desc desc;
-
-	/* 15x15 EVK use M.2 QSPI card, not support booting */
-	if (IS_ENABLED(CONFIG_TARGET_IMX95_15X15_EVK))
-		return;
-
-	ret = dm_gpio_lookup_name("GPIO5_11", &desc);
-	if (ret) {
-		printf("%s lookup GPIO5_11 failed ret = %d\n", __func__, ret);
-		return;
-	}
-
-	ret = dm_gpio_request(&desc, "XSPI_RST_B");
-	if (ret) {
-		printf("%s request XSPI_RST_B failed ret = %d\n", __func__, ret);
-		return;
-	}
-
-	/* assert the XSPI_RST_B */
-	dm_gpio_set_dir_flags(&desc, GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE | GPIOD_ACTIVE_LOW);
-	udelay(200); /* 50 ns at least, so use 200ns */
-	dm_gpio_set_value(&desc, 0); /* deassert the XSPI_RST_B */
+	printf("%s %d\n",__func__,__LINE__);
 }
 
 void board_init_f(ulong dummy)
@@ -120,14 +86,12 @@ void board_init_f(ulong dummy)
 
 	preloader_console_init();
 
-	debug("SOC: 0x%x\n", gd->arch.soc_rev);
-	debug("LC: 0x%x\n", gd->arch.lifecycle);
+	printf("SOC: 0x%x\n", gd->arch.soc_rev);
+	printf("LC: 0x%x\n", gd->arch.lifecycle);
 
 	get_reset_reason(true, false);
 
 	disable_smmuv3();
-
-	flexspi_nor_reset();
 
 	board_init_r(NULL, 0);
 }

@@ -5,6 +5,7 @@
 #
 
 obj-y += ucm-imx95.o
+obj-y += ../../nxp/common/
 
 ifdef CONFIG_SPL_BUILD
 obj-y += spl.o

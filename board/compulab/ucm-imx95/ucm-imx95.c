@@ -49,86 +49,6 @@ struct efi_capsule_update_info update_info = {
 };
 #endif /* EFI_HAVE_CAPSULE_SUPPORT */
 
-int board_early_init_f(void)
-{
-	/* UART1: A55, UART2: M33, UART3: M7 */
-	init_uart_clk(0);
-
-	return 0;
-}
-
-#ifdef CONFIG_USB_DWC3
-
-#define PHY_CTRL0			0xF0040
-#define PHY_CTRL0_REF_SSP_EN		BIT(2)
-#define PHY_CTRL0_FSEL_MASK		GENMASK(10, 5)
-#define PHY_CTRL0_FSEL_24M		0x2a
-#define PHY_CTRL0_FSEL_100M		0x27
-#define PHY_CTRL0_SSC_RANGE_MASK	GENMASK(23, 21)
-#define PHY_CTRL0_SSC_RANGE_4003PPM	(0x2 << 21)
-
-#define PHY_CTRL1			0xF0044
-#define PHY_CTRL1_RESET			BIT(0)
-#define PHY_CTRL1_COMMONONN		BIT(1)
-#define PHY_CTRL1_ATERESET		BIT(3)
-#define PHY_CTRL1_DCDENB		BIT(17)
-#define PHY_CTRL1_CHRGSEL		BIT(18)
-#define PHY_CTRL1_VDATSRCENB0		BIT(19)
-#define PHY_CTRL1_VDATDETENB0		BIT(20)
-
-#define PHY_CTRL2			0xF0048
-#define PHY_CTRL2_TXENABLEN0		BIT(8)
-#define PHY_CTRL2_OTG_DISABLE		BIT(9)
-
-#define PHY_CTRL6			0xF0058
-#define PHY_CTRL6_RXTERM_OVERRIDE_SEL	BIT(29)
-#define PHY_CTRL6_ALT_CLK_EN		BIT(1)
-#define PHY_CTRL6_ALT_CLK_SEL		BIT(0)
-
-static struct dwc3_device dwc3_device_data = {
-	.maximum_speed = USB_SPEED_HIGH,
-	.base = USB1_BASE_ADDR,
-	.dr_mode = USB_DR_MODE_PERIPHERAL,
-	.index = 0,
-	.power_down_scale = 2,
-};
-
-static void dwc3_nxp_usb_phy_init(struct dwc3_device *dwc3)
-{
-	u32 value;
-
-	/* USB3.0 PHY signal fsel for 24M ref */
-	value = readl(dwc3->base + PHY_CTRL0);
-	value &= ~PHY_CTRL0_FSEL_MASK;
-	value |= FIELD_PREP(PHY_CTRL0_FSEL_MASK, PHY_CTRL0_FSEL_24M);
-	writel(value, dwc3->base + PHY_CTRL0);
-
-	/* Disable alt_clk_en and use internal MPLL clocks */
-	value = readl(dwc3->base + PHY_CTRL6);
-	value &= ~(PHY_CTRL6_ALT_CLK_SEL | PHY_CTRL6_ALT_CLK_EN);
-	writel(value, dwc3->base + PHY_CTRL6);
-
-	value = readl(dwc3->base + PHY_CTRL1);
-	value &= ~(PHY_CTRL1_VDATSRCENB0 | PHY_CTRL1_VDATDETENB0);
-	value |= PHY_CTRL1_RESET | PHY_CTRL1_ATERESET;
-	writel(value, dwc3->base + PHY_CTRL1);
-
-	value = readl(dwc3->base + PHY_CTRL0);
-	value |= PHY_CTRL0_REF_SSP_EN;
-	writel(value, dwc3->base + PHY_CTRL0);
-
-	value = readl(dwc3->base + PHY_CTRL2);
-	value |= PHY_CTRL2_TXENABLEN0 | PHY_CTRL2_OTG_DISABLE;
-	writel(value, dwc3->base + PHY_CTRL2);
-
-	udelay(10);
-
-	value = readl(dwc3->base + PHY_CTRL1);
-	value &= ~(PHY_CTRL1_RESET | PHY_CTRL1_ATERESET);
-	writel(value, dwc3->base + PHY_CTRL1);
-}
-#endif
-
 static int imx9_scmi_power_domain_enable(u32 domain, bool enable)
 {
 	struct udevice *dev;
@@ -146,18 +66,7 @@ int board_usb_init(int index, enum usb_init_type init)
 	int ret = 0;
 
 	if (index == 0 && init == USB_INIT_DEVICE) {
-		ret = imx9_scmi_power_domain_enable(IMX95_PD_HSIO_TOP, true);
-		if (ret) {
-			printf("SCMI_POWWER_STATE_SET Failed for USB\n");
-			return ret;
-		}
-
-#ifdef CONFIG_USB_DWC3
-		dwc3_nxp_usb_phy_init(&dwc3_device_data);
-#endif
-#ifdef CONFIG_USB_DWC3
-		return dwc3_uboot_init(&dwc3_device_data);
-#endif
+		return ret;
 	} else if (index == 0 && init == USB_INIT_HOST) {
 		return ret;
 	}
@@ -168,13 +77,6 @@ int board_usb_init(int index, enum usb_init_type init)
 int board_usb_cleanup(int index, enum usb_init_type init)
 {
 	int ret = 0;
-	if (index == 0 && init == USB_INIT_DEVICE) {
-#ifdef CONFIG_USB_DWC3
-		dwc3_uboot_exit(index);
-#endif
-	} else if (index == 0 && init == USB_INIT_HOST) {
-	}
-
 	return ret;
 }
 
