@@ -66,33 +66,38 @@ struct lpddr4_desc {
 	 * Default value 0xff
 	 */
 	u8	subind;
-	struct dram_timing_info *timing;
+	const struct dram_profile_desc *profile;
 	char *desc[4];
 };
 
 #define DEFAULT (('D' << 24) + ('E' << 16 ) + ( 'F' << 8 ) + 'A')
 static const struct lpddr4_desc lpddr4_array[] = {
+	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x04, .size = 4096, .count = 1, .profile = &ucm_dram_profile_ff070110}, //C3222PM4CDGUI-U
+	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x02, .size = 2048, .count = 1, .profile = &ucm_dram_profile_ff070010}, //D1621PM4CDGUI
 #ifdef CONFIG_TARGET_MCM_IMX8M_MINI
-	{ .name = "Nanya",	.id = 0x05000010, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
+	{ .name = "Nanya",	.id = 0x05000010, .subind = 0xff, .size = 2048, .count = 1, .profile = &ucm_dram_profile_01061010},
 #else
-	{ .name = "Nanya",	.id = 0x05000010, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_05000010},
+	{ .name = "Nanya",	.id = 0x05000010, .subind = 0xff, .size = 2048, .count = 1, .profile = &ucm_dram_profile_05000010},
 #endif
-	{ .name = "ISSI",	.id = 0x1b000008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_1b000008}, //IS43LQ32256B-062BLI
-	{ .name = "ISSI",	.id = 0x1b010008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_1b000008}, //IS43LQ32256C-046BLI
-	{ .name = "Etron",	.id = 0x1a000008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_1b000008}, //EM6LF32MBAJB-46ISH
-	{ .name = "Winbond",	.id = 0x08000008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_1b000008}, //W66DP2RQQAGJ
-	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x04, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},
-	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x02, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
-	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x04, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},
-	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x02, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
-	{ .name = "Samsung",	.id = 0x01050008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_01050008},
-	{ .name = "Samsung",	.id = 0x01060008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_01050008},
-	{ .name = "Alliance",   .id = 0x52000008, .subind = 0xff, .size = 1024, .count = 1, .timing = &ucm_dram_timing_01050008},
-	{ .name = "Kingston",	.id = 0xff050010, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
-	{ .name = "Kingston",	.id = 0xff000010, .subind = 0x04, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},
-	{ .name = "Kingston",	.id = 0xff000010, .subind = 0x02, .size = 2048, .count = 1, .timing = &ucm_dram_timing_01061010},
-	{ .name = "Micron",	.id = 0xff020008, .subind = 0xff, .size = 2048, .count = 1, .timing = &ucm_dram_timing_ff020008},
-	{ .name = "Micron",	.id = 0xff000110, .subind = 0xff, .size = 4096, .count = 1, .timing = &ucm_dram_timing_ff000110},
+	{ .name = "ISSI",	.id = 0x1b000008, .subind = 0xff, .size = 1024, .count = 1, .profile = &ucm_dram_profile_1b000008}, //IS43LQ32256B-062BLI
+	{ .name = "ISSI",	.id = 0x1b010008, .subind = 0xff, .size = 1024, .count = 1, .profile = &ucm_dram_profile_1b000008}, //IS43LQ32256C-046BLI
+	{ .name = "Etron",	.id = 0x1a000008, .subind = 0xff, .size = 1024, .count = 1, .profile = &ucm_dram_profile_1b000008}, //EM6LF32MBAJB-46ISH
+	{ .name = "Winbond",	.id = 0x08000008, .subind = 0xff, .size = 1024, .count = 1, .profile = &ucm_dram_profile_1b000008}, //W66DP2RQQAGJ
+	//{ .name = "ISSI",	.id = 0x13000210, .subind = 0x04, .size = 4096, .count = 1, .profile = NULL}, // not yet supported
+	{ .name = "ISSI",	.id = 0x13000210, .subind = 0x02, .size = 2048, .count = 1, .profile = &ucm_dram_profile_ff070010}, //IS43LQ32512A-053BLI
+	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x04, .size = 4096, .count = 1, .profile = &ucm_dram_profile_ff000110},
+	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x02, .size = 2048, .count = 1, .profile = &ucm_dram_profile_01061010},
+	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x04, .size = 4096, .count = 1, .profile = &ucm_dram_profile_ff000110},
+	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x02, .size = 2048, .count = 1, .profile = &ucm_dram_profile_01061010},
+	{ .name = "Samsung",	.id = 0x01050008, .subind = 0xff, .size = 1024, .count = 1, .profile = &ucm_dram_profile_01050008},
+	{ .name = "Samsung",	.id = 0x01060008, .subind = 0xff, .size = 1024, .count = 1, .profile = &ucm_dram_profile_01050008},
+	{ .name = "Alliance",   .id = 0x52000008, .subind = 0xff, .size = 1024, .count = 1, .profile = &ucm_dram_profile_01050008},
+	{ .name = "Kingston",	.id = 0xff050010, .subind = 0xff, .size = 2048, .count = 1, .profile = &ucm_dram_profile_01061010},
+	{ .name = "Kingston",	.id = 0xff000010, .subind = 0x04, .size = 4096, .count = 1, .profile = &ucm_dram_profile_ff000110},
+	{ .name = "Kingston",	.id = 0xff000010, .subind = 0x02, .size = 2048, .count = 1, .profile = &ucm_dram_profile_01061010},
+	{ .name = "Micron",	.id = 0xff020008, .subind = 0xff, .size = 2048, .count = 1, .profile = &ucm_dram_profile_ff020008},
+	{ .name = "Micron",	.id = 0xff000110, .subind = 0xff, .size = 4096, .count = 1, .profile = &ucm_dram_profile_ff000110},
+	{ .name = "Etron",	.id = 0xff070018, .subind = 0xff, .size = 4096, .count = 1, .profile = &ucm_dram_profile_ff070018}, //EM6LH32MVAJA
 };
 
 static unsigned int lpddr4_get_mr(void)
@@ -140,6 +145,7 @@ void spl_dram_init(void)
 	unsigned int ddr_info_mrr = 0xdeadbeef;
 	unsigned int ddr_found = 0;
 	int i = 0;
+	struct dram_timing_info dram_timing;
 
 	struct lpddr4_tcm_desc *lpddr4_tcm_desc = (struct lpddr4_tcm_desc *) SPL_TCM_DATA;
 
@@ -176,13 +182,15 @@ void spl_dram_init(void)
 	} else
 
 	printf("DDRINFO(%s): %s %dG @ %d MHz\n", (ddr_found ? "D" : "?" ), lpddr4_array[i].name,
-			lpddr4_array[i].size, lpddr4_array[i].timing->fsp_table[0]);
+			lpddr4_array[i].size, lpddr4_array[i].profile->fsp_table[0]);
 
-	//Initialize the common part of all trainigs
-	lpddr4_array[i].timing->ddrphy_trained_csr = ddr_ddrphy_trained_csr;
-	lpddr4_array[i].timing->ddrphy_trained_csr_num = ARRAY_SIZE(ddr_ddrphy_trained_csr);
+	//Merge the base+patch tables into scratch buffers, then initialize
+	//the common part of all trainigs
+	dram_profile_build_timing(lpddr4_array[i].profile, &dram_timing);
+	dram_timing.ddrphy_trained_csr = ddr_ddrphy_trained_csr;
+	dram_timing.ddrphy_trained_csr_num = ARRAY_SIZE(ddr_ddrphy_trained_csr);
 
-	if (ddr_init(lpddr4_array[i].timing)) {
+	if (ddr_init(&dram_timing)) {
 		SPL_TCM_INIT;
 		do_reset(NULL,0,0,NULL);
 	}

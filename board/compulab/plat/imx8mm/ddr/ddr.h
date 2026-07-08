@@ -7,12 +7,17 @@
 #ifndef __DDR_H__
 #define __DDR_H__
 
-extern struct dram_timing_info ucm_dram_timing_ff020008;
-extern struct dram_timing_info ucm_dram_timing_ff000110;
-extern struct dram_timing_info ucm_dram_timing_01061010;
-extern struct dram_timing_info ucm_dram_timing_01050008;
-extern struct dram_timing_info ucm_dram_timing_05000010;
-extern struct dram_timing_info ucm_dram_timing_1b000008;
+#include "ddr_patch.h"
+
+extern const struct dram_profile_desc ucm_dram_profile_ff020008;
+extern const struct dram_profile_desc ucm_dram_profile_ff000110;
+extern const struct dram_profile_desc ucm_dram_profile_01061010;
+extern const struct dram_profile_desc ucm_dram_profile_01050008;
+extern const struct dram_profile_desc ucm_dram_profile_05000010;
+extern const struct dram_profile_desc ucm_dram_profile_1b000008;
+extern const struct dram_profile_desc ucm_dram_profile_ff070010;
+extern const struct dram_profile_desc ucm_dram_profile_ff070018;
+extern const struct dram_profile_desc ucm_dram_profile_ff070110;
 
 void spl_dram_init(void);
 
