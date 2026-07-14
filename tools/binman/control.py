@@ -8,7 +8,7 @@
 from collections import OrderedDict
 import glob
 import os
-import pkg_resources
+import importlib.resources
 import re
 
 import sys
