@@ -84,24 +84,6 @@ config DRAM_D2D4
 	  If 'Y' then support for D2 and D4 configuration is enabled
 	  else support for D1 and D8 configuration is enabled
 
-config DRAM_ISSI
-	bool "Enable ISSI dram vendor support"
-	default n
-	help
-	  If 'Y' then support ISSI configuration is enabled
-
-config DRAM_ETRON
-	bool "Enable ETRON dram vendor support"
-	default n
-	help
-	  If 'Y' then support ETRON configuration is enabled
-
-config DRAM_KINGSTON
-	bool "Enable KINGSTON dram vendor support"
-	default n
-	help
-	  If 'Y' then support KINGSTON configuration is enabled
-
 menu  "Compulab IOT-GATE-IMX8PLUS features"
 	depends on TARGET_IOT_GATE_IMX8PLUS
 
