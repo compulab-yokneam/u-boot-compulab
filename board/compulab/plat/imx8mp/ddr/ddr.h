@@ -76,14 +76,19 @@ static const struct lpddr4_desc lpddr4_array[] = {
 
 static const struct lpddr4_desc lpddr4_array[] = {
 #ifdef CONFIG_DRAM_D2D4
-	{ .name = "deadbeaf",	.id = 0xdeadbeef, .subind = 0x2, .size = 2048, .count = 1,
+	{ .name = "deadbeaf",	.id = 0xdeadbeef, .subind = 0x4, .size = 4096, .count = 1,
 #ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_01061010_2G
+		.timing = &ucm_dram_timing_01061010_4G
 #endif
 	},
 	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x4, .size = 4096, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+	{ .name = "ISSI",	.id = 0x13000518, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff070018_4G
 #endif
 	},
 	{ .name = "Micron",	.id = 0xff000010, .subind = 0x4, .size = 4096, .count = 1,
@@ -96,6 +101,26 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_ff000010
 #endif
 	},
+	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+	{ .name = "Etron",	.id = 0xff070018, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff070018_4G
+#endif
+	},
+	{ .name = "deadbeaf",	.id = 0xdeadbeef, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
 	{ .name = "Nanya",	.id = 0x05000010, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_2G
@@ -106,26 +131,14 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_01061010_2G
 #endif
 	},
-	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x4, .size = 4096, .count = 1,
-#ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_01061010_4G
-#endif
-	},
 	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_2G
 #endif
 	},
-#if CONFIG_DRAM_ISSI
 	{ .name = "Issi",	.id = 0x13000210, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_13000210_2G
-#endif
-	},
-#endif
-	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x4, .size = 4096, .count = 1,
-#ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_01061010_4G
 #endif
 	},
 	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x2, .size = 2048, .count = 1,
@@ -133,48 +146,7 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_01061010_2G
 #endif
 	},
-#if CONFIG_DRAM_ETRON
-	{ .name = "Etron",	.id = 0xff070010, .subind = 0x2, .size = 2048, .count = 1,
-#ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_ff070010_2G
-#endif
-	},
-	{ .name = "Etron",	.id = 0xff070018, .subind = 0x4, .size = 4096, .count = 1,
-#ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_ff070018_4G
-#endif
-	},
-#endif
 #else /* CONFIG_DRAM_D2D4 */
-	{ .name = "deadbeaf",	.id = 0xdeadbeaf, .subind = 0x1, .size = 1024, .count = 1,
-#ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_01061010_1G
-#endif
-	},
-#if CONFIG_DRAM_ETRON
-	{ .name = "Etron",	.id = 0x1a000008, .subind = 0x1, .size = 1024, .count = 1,
-#ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_1a000008_1G
-#endif
-	},
-#endif
-#if CONFIG_DRAM_ISSI
-	{ .name = "Issi",	.id = 0x1b000008, .subind = 0x1, .size = 1024, .count = 1,
-#ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_1b000008_1G
-#endif
-	},
-#endif
-	{ .name = "Samsung",	.id = 0x01050008, .subind = 0x1, .size = 1024, .count = 1,
-#ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_01061010_1G
-#endif
-	},
-	{ .name = "Samsung",	.id = 0x01060008, .subind = 0x1, .size = 1024, .count = 1,
-#ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_01061010_1G_4000
-#endif
-	},
 	{ .name = "Micron",	.id = 0xff060018, .subind = 0x8, .size = 8192, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_ff060018
@@ -183,6 +155,21 @@ static const struct lpddr4_desc lpddr4_array[] = {
 	{ .name = "Micron",	.id = 0xff070018, .subind = 0x8, .size = 8192, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_ff060018
+#endif
+	},
+	{ .name = "deadbeaf",	.id = 0xdeadbeaf, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_1G
+#endif
+	},
+	{ .name = "Samsung",	.id = 0x01050008, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_1G
+#endif
+	},
+	{ .name = "Samsung",	.id = 0x01060008, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_1G_4000
 #endif
 	},
 #endif
