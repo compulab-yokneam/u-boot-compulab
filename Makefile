@@ -1523,28 +1523,39 @@ u-boot.cnt: u-boot.bin FORCE
 
 flash.bin: spl/u-boot-spl.bin u-boot.cnt FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
+	@cp $@ $@.$(DRAM_CONF)
 else
 ifeq ($(CONFIG_BINMAN),y)
 flash.bin: spl/u-boot-spl.bin $(INPUTS-y) mk_firmware FORCE
 	$(call if_changed,binman)
+	@cp $@ $@.$(DRAM_CONF)
 else
 flash.bin: spl/u-boot-spl.bin u-boot.itb FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
+	@cp $@ $@.$(DRAM_CONF)
 endif
 endif
 
 UBOOT_ENV_OFFSET=$(shell echo $$(( $(CONFIG_ENV_OFFSET) >> 9)))
+
+ifeq ($(CONFIG_DRAM_D2D4),y)
+	DRAM_CONF := d2d4
+else
+	DRAM_CONF := d1d8
+endif
 
 # Create an emmc flash.bin-with-env
 flash.bin-with-env: flash.bin u-boot-initial-env FORCE
 	@dd if=/dev/zero  of=$@ bs=512 count=8192 2>/dev/null
 	@dd if=flash.bin  of=$@ bs=512 seek=0 conv=notrunc 2>/dev/null
 	@cat u-boot-initial-env | mkenvimage -s $(CONFIG_ENV_SIZE) | dd of=$@ bs=512 seek=$(UBOOT_ENV_OFFSET) conv=notrunc 2>/dev/null
+	@cp $@ $@.$(DRAM_CONF)
 
 flash.bin-with-custom-env: flash.bin u-boot-custom-env FORCE
 	@dd if=/dev/zero  of=$@ bs=512 count=8192 2>/dev/null
 	@dd if=flash.bin  of=$@ bs=512 seek=0 conv=notrunc 2>/dev/null
 	@cat u-boot-custom-env | mkenvimage -s $(CONFIG_ENV_SIZE) | dd of=$@ bs=512 seek=$(UBOOT_ENV_OFFSET) conv=notrunc 2>/dev/null
+	@cp $@ $@.$(DRAM_CONF)
 #endif
 
 u-boot.uim: u-boot.bin FORCE
