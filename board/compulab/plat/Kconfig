@@ -1,3 +1,9 @@
+config TARGET_COMPULAB_IMX8MP
+	bool
+
+config TARGET_COMPULAB_IMX8MM
+	bool
+
 choice
 	prompt  "CompuLab i.MX8M select"
 
@@ -6,18 +12,21 @@ config TARGET_UCM_IMX8M_MINI
 	select IMX8MM
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MM
 
 config TARGET_MCM_IMX8M_MINI
 	bool "CompuLab mcm-imx8m-mini"
 	select IMX8MM
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MM
 
 config TARGET_IOT_GATE_IMX8
 	bool "CompuLab iot-gate-imx8"
 	select IMX8MM
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MM
 
 config TARGET_UCM_IMX8M_PLUS
 	bool "CompuLab ucm-imx8m-plus"
@@ -25,6 +34,7 @@ config TARGET_UCM_IMX8M_PLUS
 	select BINMAN
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MP
 
 config TARGET_MCM_IMX8M_PLUS
 	bool "CompuLab mcm-imx8m-plus"
@@ -32,6 +42,7 @@ config TARGET_MCM_IMX8M_PLUS
 	select BINMAN
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MP
 
 config TARGET_SOM_IMX8M_PLUS
 	bool "CompuLab som-imx8m-plus"
@@ -39,6 +50,7 @@ config TARGET_SOM_IMX8M_PLUS
 	select BINMAN
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MP
 
 config TARGET_IOT_GATE_IMX8PLUS
 	bool "CompuLab iot-gate-imx8plus"
@@ -46,6 +58,7 @@ config TARGET_IOT_GATE_IMX8PLUS
 	select BINMAN
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MP
 
 config TARGET_IOTDIN_IMX8P
 	bool "CompuLab iotdin-imx8p"
@@ -53,10 +66,11 @@ config TARGET_IOTDIN_IMX8P
 	select BINMAN
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MP
 endchoice
 
 menu "Compulab i.MX8MM platform features"
-	depends on TARGET_UCM_IMX8M_MINI || TARGET_MCM_IMX8M_MINI || TARGET_IOT_GATE_IMX8
+	depends on TARGET_COMPULAB_IMX8MM
 
 config FASTBOOT_DEBUG
 	bool "Enable peripheral mode for usb1"
@@ -75,7 +89,7 @@ config SPL_REPORT_FAKE_MEMSIZE
 endmenu
 
 menu  "Compulab i.MX8MP platform features"
-	depends on TARGET_SOM_IMX8M_PLUS || TARGET_UCM_IMX8M_PLUS || TARGET_IOT_GATE_IMX8PLUS || TARGET_MCM_IMX8M_PLUS || TARGET_IOTDIN_IMX8P
+	depends on TARGET_COMPULAB_IMX8MP
 
 config DRAM_D2D4
 	bool "Enable D2D4 or D1D8 dram support"
