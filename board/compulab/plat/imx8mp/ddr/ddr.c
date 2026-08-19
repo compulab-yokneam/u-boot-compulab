@@ -82,7 +82,7 @@ static int _spl_dram_init(void)
 		ddr_info = cl_eeprom_get_ddrinfo();
 		subind = cl_eeprom_get_subind();
 
-		printf("DDRINFO: EEPROM VALID DATA [ [ %x ] = %x %x \n",
+		printf("DDRINFO: EEPROM VALID DATA [ [ %x ] = %x %x ]\n",
                 lpddr4_tcm_desc->sign, ddr_info, subind);
 
 		for ( i = 0; i < ARRAY_SIZE(lpddr4_array); i++ ) {
