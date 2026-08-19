@@ -1,0 +1,52 @@
+if TARGET_UCM_IMX952
+
+config SYS_BOARD
+	default "ucm-imx952"
+
+config SYS_VENDOR
+	default "compulab"
+
+config SYS_CONFIG_NAME
+	default "ucm-imx952"
+
+config DEFAULT_DEVICE_TREE
+	default "ucm-imx952"
+
+config DEFAULT_FDT_FILE
+	default "ucm-imx952.dtb"
+
+config SYS_I2C_EEPROM_BUS
+	default 1
+
+config SYS_I2C_EEPROM_ADDR
+	default 0x50
+
+config ENV_OFFSET
+	hex "Environment Size"
+	default 0x3F0000
+
+config ENV_SIZE
+	hex "Environment Size"
+	default 0x4000
+
+config SYS_MMC_ENV_PART
+	int
+	default 1
+
+choice
+	prompt "CompuLab i.MX952 dram config"
+
+config DRAM_D8
+	bool "D8 dram support"
+
+config DRAM_D16
+	bool "D16 dram support"
+
+config DRAM_D4
+	bool "D4 dram support"
+
+endchoice
+
+source "board/compulab/common/Kconfig"
+
+endif
