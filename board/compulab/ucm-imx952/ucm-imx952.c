@@ -98,17 +98,6 @@ int board_usb_cleanup(int index, enum usb_init_type init)
 	return ret;
 }
 
-int board_ehci_usb_phy_mode(struct udevice *dev)
-{
-	debug("%s %d\n", __func__, dev_seq(dev));
-
-	if (dev_seq(dev) == 0)
-		return USB_INIT_DEVICE;
-	else
-		return USB_INIT_HOST;
-}
-
-
 static void netc_phy_rst(const char *gpio_name, const char *label)
 {
 	int ret;

@@ -9,7 +9,6 @@
 #include <dt-bindings/i3c/i3c.h>
 #include <dt-bindings/pwm/pwm.h>
 #include <dt-bindings/phy/phy-imx8-pcie.h>
-#include <dt-bindings/usb/pd.h>
 #include "imx952.dtsi"
 
 #define FALLING_EDGE		BIT(0)
@@ -422,39 +421,6 @@
 		interrupts = <16 IRQ_TYPE_LEVEL_LOW>;
 	};
 
-	ptn5110: tcpc@50 {
-		compatible = "nxp,ptn5110", "tcpci";
-		reg = <0x50>;
-		interrupt-parent = <&gpio5>;
-		interrupts = <14 IRQ_TYPE_LEVEL_LOW>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_ptn5110>;
-
-		typec_con: connector {
-			compatible = "usb-c-connector";
-			label = "USB-C";
-			power-role = "dual";
-			data-role = "dual";
-			try-power-role = "sink";
-			source-pdos = <PDO_FIXED(5000, 3000, PDO_FIXED_USB_COMM)>;
-			sink-pdos = <PDO_FIXED(5000, 0, PDO_FIXED_USB_COMM)>;
-			op-sink-microwatt = <0>;
-			self-powered;
-
-			ports {
-				#address-cells = <1>;
-				#size-cells = <0>;
-
-				port@0 {
-					reg = <0>;
-
-					typec1_dr_sw: endpoint {
-						remote-endpoint = <&usb1_drd_sw>;
-					};
-				};
-			};
-		};
-	};
 };
 
 &lpuart1 {
@@ -550,21 +516,14 @@
 };
 
 &usb1 {
-	dr_mode = "otg";
+	dr_mode = "peripheral";
 	hnp-disable;
 	srp-disable;
 	adp-disable;
-	usb-role-switch;
 	disable-over-current;
 	samsung,picophy-pre-emp-curr-control = <3>;
 	samsung,picophy-dc-vol-level-adjust = <7>;
 	status = "okay";
-
-	port {
-		usb1_drd_sw: endpoint {
-			remote-endpoint = <&typec1_dr_sw>;
-		};
-	};
 };
 
 &usb2 {
@@ -710,12 +669,6 @@
 	pinctrl_pcie0: pcie0grp {
 		fsl,pins = <
 			IMX952_PAD_GPIO_IO32__HSIOMIX_TOP_PCIE1_CLKREQ_B	0x4000031e
-		>;
-	};
-
-	pinctrl_ptn5110: ptn5110grp {
-		fsl,pins = <
-			IMX952_PAD_GPIO_IO34__WAKEUPMIX_TOP_GPIO5_IO_14		     0x31e
 		>;
 	};
 
