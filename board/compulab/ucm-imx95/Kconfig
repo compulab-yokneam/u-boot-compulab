@@ -33,20 +33,4 @@ config SYS_MMC_ENV_PART
 	int
 	default 1
 
-choice
-	prompt "CompuLab i.MX95 dram config"
-
-config DRAM_D8
-	bool "D8 dram support"
-
-config DRAM_D16
-	bool "D16 dram support"
-
-config DRAM_D4
-	bool "D4 dram support"
-
-endchoice
-
-source "board/compulab/common/Kconfig"
-
 endif

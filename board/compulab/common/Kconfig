@@ -4,3 +4,21 @@ config LAB_TEMPERATURE_RANGE
 	help
 		Never say yes, unless you are Compulab emploee
 
+if TARGET_UCM_IMX95 || TARGET_UCM_IMX952
+
+choice
+	prompt "CompuLab i.MX95/i.MX952 DRAM configuration"
+	default DRAM_D8
+
+config DRAM_D8
+	bool "D8 DRAM support"
+
+config DRAM_D16
+	bool "D16 DRAM support"
+
+config DRAM_D4
+	bool "D4 DRAM support"
+
+endchoice
+
+endif
