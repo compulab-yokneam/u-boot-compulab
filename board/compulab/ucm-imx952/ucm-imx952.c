@@ -40,13 +40,13 @@ extern int board_fix_fdt_fuse(void *fdt);
 
 #if CONFIG_IS_ENABLED(EFI_HAVE_CAPSULE_SUPPORT)
 #define IMX_BOOT_IMAGE_GUID \
-	EFI_GUID(0x58a661f3, 0xe7c7, 0x4173, 0x80, 0x21, \
-		0xa3, 0x1b, 0x95, 0xc8, 0x6e, 0x9b)
+	EFI_GUID(0xb097e8d2, 0xfb37, 0x50c9, 0x9e, 0xb6, \
+		0xa7, 0xf0, 0x74, 0x85, 0x44, 0x38)
 
 struct efi_fw_image fw_images[] = {
 	{
 		.image_type_id = IMX_BOOT_IMAGE_GUID,
-		.fw_name = u"IMX952-EVK-RAW",
+		.fw_name = u"UCM-IMX952-RAW",
 		.image_index = 1,
 	},
 };
