@@ -23,7 +23,11 @@
 #include <dm/uclass-internal.h>
 #include <dm/device.h>
 #include <asm/arch/crrm.h>
+#include <net-common.h>
 #include "../arch/arm/dts/imx952-power.h"
+
+#include "../common/eeprom.h"
+#include "../common/fdt.h"
 
 #define PD_HSIO_TOP IMX952_PD_HSIO_TOP
 #define PD_NETC IMX952_PD_NETC
@@ -161,6 +165,15 @@ void netc_init(void)
 	netc_phy_rst("i2c6_io@21_13", "ENET1_RST_B");
 }
 
+void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
+{
+	cl_eeprom_read_n_mac_addr(mac, dev_id, CONFIG_SYS_I2C_EEPROM_BUS);
+	if (is_zero_ethaddr(mac) || !is_valid_ethaddr(mac))
+		net_random_ethaddr(mac);
+
+	eth_env_set_enetaddr_by_index("eth", dev_id, mac);
+}
+
 static void pcie_setup(void)
 {
 	int ret;
@@ -240,6 +253,12 @@ int board_late_init(void)
 }
 
 #ifdef CONFIG_OF_BOARD_SETUP
+static void ft_board_setup_compulab(void *blob)
+{
+	fdt_set_env_addr(blob);
+	fdt_set_sn(blob);
+}
+
 static int jh_mem_fdt_setup(void *blob)
 {
 	char *p, *b, *s;
@@ -309,6 +328,8 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 		}
 	}
 #endif
+
+	ft_board_setup_compulab(blob);
 
 	return 0;
 }

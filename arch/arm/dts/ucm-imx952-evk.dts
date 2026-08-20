@@ -286,10 +286,18 @@
 };
 
 &lpi2c2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
 	clock-frequency = <400000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpi2c2>;
 	status = "okay";
+
+	eeprom@50 {
+		compatible = "atmel,24c08";
+		reg = <0x50>;
+		pagesize = <16>;
+	};
 
 	adp5585: io-expander@34 {
 		compatible = "adi,adp5585-00", "adi,adp5585";
@@ -302,10 +310,18 @@
 };
 
 &lpi2c3 {
+	#address-cells = <1>;
+	#size-cells = <0>;
 	clock-frequency = <400000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpi2c3>;
 	status = "okay";
+
+	eeprom@54 {
+		compatible = "atmel,24c08";
+		reg = <0x54>;
+		pagesize = <16>;
+	};
 
 	i2c3_pcal6408: gpio@20 {
 		compatible = "nxp,pcal6408";
