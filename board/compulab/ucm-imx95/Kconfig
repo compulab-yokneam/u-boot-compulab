@@ -21,6 +21,14 @@ config SYS_I2C_EEPROM_BUS
 config SYS_I2C_EEPROM_ADDR
 	default 0x50
 
+config SYS_I2C_EEPROM_BUS_SB
+	int
+	default 2
+
+config SYS_I2C_EEPROM_ADDR_SB
+	hex
+	default 0x54
+
 config ENV_OFFSET
 	hex "Environment Size"
 	default 0x3F0000

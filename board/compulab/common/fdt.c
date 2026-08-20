@@ -26,86 +26,144 @@ static int parse_hex_u64(const char *str, u64 *value)
 	return *endp ? -EINVAL : 0;
 }
 
-void fdt_set_sn(void *blob)
+int fdt_set_sn(void *blob)
 {
 	u32 rev;
 	char buf[100];
-	int len;
+	int len, ret;
 	union {
 		struct tag_serialnr	s;
 		u64			u;
 	} serialnr;
 
 	len = cl_eeprom_read_som_name(buf);
-	fdt_setprop(blob, 0, "product-name", buf, len);
+	ret = fdt_setprop(blob, 0, "product-name", buf, len + 1);
+	if (ret)
+		return ret;
 
 	len = cl_eeprom_read_sb_name(buf);
-	fdt_setprop(blob, 0, "baseboard-name", buf, len);
+	ret = fdt_setprop(blob, 0, "baseboard-name", buf, len + 1);
+	if (ret)
+		return ret;
 
 	cpl_get_som_serial(&serialnr.s);
-	fdt_setprop(blob, 0, "product-sn", buf, sprintf(buf, "%llx", serialnr.u) + 1);
+	snprintf(buf, sizeof(buf), "%llx", serialnr.u);
+	ret = fdt_setprop_string(blob, 0, "product-sn", buf);
+	if (ret)
+		return ret;
 
 	cpl_get_sb_serial(&serialnr.s);
-	fdt_setprop(blob, 0, "baseboard-sn", buf, sprintf(buf, "%llx", serialnr.u) + 1);
+	snprintf(buf, sizeof(buf), "%llx", serialnr.u);
+	ret = fdt_setprop_string(blob, 0, "baseboard-sn", buf);
+	if (ret)
+		return ret;
 
 	rev = cl_eeprom_get_som_revision();
-	fdt_setprop(blob, 0, "product-revision", buf,
-		sprintf(buf, "%u.%02u", rev/100 , rev%100 ) + 1);
+	snprintf(buf, sizeof(buf), "%u.%02u", rev / 100, rev % 100);
+	ret = fdt_setprop_string(blob, 0, "product-revision", buf);
+	if (ret)
+		return ret;
 
 	rev = cl_eeprom_get_sb_revision();
-	fdt_setprop(blob, 0, "baseboard-revision", buf,
-		sprintf(buf, "%u.%02u", rev/100 , rev%100 ) + 1);
+	snprintf(buf, sizeof(buf), "%u.%02u", rev / 100, rev % 100);
+	ret = fdt_setprop_string(blob, 0, "baseboard-revision", buf);
+	if (ret)
+		return ret;
 
 	len = cl_eeprom_read_som_options(buf);
-	fdt_setprop(blob, 0, "product-options", buf, len);
+	ret = fdt_setprop(blob, 0, "product-options", buf, len + 1);
+	if (ret)
+		return ret;
 
 	len = cl_eeprom_read_sb_options(buf);
-	fdt_setprop(blob, 0, "baseboard-options", buf, len);
+	ret = fdt_setprop(blob, 0, "baseboard-options", buf, len + 1);
 
-	return;
+	return ret;
 }
 
 int fdt_set_env_addr(void *blob)
 {
 #ifndef CONFIG_SYS_REDUNDAND_ENVIRONMENT
-	char tmp[32];
-	int nodeoff = fdt_add_subnode(blob, 0, "fw_env");
-	int env_dev = get_env_dev();
-	int env_part = get_env_part();
-	char env_to_export[CONFIG_ENV_SIZE];
+	char tmp[64];
+	const char *src = default_environment;
+	char *env_to_export, *dst;
+	size_t remaining;
+	int env_dev, env_part;
+	int nodeoff, ret;
 
-	if(0 > nodeoff)
+	nodeoff = fdt_add_subnode(blob, 0, "fw_env");
+	if (nodeoff == -FDT_ERR_EXISTS)
+		nodeoff = fdt_path_offset(blob, "/fw_env");
+	if (nodeoff < 0)
 		return nodeoff;
 
-	fdt_setprop(blob, nodeoff, "env_off", tmp, sprintf(tmp, "0x%x", CONFIG_ENV_OFFSET));
-	fdt_setprop(blob, nodeoff, "env_size", tmp, sprintf(tmp, "0x%x", CONFIG_ENV_SIZE));
+	snprintf(tmp, sizeof(tmp), "0x%x", CONFIG_ENV_OFFSET);
+	ret = fdt_setprop_string(blob, nodeoff, "env_off", tmp);
+	if (ret)
+		return ret;
+
+	snprintf(tmp, sizeof(tmp), "0x%x", CONFIG_ENV_SIZE);
+	ret = fdt_setprop_string(blob, nodeoff, "env_size", tmp);
+	if (ret)
+		return ret;
+
+	env_dev = get_env_dev();
+	env_part = get_env_part();
 
 	if (env_dev != -1) {
-		switch(env_part) {
-			case 2:
-			case 1:
-				fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%iboot%i", env_dev, env_part - 1));
-				fdt_setprop(blob, nodeoff, "fw_env.config", tmp, sprintf(tmp, "/dev/mmcblk%iboot%i\t0x%x\t0x%x\n", env_dev, env_part - 1, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE));
-				break;
-			default:
-				fdt_setprop(blob, nodeoff, "env_dev", tmp, sprintf(tmp, "/dev/mmcblk%i", env_dev));
-				fdt_setprop(blob, nodeoff, "fw_env.config", tmp, sprintf(tmp, "/dev/mmcblk%i\t0x%x\t0x%x\n", env_dev, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE));
-				break;
+		switch (env_part) {
+		case 2:
+		case 1:
+			snprintf(tmp, sizeof(tmp), "/dev/mmcblk%iboot%i",
+				 env_dev, env_part - 1);
+			ret = fdt_setprop_string(blob, nodeoff, "env_dev", tmp);
+			if (ret)
+				return ret;
+			snprintf(tmp, sizeof(tmp),
+				 "/dev/mmcblk%iboot%i\t0x%x\t0x%x\n", env_dev,
+				 env_part - 1, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE);
+			break;
+		default:
+			snprintf(tmp, sizeof(tmp), "/dev/mmcblk%i", env_dev);
+			ret = fdt_setprop_string(blob, nodeoff, "env_dev", tmp);
+			if (ret)
+				return ret;
+			snprintf(tmp, sizeof(tmp), "/dev/mmcblk%i\t0x%x\t0x%x\n",
+				 env_dev, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE);
+			break;
 		}
+
+		ret = fdt_setprop_string(blob, nodeoff, "fw_env.config", tmp);
+		if (ret)
+			return ret;
 	}
-	char const * src = default_environment;
-	char * dst = env_to_export;
-	char * const brk = dst + CONFIG_ENV_SIZE;
-	int element_len = 0;
-	while (0 != src[0]) { // Environment is terminated with double zero
-		element_len = strnlen(src, CONFIG_ENV_SIZE);
-		strncpy (dst, src, brk - dst);
-		dst[element_len] = '\n';
-		dst += element_len + 1;
-		src += element_len + 1;
+
+	env_to_export = malloc(CONFIG_ENV_SIZE);
+	if (!env_to_export)
+		return -ENOMEM;
+	dst = env_to_export;
+	remaining = CONFIG_ENV_SIZE;
+
+	while (*src) {
+		size_t len = strnlen(src, remaining);
+
+		if (len == remaining || len + 1 > remaining) {
+			ret = -E2BIG;
+			goto out;
+		}
+
+		memcpy(dst, src, len);
+		dst[len] = '\n';
+		dst += len + 1;
+		remaining -= len + 1;
+		src += len + 1;
 	}
-	dst = 0;
-	fdt_setprop(blob, nodeoff, "default_env", env_to_export, strlen(env_to_export));
+
+	ret = fdt_setprop(blob, nodeoff, "default_env", env_to_export,
+			  dst - env_to_export);
+out:
+	free(env_to_export);
+	return ret;
 #endif
 	return 0;
 }

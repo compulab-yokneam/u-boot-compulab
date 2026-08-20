@@ -269,10 +269,15 @@ int board_late_init(void)
 }
 
 #ifdef CONFIG_OF_BOARD_SETUP
-static void ft_board_setup_compulab(void *blob)
+static int ft_board_setup_compulab(void *blob)
 {
-	fdt_set_env_addr(blob);
-	fdt_set_sn(blob);
+	int ret;
+
+	ret = fdt_set_env_addr(blob);
+	if (ret)
+		return ret;
+
+	return fdt_set_sn(blob);
 }
 
 static int jh_mem_fdt_setup(void *blob)
@@ -311,9 +316,7 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 	}
 #endif
 
-	ft_board_setup_compulab(blob);
-
-	return 0;
+	return ft_board_setup_compulab(blob);
 }
 #endif
 

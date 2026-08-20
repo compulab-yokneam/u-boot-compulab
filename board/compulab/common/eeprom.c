@@ -309,11 +309,21 @@ static int cl_eeprom_read_options(char *buf, const struct eeprom_path *eeprom)
 		return snprintf(buf, PRODUCT_NAME_SIZE, "unknown");
 	}
 
-	for(int i = 0; i < PRODUCT_OPTION_NUM; ++i) {
-		err = cl_eeprom_read(PRODUCT_OPTION_OFFSET + PRODUCT_OPTION_SIZE * i, tmp, PRODUCT_OPTION_SIZE);
-		if (!err && tmp[0] != 0xff) // Check if the flash isn't written
-			len += snprintf(buf + len, PRODUCT_OPTION_SIZE, (char*)tmp);
+	for (int i = 0; i < PRODUCT_OPTION_NUM; ++i) {
+		err = cl_eeprom_read(PRODUCT_OPTION_OFFSET +
+				     PRODUCT_OPTION_SIZE * i, tmp,
+				     PRODUCT_OPTION_SIZE);
+		if (!err && tmp[0] != 0xff) {
+			size_t option_len;
+
+			tmp[PRODUCT_OPTION_SIZE - 1] = '\0';
+			option_len = strnlen((char *)tmp, PRODUCT_OPTION_SIZE);
+			memcpy(buf + len, tmp, option_len);
+			len += option_len;
+		}
 	}
+	buf[len] = '\0';
+
 	return len;
 }
 int cl_eeprom_read_som_options(char *buf)
@@ -337,10 +347,12 @@ static int cl_eeprom_read_product_name(char *buf, const struct eeprom_path *eepr
 	else
 		err = cl_eeprom_read(PRODUCT_NAME_OFFSET, tmp, PRODUCT_NAME_SIZE);
 
-	if (!err && tmp[0] != 0xff) // Check if the flash isn't written
-		len = snprintf(buf, PRODUCT_NAME_SIZE, (char*)tmp);
-	else
+	if (!err && tmp[0] != 0xff) {
+		tmp[PRODUCT_NAME_SIZE - 1] = '\0';
+		len = strlcpy(buf, (char *)tmp, PRODUCT_NAME_SIZE);
+	} else {
 		len = snprintf(buf, PRODUCT_NAME_SIZE, "unknown");
+	}
 
 	return len;
 }

@@ -189,10 +189,13 @@ int board_late_init(void)
 #ifdef CONFIG_OF_BOARD_SETUP
 static int ft_board_setup_compulab(void *blob, struct bd_info *bd)
 {
+	int ret;
 
-	fdt_set_env_addr(blob);
-	fdt_set_sn(blob);
-	return 0;
+	ret = fdt_set_env_addr(blob);
+	if (ret)
+		return ret;
+
+	return fdt_set_sn(blob);
 }
 
 static int ft_board_setup_nxp(void *blob, struct bd_info *bd)
