@@ -8,7 +8,23 @@
 #include "mmc.h"
 #include "eeprom.h"
 #include <env_internal.h>
+#include <env.h>
 #include <fdt_support.h>
+#include <linux/ctype.h>
+
+static int parse_hex_u64(const char *str, u64 *value)
+{
+	const char *digits = str;
+	char *endp;
+
+	if (digits[0] == '0' && (digits[1] == 'x' || digits[1] == 'X'))
+		digits += 2;
+	if (!isxdigit(*digits))
+		return -EINVAL;
+
+	*value = simple_strtoull(str, &endp, 16);
+	return *endp ? -EINVAL : 0;
+}
 
 void fdt_set_sn(void *blob)
 {
@@ -92,4 +108,65 @@ int fdt_set_env_addr(void *blob)
 	fdt_setprop(blob, nodeoff, "default_env", env_to_export, strlen(env_to_export));
 #endif
 	return 0;
+}
+
+int fdt_fixup_jailhouse_memory(void *blob)
+{
+	const char *value;
+	char *copy, *cursor, *token;
+	u64 base[CONFIG_NR_DRAM_BANKS] = { 0 };
+	u64 size[CONFIG_NR_DRAM_BANKS] = { 0 };
+	int banks = 0;
+	int ret = 0;
+
+	value = env_get("jh_root_mem");
+	if (!value)
+		return 0;
+	if (!*value)
+		return -EINVAL;
+
+	copy = strdup(value);
+	if (!copy)
+		return -ENOMEM;
+
+	cursor = copy;
+	while ((token = strsep(&cursor, ","))) {
+		char *base_str;
+
+		if (banks >= CONFIG_NR_DRAM_BANKS) {
+			printf("Error: The number of size@base exceeds CONFIG_NR_DRAM_BANKS.\n");
+			ret = -EINVAL;
+			goto out;
+		}
+
+		base_str = strchr(token, '@');
+		if (!base_str || base_str == token || !base_str[1] ||
+		    strchr(base_str + 1, '@')) {
+			printf("The format of jh_root_mem is size@base[,size@base...].\n");
+			ret = -EINVAL;
+			goto out;
+		}
+
+		*base_str++ = '\0';
+		if (parse_hex_u64(token, &size[banks])) {
+			ret = -EINVAL;
+			goto bad_value;
+		}
+
+		if (parse_hex_u64(base_str, &base[banks])) {
+			ret = -EINVAL;
+			goto bad_value;
+		}
+
+		banks++;
+	}
+
+	ret = fdt_fixup_memory_banks(blob, base, size, banks);
+	goto out;
+
+bad_value:
+	printf("Invalid hexadecimal value in jh_root_mem.\n");
+out:
+	free(copy);
+	return ret;
 }

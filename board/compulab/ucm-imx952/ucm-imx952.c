@@ -227,7 +227,10 @@ int board_init(void)
 
 int board_late_init(void)
 {
+	const u64 jh_high_base = 0x180000000ULL;
 	char jh_root_mem[64];
+	u64 jh_high_size = 0;
+	int i, ret;
 
 	if (IS_ENABLED(CONFIG_ENV_IS_IN_MMC))
 		board_late_mmc_env_init();
@@ -236,15 +239,27 @@ int board_late_init(void)
 #ifdef CONFIG_AHAB_BOOT
 	env_set("sec_boot", "yes");
 #endif
-	/*
-	 * jailhouse inmate cell uses the address [0x100000000, 0x180000000)
-	 * ucm-imx952 is to support two boards with different DRAM size, so
-	 * runtime cut off them from jh_root_mem.
-	 */
-	snprintf(jh_root_mem, sizeof(jh_root_mem), "0x58000000@0x90000000,0x%llx@0x180000000",
-		 gd->bd->bi_dram[1].size - SZ_2G);
+	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++) {
+		u64 start = gd->bd->bi_dram[i].start;
+		u64 end = start + gd->bd->bi_dram[i].size;
 
-	env_set("jailhouse_root_mem", jh_root_mem);
+		if (start <= jh_high_base && end > jh_high_base) {
+			jh_high_size = end - jh_high_base;
+			break;
+		}
+	}
+
+	if (jh_high_size)
+		snprintf(jh_root_mem, sizeof(jh_root_mem),
+			 "0x58000000@0x90000000,0x%llx@0x%llx",
+			 jh_high_size, jh_high_base);
+	else
+		snprintf(jh_root_mem, sizeof(jh_root_mem),
+			 "0x58000000@0x90000000");
+
+	ret = env_set("jailhouse_root_mem", jh_root_mem);
+	if (ret)
+		return ret;
 
 #if IS_ENABLED(CONFIG_IMX_CRRM)
 	crrm_uboot_late_init();
@@ -262,41 +277,7 @@ static void ft_board_setup_compulab(void *blob)
 
 static int jh_mem_fdt_setup(void *blob)
 {
-	char *p, *b, *s;
-	char *token = NULL;
-	int i, ret = 0;
-	u64 base[CONFIG_NR_DRAM_BANKS] = {0};
-	u64 size[CONFIG_NR_DRAM_BANKS] = {0};
-
-	p = env_get("jh_root_mem");
-	if (!p)
-		return 0;
-
-	i = 0;
-	token = strtok(p, ",");
-	while (token) {
-		if (i >= CONFIG_NR_DRAM_BANKS) {
-			printf("Error: The number of size@base exceeds CONFIG_NR_DRAM_BANKS.\n");
-			return -EINVAL;
-		}
-
-		b = token;
-		s = strsep(&b, "@");
-		if (!s) {
-			printf("The format of jh_root_mem is size@base[,size@base...].\n");
-			return -EINVAL;
-		}
-		base[i] = simple_strtoull(b, NULL, 16);
-		size[i] = simple_strtoull(s, NULL, 16);
-		token = strtok(NULL, ",");
-		i++;
-	}
-
-	ret = fdt_fixup_memory_banks(blob, base, size, CONFIG_NR_DRAM_BANKS);
-	if (ret)
-		return ret;
-
-	return 0;
+	return fdt_fixup_jailhouse_memory(blob);
 }
 
 int ft_board_setup(void *blob, struct bd_info *bd)
