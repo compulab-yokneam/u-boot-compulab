@@ -271,11 +271,6 @@
 	bootph-pre-ram;
 };
 
-&i2c3_pcal6408 {
-	compatible = "ti,tca6408";
-	label = "i2c3_io";
-};
-
 &i2c4_pcal6408 {
 	compatible = "ti,tca6408";
 	label = "i2c4_io";

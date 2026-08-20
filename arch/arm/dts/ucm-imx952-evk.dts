@@ -290,14 +290,26 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 	clock-frequency = <400000>;
-	pinctrl-names = "default";
+	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&pinctrl_lpi2c2>;
+	pinctrl-1 = <&pinctrl_lpi2c2>;
 	status = "okay";
 
 	eeprom@50 {
 		compatible = "atmel,24c08";
 		reg = <0x50>;
 		pagesize = <16>;
+	};
+
+	rtc@32 {
+		compatible = "epson,rx8900";
+		reg = <0x32>;
+		trickle-diode-disable;
+		epson,vdet-disable;
+		pagesize = <16>;
+		sqw = "32768_hz";
+		xt-frequency = <32772300>;
+		status = "okay";
 	};
 
 	adp5585: io-expander@34 {
@@ -314,8 +326,9 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 	clock-frequency = <400000>;
-	pinctrl-names = "default";
+	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&pinctrl_lpi2c3>;
+	pinctrl-1 = <&pinctrl_lpi2c3>;
 	status = "okay";
 
 	eeprom@54 {
@@ -324,12 +337,12 @@
 		pagesize = <16>;
 	};
 
-	i2c3_pcal6408: gpio@20 {
-		compatible = "nxp,pcal6408";
+	pca9555: gpio@20 {
+		compatible = "nxp,pca9555";
 		reg = <0x20>;
-		#gpio-cells = <2>;
 		gpio-controller;
-		vcc-supply = <&reg_3p3v>;
+		#gpio-cells = <2>;
+		status = "okay";
 	};
 };
 
@@ -373,6 +386,13 @@
 		pinctrl-0 = <&pinctrl_i2c4_pcal6408>;
 		vcc-supply = <&reg_3p3v>;
 	};
+};
+
+&lpi2c5 {
+	clock-frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lpi2c5>;
+	status = "okay";
 };
 
 &lpi2c6 {
@@ -654,8 +674,8 @@
 
 	pinctrl_lpi2c3: lpi2c3grp {
 		fsl,pins = <
-			IMX952_PAD_GPIO_IO00__WAKEUPMIX_TOP_LPI2C3_SDA		0x40000b9e
-			IMX952_PAD_GPIO_IO01__WAKEUPMIX_TOP_LPI2C3_SCL		0x40000b9e
+			IMX952_PAD_GPIO_IO28__WAKEUPMIX_TOP_LPI2C3_SDA		0x40000b9e
+			IMX952_PAD_GPIO_IO29__WAKEUPMIX_TOP_LPI2C3_SCL		0x40000b9e
 		>;
 	};
 
@@ -669,6 +689,13 @@
 	pinctrl_i2c4_pcal6408: i2c4pcal6408grp {
 		fsl,pins = <
 			IMX952_PAD_GPIO_IO18__WAKEUPMIX_TOP_GPIO2_IO_18		0x31e
+		>;
+	};
+
+	pinctrl_lpi2c5: lpi2c5grp {
+		fsl,pins = <
+			IMX952_PAD_GPIO_IO22__WAKEUPMIX_TOP_LPI2C5_SDA		0x40000b9e
+			IMX952_PAD_GPIO_IO23__WAKEUPMIX_TOP_LPI2C5_SCL		0x40000b9e
 		>;
 	};
 
