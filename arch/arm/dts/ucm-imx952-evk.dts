@@ -50,6 +50,7 @@
 		serial6 = &lpuart7;
 		serial7 = &lpuart8;
 		ethernet0 = &enetc0;
+		ethernet1 = &enetc1;
 		spi0 = &xspi1;
 		usb0 = &usb1;
 		usb1 = &usb2;
@@ -476,10 +477,22 @@
 	status = "okay";
 };
 
+&netc_bus1 {
+	status = "okay";
+};
+
 &enetc0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_enetc0>;
 	phy-handle = <&ethphy0>;
+	phy-mode = "rgmii-id";
+	status = "okay";
+};
+
+&enetc1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_enetc1>;
+	phy-handle = <&ethphy1>;
 	phy-mode = "rgmii-id";
 	status = "okay";
 };
@@ -490,8 +503,20 @@
 	status = "okay";
 
 	ethphy0: ethernet-phy@1 {
+		compatible = "ethernet-phy-ieee802.3-c45";
 		reg = <1>;
-		reset-gpios = <&pcal6416 13 GPIO_ACTIVE_LOW>;
+		eee-broken-1000t;
+		reset-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
+		reset-assert-us = <10000>;
+		reset-deassert-us = <80000>;
+		realtek,clkout-disable;
+	};
+
+	ethphy1: ethernet-phy@4 {
+		compatible = "ethernet-phy-ieee802.3-c45";
+		reg = <4>;
+		eee-broken-1000t;
+		reset-gpios = <&gpio4 14 GPIO_ACTIVE_LOW>;
 		reset-assert-us = <10000>;
 		reset-deassert-us = <80000>;
 		realtek,clkout-disable;
@@ -731,6 +756,7 @@
 
 	pinctrl_enetc0: enetc0grp {
 		fsl,pins = <
+			IMX952_PAD_GPIO_IO33__WAKEUPMIX_TOP_GPIO5_IO_13		0x3fe
 			IMX952_PAD_ENET1_TD3__NETCMIX_TOP_ETH0_RGMII_TD3	0x50e
 			IMX952_PAD_ENET1_TD2__NETCMIX_TOP_ETH0_RGMII_TD2	0x50e
 			IMX952_PAD_ENET1_TD1__NETCMIX_TOP_ETH0_RGMII_TD1	0x50e
@@ -743,6 +769,24 @@
 			IMX952_PAD_ENET1_RD1__NETCMIX_TOP_ETH0_RGMII_RD1	0x50e
 			IMX952_PAD_ENET1_RD2__NETCMIX_TOP_ETH0_RGMII_RD2	0x50e
 			IMX952_PAD_ENET1_RD3__NETCMIX_TOP_ETH0_RGMII_RD3	0x50e
+		>;
+	};
+
+	pinctrl_enetc1: enetc1grp {
+		fsl,pins = <
+			IMX952_PAD_ENET2_MDC__WAKEUPMIX_TOP_GPIO4_IO_14		0x3fe
+			IMX952_PAD_ENET2_TD3__NETCMIX_TOP_ETH1_RGMII_TD3	0x50e
+			IMX952_PAD_ENET2_TD2__NETCMIX_TOP_ETH1_RGMII_TD2	0x50e
+			IMX952_PAD_ENET2_TD1__NETCMIX_TOP_ETH1_RGMII_TD1	0x50e
+			IMX952_PAD_ENET2_TD0__NETCMIX_TOP_ETH1_RGMII_TD0	0x50e
+			IMX952_PAD_ENET2_TX_CTL__NETCMIX_TOP_ETH1_RGMII_TX_CTL	0x50e
+			IMX952_PAD_ENET2_TXC__NETCMIX_TOP_ETH1_RGMII_TX_CLK	0x58e
+			IMX952_PAD_ENET2_RX_CTL__NETCMIX_TOP_ETH1_RGMII_RX_CTL	0x50e
+			IMX952_PAD_ENET2_RXC__NETCMIX_TOP_ETH1_RGMII_RX_CLK	0x58e
+			IMX952_PAD_ENET2_RD0__NETCMIX_TOP_ETH1_RGMII_RD0	0x50e
+			IMX952_PAD_ENET2_RD1__NETCMIX_TOP_ETH1_RGMII_RD1	0x50e
+			IMX952_PAD_ENET2_RD2__NETCMIX_TOP_ETH1_RGMII_RD2	0x50e
+			IMX952_PAD_ENET2_RD3__NETCMIX_TOP_ETH1_RGMII_RD3	0x50e
 		>;
 	};
 

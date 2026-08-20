@@ -162,7 +162,8 @@ void netc_init(void)
 		return;
 	}
 
-	netc_phy_rst("i2c6_io@21_13", "ENET1_RST_B");
+	netc_phy_rst("GPIO5_13", "ENET1_RST_B");
+	netc_phy_rst("GPIO4_14", "ENET2_RST_B");
 }
 
 void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
