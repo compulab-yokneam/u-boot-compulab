@@ -91,7 +91,7 @@ static int cl_eeprom_read(uint offset, uchar *buf, int len)
 	int res;
 
 	res = cpl_eeprom_init();
-	if (res < 0)
+	if (res)
 		return res;
 
 	res  = dm_i2c_read(g_dev, offset, buf, len);
@@ -104,7 +104,7 @@ static int cl_eeprom_write(uint offset, uchar *buf, int len)
 	int res;
 
 	res = cpl_eeprom_init();
-	if (res < 0)
+	if (res)
 		return res;
 
 	res  = dm_i2c_write(g_dev, offset, buf, len);
