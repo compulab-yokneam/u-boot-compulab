@@ -82,7 +82,7 @@ int board_usb_cleanup(int index, enum usb_init_type init)
 
 static void netc_phy_rst(const char *gpio_name, const char *label)
 {
-	int ret;
+	int ret, free_ret;
 	struct gpio_desc desc;
 
 	/* ENET_RST_B */
@@ -99,11 +99,27 @@ static void netc_phy_rst(const char *gpio_name, const char *label)
 	}
 
 	/* assert the ENET_RST_B */
-	dm_gpio_set_dir_flags(&desc, GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE | GPIOD_ACTIVE_LOW);
+	ret = dm_gpio_set_dir_flags(&desc, GPIOD_IS_OUT |
+				    GPIOD_IS_OUT_ACTIVE | GPIOD_ACTIVE_LOW);
+	if (ret) {
+		printf("%s configure %s failed ret = %d\n", __func__, label, ret);
+		goto free_gpio;
+	}
+
 	udelay(10000);
-	dm_gpio_set_value(&desc, 0); /* deassert the ENET_RST_B */
+	ret = dm_gpio_set_value(&desc, 0); /* deassert the ENET_RST_B */
+	if (ret) {
+		printf("%s deassert %s failed ret = %d\n", __func__, label, ret);
+		goto free_gpio;
+	}
+
 	udelay(80000);
 
+free_gpio:
+	free_ret = dm_gpio_free(NULL, &desc);
+	if (free_ret)
+		printf("%s free %s failed ret = %d\n", __func__, label,
+		       free_ret);
 }
 
 static void __maybe_unused netc_regulator_enable(const char *devname, bool enable)
