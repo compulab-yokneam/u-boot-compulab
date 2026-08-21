@@ -6,6 +6,7 @@
 #include <env.h>
 #include <efi_loader.h>
 #include <init.h>
+#include <fdt_simplefb.h>
 #include <fdt_support.h>
 #include <asm/arch/clock.h>
 #include <usb.h>
@@ -301,6 +302,79 @@ static int jh_mem_fdt_setup(void *blob)
 	return fdt_fixup_jailhouse_memory(blob);
 }
 
+static int ft_board_setup_simplefb(void *blob)
+{
+	unsigned int display_phandle;
+	int address_cells, size_cells;
+	int chosen, framebuffer;
+	int ret;
+
+	if (!IS_ENABLED(CONFIG_FDT_SIMPLEFB))
+		return 0;
+
+	ret = fdt_increase_size(blob, 512);
+	if (ret)
+		return ret;
+
+	chosen = fdt_find_or_add_subnode(blob, 0, "chosen");
+	if (chosen < 0)
+		return chosen;
+
+	/*
+	 * A simple-framebuffer node below /chosen needs an identity-mapped bus.
+	 * Match the root cell sizes so Linux can decode its reg property.
+	 */
+	address_cells = fdt_address_cells(blob, 0);
+	if (address_cells < 0)
+		return address_cells;
+
+	size_cells = fdt_size_cells(blob, 0);
+	if (size_cells < 0)
+		return size_cells;
+
+	ret = fdt_setprop_u32(blob, chosen, "#address-cells", address_cells);
+	if (ret)
+		return ret;
+
+	ret = fdt_setprop_u32(blob, chosen, "#size-cells", size_cells);
+	if (ret)
+		return ret;
+
+	ret = fdt_setprop_empty(blob, chosen, "ranges");
+	if (ret)
+		return ret;
+
+	framebuffer = fdt_node_offset_by_compatible(blob, -1,
+						    "simple-framebuffer");
+	if (framebuffer == -FDT_ERR_NOTFOUND) {
+		framebuffer = fdt_add_subnode(blob, chosen, "framebuffer");
+		if (framebuffer < 0)
+			return framebuffer;
+	} else if (framebuffer < 0) {
+		return framebuffer;
+	}
+
+	ret = fdt_setprop_string(blob, framebuffer, "compatible",
+				 "simple-framebuffer");
+	if (ret)
+		return ret;
+
+	ret = fdt_setprop_string(blob, framebuffer, "status", "disabled");
+	if (ret)
+		return ret;
+
+	display_phandle = fdt_create_phandle_by_compatible(blob,
+							   "nxp,imx952-dpu");
+	if (display_phandle) {
+		ret = fdt_setprop_u32(blob, framebuffer, "display",
+				      display_phandle);
+		if (ret)
+			return ret;
+	}
+
+	return fdt_simplefb_enable_and_mem_rsv(blob);
+}
+
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
 	int ret;
@@ -331,6 +405,10 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 		}
 	}
 #endif
+	ret = ft_board_setup_simplefb(blob);
+	if (ret)
+		printf("Unable to set up simple framebuffer, err=%s\n",
+		       fdt_strerror(ret));
 
 	return ft_board_setup_compulab(blob);
 }
