@@ -7,6 +7,8 @@
 #include <mmc.h>
 #include "mmc.h"
 #include "eeprom.h"
+#include <env_internal.h>
+#include <fdt_support.h>
 
 void fdt_set_sn(void *blob)
 {

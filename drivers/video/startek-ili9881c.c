@@ -14,6 +14,7 @@
 #include <dm/device-internal.h>
 #include <dm/device_compat.h>
 #include <linux/delay.h>
+#include <video_link.h>
 
 #define   LCD_XSIZE_TFT   720
 #define   LCD_YSIZE_TFT   1280
