@@ -12,6 +12,7 @@
 extern struct dram_timing_info ucm_dram_timing_01061010_2G;
 extern struct dram_timing_info ucm_dram_timing_ff000010;
 extern struct dram_timing_info ucm_dram_timing_01061010_4G;
+extern struct dram_timing_info ucm_dram_timing_ff070018_4G;
 #endif
 extern struct dram_timing_info ucm_dram_timing_01061010_1G;
 extern struct dram_timing_info ucm_dram_timing_01061010_1G_4000;
@@ -57,6 +58,11 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_01061010_4G
 #endif
 	},
+	{ .name = "ISSI",	.id = 0x13000518, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff070018_4G
+#endif
+	},
 	{ .name = "Micron",	.id = 0xff000010, .subind = 0x4, .size = 4096, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_ff000010
@@ -65,6 +71,21 @@ static const struct lpddr4_desc lpddr4_array[] = {
 	{ .name = "Micron",	.id = 0xff000110, .subind = 0x4, .size = 4096, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_ff000010
+#endif
+	},
+	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+	{ .name = "Etron",	.id = 0xff070018, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff070018_4G
 #endif
 	},
 	{ .name = "Nanya",	.id = 0x05000010, .subind = 0x2, .size = 2048, .count = 1,
@@ -78,6 +99,16 @@ static const struct lpddr4_desc lpddr4_array[] = {
 #endif
 	},
 	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_2G
 #endif
