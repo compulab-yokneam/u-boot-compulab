@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// Copyright 2025 Compulab
+
+/dts-v1/;
+
+#include "cl-evk-shared-imx93.dtsi"
+
+/{
+	model = "CompuLab MCM-i.MX93 board";
+	compatible = "compulab,mcm-imx93", "fsl,imx93";
+};
+
+&fec {
+	status = "okay";
+};

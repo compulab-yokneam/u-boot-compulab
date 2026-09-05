@@ -2,13 +2,15 @@
  * (C) Copyright 2023 CompuLab, Ltd. <www.compulab.co.il>
  * SPDX-License-Identifier:	GPL-2.0+
  */
-#include <log.h>
-#include <sysreset.h>
+#include <common.h>
+#include <command.h>
 #include <spl.h>
+#include <asm/io.h>
 #include <errno.h>
 #include "ddr.h"
 #include <asm/io.h>
 #include <asm/mach-imx/iomux-v3.h>
+#include <asm/mach-imx/gpio.h>
 #include <asm-generic/gpio.h>
 #include <asm/arch/ddr.h>
 #include <asm/arch/sys_proto.h>
@@ -17,10 +19,13 @@
 #include <asm/mach-imx/gpio.h>
 #include <linux/delay.h>
 
+#define REG_DDR_SDRAM_MD_CNTL_2 (DDR_CTL_BASE + 0x270)
+#define REG_DDR_SDRAM_MD_CNTL (DDR_CTL_BASE + 0x120)
+#define REG_DDR_SDRAM_MPR5 (DDR_CTL_BASE + 0x290)
+#define REG_DDR_SDRAM_MPR4 (DDR_CTL_BASE + 0x28C)
+
 #define DDRINFO_SRC_GPR_DDRINFO	1
 #define DDRINFO_SRC_GPR_SUBIND	2
-#define SRC_DDRC_SW_CTRL		0x44461020
-#define SRC_DDRPHY_SINGLE_RESET_SW_CTRL	0x44461424
 
 static u32 src_gpr_get(u32 index) {
 	struct src_general_regs *src = (struct src_general_regs *)SRC_GLOBAL_RBASE;
@@ -45,17 +50,58 @@ static inline void lpddr4_data_set(struct lpddr4_tcm_desc* lpddr4_tcm_desc) {
 static struct lpddr4_tcm_desc spl_tcm_data;
 #define SPL_TCM_DATA &spl_tcm_data
 
+static u32 ddrc_mrr(u32 chip_select, u32 mode_reg_num, u32* mode_reg_val) {
+	u32 temp;
+
+	writel(0x80000000, REG_DDR_SDRAM_MD_CNTL_2);
+	temp = 0x80000000 | (chip_select << 28) | (mode_reg_num << 0);
+	writel(temp, REG_DDR_SDRAM_MD_CNTL);
+	while ((readl(REG_DDR_SDRAM_MD_CNTL) & 0x80000000) == 0x80000000)
+		;
+	while (!(readl(REG_DDR_SDRAM_MPR5)))
+		;
+	*mode_reg_val = (readl(REG_DDR_SDRAM_MPR4) & 0xFF0000) >> 16;
+	writel(0x0, REG_DDR_SDRAM_MPR5);
+	while ((readl(REG_DDR_SDRAM_MPR5)))
+		;
+	writel(0x0, REG_DDR_SDRAM_MPR4);
+	writel(0x0, REG_DDR_SDRAM_MD_CNTL_2);
+
+	return 0;
+}
+
+static u32 lpddr4_mr_read(u32 mr_rank, u32 mr_addr) {
+	u32 chip_select, regval;
+
+	if (mr_rank == 1)
+	{
+		chip_select = 0; /* CS0 */
+	}
+	else if (mr_rank == 2)
+	{
+		chip_select = 1; /* CS1 */
+	}
+	else
+	{
+		chip_select = 4; /* CS0 & CS1 */
+	}
+
+	ddrc_mrr(chip_select, mr_addr, &regval);
+
+	return regval;
+}
+
 u32 lpddr4_get_mr(void) {
 	int i = 0, attempts = 5;
-	u32 ddr_info;
+	u32 ddr_info = 0;
 	u32 regs[] = { 5, 6, 7, 8 };
 
 	do
 	{
-		ddr_info = 0;
 		for (i = 0; i < ARRAY_SIZE(regs); i++)
 		{
-			u32 data = lpddr4_mr_read(0xF, regs[i]);
+			u32 data = 0;
+			data = lpddr4_mr_read(0xF, regs[i]);
 			ddr_info <<= 8;
 			ddr_info += (data & 0xFF);
 		}
@@ -144,12 +190,12 @@ static inline void share_ddr_info_on_ocram(void) {
 static bool initialize_ddr(const struct lpddr4_desc* ddr_desc) {
 	if (ddr_init(ddr_desc->timing))
 	{
-		printf("DDRINFO: failed applying cfg: %s %dMB @ %d MHz\n", ddr_desc->name, ddr_desc->size, ddr_desc->timing->fsp_table[0]);
+		printf("DDRINFO: failed applying cfg: %s %dMB @ %d MHz (id %x, subind %x)\n", ddr_desc->name, ddr_desc->size, ddr_desc->timing->fsp_table[0], ddr_desc->id, ddr_desc->subind);
 		return false;
 	}
 	else
 	{
-		printf("DDRINFO: applied cfg: %s %dMB @ %d MHz\n", ddr_desc->name, ddr_desc->size, ddr_desc->timing->fsp_table[0]);
+		printf("DDRINFO: applied cfg: %s %dMB @ %d MHz (id %x, subind %x)\n", ddr_desc->name, ddr_desc->size, ddr_desc->timing->fsp_table[0], ddr_desc->id, ddr_desc->subind);
 		return true;
 	}
 }
@@ -161,7 +207,7 @@ static const struct lpddr4_desc* get_ddr_desc(unsigned char i) {
 /*
 testing:
 after ddr came up check current SRC GPR state:
-inspect the SRC GPR registers used for DDR info and subind
+md 0x4E20xxxx? (use the relevant SRC register dump)
 
 sabotage subind to check recovery after reset:
 set the SRC GPR used for subind to an invalid value
@@ -170,31 +216,14 @@ sabotage ddrinfo to check recovery after reset:
 set the SRC GPR used for ddrinfo to an invalid value
 */
 
-static int initialize_ddr_info(void) {
+void initialize_ddr_info(void) {
 	u32 ddr_info = lpddr4_get_mr();
-	int index = get_ddr_timing_index(ddr_info);
-	const struct lpddr4_desc *ddr_desc = get_ddr_desc(index);
-
+	const struct lpddr4_desc* ddr_desc = get_ddr_desc(get_ddr_timing_index(ddr_info));
 	if (ddr_desc->id == 0xdeadbeef) {
-		return -EINVAL;
+		do_reset(NULL, 0, 0, NULL);
 	}
 	write_ddr_info_to_src_gpr(ddr_info);
 	write_subind_to_src_gpr(ddr_desc->subind);
-
-	return index;
-}
-
-static void reset_ddr_mix(void)
-{
-	/* Follow the i.MX93 2026 FRDM DDR timing retry sequence. */
-	setbits_32(SRC_DDRPHY_SINGLE_RESET_SW_CTRL, BIT(0));
-	setbits_32(SRC_DDRC_SW_CTRL, BIT(31));
-	udelay(50);
-	clrbits_32(SRC_DDRC_SW_CTRL, BIT(31));
-	setbits_32(SRC_DDRC_SW_CTRL, BIT(0));
-	udelay(10);
-	clrbits_32(SRC_DDRC_SW_CTRL, BIT(0));
-	udelay(10);
 }
 
 void spl_dram_init(void) {
@@ -209,21 +238,11 @@ void spl_dram_init(void) {
 	ddr_desc = get_ddr_desc(i);
 	if (initialize_ddr(ddr_desc) == false) {
 		write_subind_to_src_gpr(get_next_subind(ddr_info, subind));
-		reset_cpu();
+		do_reset(NULL, 0, 0, NULL);
 	}
 	if (i == 0) {
-		i = initialize_ddr_info();
-		if (i < 1) {
-			printf("DDRINFO: unsupported device, unable to select timing\n");
-			reset_cpu();
-		}
-
-		reset_ddr_mix();
-		ddr_desc = get_ddr_desc(i);
-		if (!initialize_ddr(ddr_desc)) {
-			printf("DDRINFO: detected timing initialization failed\n");
-			reset_cpu();
-		}
+		initialize_ddr_info();
+		do_reset(NULL, 0, 0, NULL);
 	}
 	spl_tcm_data.size = ddr_desc->size;
 	share_ddr_info_on_ocram();

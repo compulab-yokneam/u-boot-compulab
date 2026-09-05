@@ -1,0 +1,66 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// Copyright 2025 CompuLab
+
+/ {
+	dsi_host: dsi-host {
+		compatible = "synopsys,dw-mipi-dsi";
+		status = "okay";
+	};
+};
+
+&dphy {
+	status = "okay";
+};
+
+&dsi {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	panel@0 {
+		compatible = "startek,ili9881c";
+		reg = <0>;
+		reset-gpio = <&pca9555 4 GPIO_ACTIVE_LOW>;
+		dsi-lanes = <4>;
+		panel-width-mm = <63>;
+		panel-height-mm = <115>;
+		status = "okay";
+
+		display-timings {
+			native-mode = <&timing1>;
+			timing1: timing1 {
+				clock-frequency = <60000000>;
+				hsync-len = <10>;
+				hback-porch = <30>;
+				hactive = <720>;
+				hfront-porch = <20>;
+				vsync-len = <10>;
+				vback-porch = <20>;
+				vactive = <1280>;
+				vfront-porch = <10>;
+				vsync-active = <1>;
+				hsync-active = <1>;
+				de-active = <1>;
+			};
+		};
+
+		port {
+			ili9881c_from_dsim: endpoint {
+				remote-endpoint = <&dsi_out>;
+			};
+		};
+	};
+
+	ports {
+		port@1 {
+			dsi_out: endpoint {
+				remote-endpoint = <&ili9881c_from_dsim>;
+			};
+		};
+	};
+};
+
+&lcdif {
+	status = "okay";
+	assigned-clock-rates = <300000000>, <121000000>, <400000000>, <133333333>;
+};

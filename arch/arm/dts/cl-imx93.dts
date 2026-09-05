@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// Copyright 2026 CompuLab
+
+/dts-v1/;
+
+#include "cl-som-shared-imx93.dtsi"
+
+/ {
+	model = "CompuLab i.MX93 shared platform";
+	compatible = "compulab,cl-imx93", "fsl,imx93";
+};

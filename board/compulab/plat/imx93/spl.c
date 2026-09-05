@@ -1,40 +1,23 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright 2023 CompuLab LTD
+ * Copyright 2022 NXP
  */
 
-#include <common.h>
-#include <command.h>
-#include <cpu_func.h>
-#include <hang.h>
-#include <image.h>
 #include <init.h>
-#include <log.h>
-#include <spl.h>
-#include <asm/global_data.h>
-#include <asm/io.h>
-#include <asm/arch/imx93_pins.h>
-#include <asm/arch/clock.h>
-#include <asm/arch/sys_proto.h>
-#include <asm/mach-imx/boot_mode.h>
-#include <asm/mach-imx/mxc_i2c.h>
-#include <asm/arch-mx7ulp/gpio.h>
-#include <asm/mach-imx/syscounter.h>
-#include <asm/mach-imx/ele_api.h>
-#include <asm/sections.h>
-#include <dm/uclass.h>
-#include <dm/device.h>
-#include <dm/uclass-internal.h>
-#include <dm/device-internal.h>
-#include <linux/delay.h>
-#include <asm/arch/clock.h>
-#include <asm/arch/ccm_regs.h>
-#include <asm/arch/ddr.h>
-#include <asm/arch/mu.h>
 #include <power/pmic.h>
 #include <power/pca9450.h>
+#include <power/pf0900.h>
+#include <spl.h>
+#include <asm/global_data.h>
+#include <asm/sections.h>
+#include <asm/arch/clock.h>
+#include <asm/arch/ddr.h>
+#include <asm/arch/mu.h>
+#include <asm/arch/sys_proto.h>
 #include <asm/arch/trdc.h>
-#include <serial.h>
+#include <asm/mach-imx/boot_mode.h>
+#include <asm/arch-imx9/bbsm.h>
+#include <asm/mach-imx/ele_api.h>
 #include "ddr/ddr.h"
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -61,56 +44,131 @@ void spl_board_init(void)
 {
 	int ret;
 
-	puts("Normal Boot\n");
-
 	ret = ele_start_rng();
 	if (ret)
 		printf("Fail to start RNG: %d\n", ret);
+
+#ifdef CONFIG_SPL_IMX_BBSM
+	ret = bbsm_tamper_detect_enable();
+	if (ret)
+		printf("Failed to enable BBSM Tamper Detection: %d\n", ret);
+#endif
+	puts("Normal Boot\n");
 }
+
+#if CONFIG_IS_ENABLED(DM_PMIC_PF0900)
+int power_init_board(void)
+{
+	struct udevice *dev;
+	int ret;
+	unsigned int sw_val;
+
+	ret = pmic_get("pmic@8", &dev);
+	if (ret != 0) {
+		puts("ERROR: Get PMIC PF0900 failed!\n");
+		return ret;
+	}
+	puts("PMIC: PF0900\n");
+	if (is_voltage_mode(VOLT_LOW_DRIVE)) {
+		sw_val = 0x39; /* 0.8v for Low drive mode */
+		printf("PMIC: Low Drive Voltage Mode\n");
+	} else if (is_voltage_mode(VOLT_NOMINAL_DRIVE)) {
+		sw_val = 0x41; /* 0.85v for Nominal drive mode */
+		printf("PMIC: Nominal Voltage Mode\n");
+	} else {
+		sw_val = 0x49; /* 0.9v for Over drive mode */
+		printf("PMIC: Over Drive Voltage Mode\n");
+	}
+
+	ret = pmic_reg_read(dev, PF0900_REG_SW1_VRUN);
+	if (ret < 0)
+		return ret;
+
+	ele_volt_change_start_req();
+
+	sw_val = (sw_val & SW_VRUN_MASK) | (ret & ~SW_VRUN_MASK);
+	ret = pmic_reg_write(dev, PF0900_REG_SW1_VRUN, sw_val);
+	if (ret != 0)
+		return ret;
+
+	ele_volt_change_finish_req();
+
+	ret = pmic_reg_read(dev, PF0900_REG_SW1_VSTBY);
+	if (ret < 0)
+		return ret;
+
+	/* set standby voltage to 0.65v */
+	sw_val = 0x21;
+	sw_val = (sw_val & SW_STBY_MASK) | (ret & ~SW_STBY_MASK);
+	ret = pmic_reg_write(dev, PF0900_REG_SW1_VSTBY, sw_val);
+	if (ret != 0)
+		return ret;
+
+	ret = pmic_reg_read(dev, PF0900_REG_GPO_CTRL);
+	if (ret < 0)
+		return ret;
+
+	/* I2C_LT_EN*/
+	sw_val = 0x40;
+	sw_val = (sw_val & GPO3_RUN_MASK) | (ret & ~GPO3_RUN_MASK);
+	ret = pmic_reg_write(dev, PF0900_REG_GPO_CTRL, sw_val);
+	if (ret != 0)
+		return ret;
+
+	ret = pmic_reg_read(dev, PF0900_REG_SYS_CFG1);
+	if (ret < 0)
+		return ret;
+	/*enable stby xrst*/
+	sw_val = ret | XRST_STBY_EN_MASK;
+	ret = pmic_reg_write(dev, PF0900_REG_SYS_CFG1, sw_val);
+	if (ret != 0)
+		return ret;
+	return 0;
+}
+#endif
 
 #if CONFIG_IS_ENABLED(DM_PMIC_PCA9450)
 int power_init_board(void)
 {
 	struct udevice *dev;
 	int ret;
+	unsigned int buck_val;
 
 	ret = pmic_get("pmic@25", &dev);
-	if (ret == -ENODEV) {
-		puts("No pca9450@25\n");
-		return 0;
-	}
-	if (ret != 0)
+	if (ret != 0) {
+		puts("ERROR: Get PMIC PCA9451A failed!\n");
 		return ret;
-
+	}
+	puts("PMIC: PCA9451A\n");
 	/* BUCKxOUT_DVS0/1 control BUCK123 output */
 	pmic_reg_write(dev, PCA9450_BUCK123_DVS, 0x29);
 
 	/* enable DVS control through PMIC_STBY_REQ */
 	pmic_reg_write(dev, PCA9450_BUCK1CTRL, 0x59);
 
-	if (IS_ENABLED(CONFIG_IMX9_LOW_DRIVE_MODE)){
-		/* 0.75v for Low drive mode
-		 */
-		pmic_reg_write(dev, PCA9450_BUCK1OUT_DVS0, 0x0c);
-		pmic_reg_write(dev, PCA9450_BUCK3OUT_DVS0, 0x0c);
+	if (is_voltage_mode(VOLT_LOW_DRIVE)) {
+		buck_val = 0x0c; /* 0.8v for Low drive mode */
+		printf("PMIC: Low Drive Voltage Mode\n");
+	} else if (is_voltage_mode(VOLT_NOMINAL_DRIVE)) {
+		buck_val = 0x10; /* 0.85v for Nominal drive mode */
+		printf("PMIC: Nominal Voltage Mode\n");
 	} else {
-		/* 0.9v for Over drive mode
-		 */
-		pmic_reg_write(dev, PCA9450_BUCK1OUT_DVS0, 0x18);
-		pmic_reg_write(dev, PCA9450_BUCK3OUT_DVS0, 0x18);
+		buck_val = 0x14; /* 0.9v for Over drive mode */
+		printf("PMIC: Over Drive Voltage Mode\n");
 	}
 
+	ele_volt_change_start_req();
+
+	pmic_reg_write(dev, PCA9450_BUCK1OUT_DVS0, buck_val);
+	pmic_reg_write(dev, PCA9450_BUCK3OUT_DVS0, buck_val);
+
+	ele_volt_change_finish_req();
+
 	/* set standby voltage to 0.65v */
-	pmic_reg_write(dev, PCA9450_BUCK1OUT_DVS1, 0x4);
+	pmic_reg_write(dev, PCA9450_BUCK1OUT_DVS1, 0x0);
 
 	/* I2C_LT_EN*/
 	pmic_reg_write(dev, 0xa, 0x3);
-
-	/* set WDOG_B_CFG to cold reset */
-	pmic_reg_write(dev, PCA9450_RESET_CTRL, 0xA1);
-
-	/* fix SD card detect fluctuations - When switch detects short circuit current turn off and restart in 100ms */
-	pmic_reg_write(dev, PCA9450_LOADSW_CTRL, 0x95);
 	return 0;
 }
 #endif
@@ -126,8 +184,6 @@ void board_init_f(ulong dummy)
 
 	arch_cpu_init();
 
-	board_early_init_f();
-
 	spl_early_init();
 
 	preloader_console_init();
@@ -136,13 +192,15 @@ void board_init_f(ulong dummy)
 	if (ret) {
 		printf("Fail to init ELE API\n");
 	} else {
-		printf("SOC: 0x%x\n", gd->arch.soc_rev);
-		printf("LC: 0x%x\n", gd->arch.lifecycle);
+		debug("SOC: 0x%x\n", gd->arch.soc_rev);
+		debug("LC: 0x%x\n", gd->arch.lifecycle);
 	}
+
+	clock_init_late();
 
 	power_init_board();
 
-	if (!IS_ENABLED(CONFIG_IMX9_LOW_DRIVE_MODE))
+	if (!is_voltage_mode(VOLT_LOW_DRIVE))
 		set_arm_core_max_clk();
 
 	/* Init power of mix */

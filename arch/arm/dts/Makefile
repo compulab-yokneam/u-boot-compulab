@@ -950,6 +950,10 @@ dtb-$(CONFIG_ARCH_IMX8M) += \
 	imx8mq-librem5-r4.dtb
 
 dtb-$(CONFIG_ARCH_IMX9) += \
+	cl-imx93.dtb \
+	ucm-imx93.dtb \
+	mcm-imx93.dtb \
+	iot-link.dtb \
 	imx93-11x11-frdm.dtb \
 	imx95-15x15-frdm.dtb \
 	imx95-19x19-frdm-pro.dtb \

@@ -1,4 +1,5 @@
 #include <common.h>
+#include <command.h>
 #include <malloc.h>
 #include <errno.h>
 #include <hang.h>
@@ -7,6 +8,28 @@
 #include <mmc.h>
 #include <env.h>
 #include "mmc.h"
+
+__weak int mmc_map_to_kernel_blk(int dev_no)
+{
+	return dev_no;
+}
+
+void board_late_mmc_env_init(void)
+{
+	char cmd[32];
+	char mmcblk[32];
+	u32 dev_no = mmc_get_env_dev();
+
+	if (!env_get_yesno("mmcautodetect"))
+		return;
+
+	env_set_ulong("mmcdev", dev_no);
+	snprintf(mmcblk, sizeof(mmcblk), "/dev/mmcblk%dp2 rootwait rw",
+		 mmc_map_to_kernel_blk(dev_no));
+	env_set("mmcroot", mmcblk);
+	snprintf(cmd, sizeof(cmd), "mmc dev %d", dev_no);
+	run_command(cmd, 0);
+}
 
 static int env_dev = -1;
 static int env_part= -1;
