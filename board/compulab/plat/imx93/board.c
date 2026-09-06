@@ -274,6 +274,9 @@ int board_late_init(void)
 
 #if CONFIG_IS_ENABLED(ENV_IS_IN_MMC) || CONFIG_IS_ENABLED(ENV_IS_NOWHERE)
 	board_late_mmc_env_init();
+	/* SDP does not identify where the OS lives; prefer SD, then try eMMC. */
+	if (is_usb_boot())
+		env_set_ulong("mmcdev", env_get_ulong("sd_dev", 10, 1));
 #endif
 
 	env_set("sec_boot", "no");
