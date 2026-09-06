@@ -5,13 +5,17 @@
 
 #include <env.h>
 #include <efi_loader.h>
+#include <fdt_support.h>
 #include <init.h>
 #include <asm/arch/sys_proto.h>
+#include <asm/arch-imx9/imx93_pins.h>
+#include <asm/mach-imx/iomux-v3.h>
 #include <dm/device.h>
 #include <dm/uclass.h>
 #include <usb.h>
 #include <asm/gpio.h>
 #include <i2c.h>
+#include <linux/string.h>
 
 #if CONFIG_IS_ENABLED(EFI_HAVE_CAPSULE_SUPPORT)
 #define IMX_BOOT_IMAGE_GUID \
@@ -219,48 +223,36 @@ int board_ehci_usb_phy_mode(struct udevice *dev)
 }
 #endif
 
+static const iomux_v3_cfg_t gpio_pads[] = {
+	MX93_PAD_PDM_CLK__GPIO1_IO08 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
+
 static void board_gpio_init(void)
 {
 	struct gpio_desc desc;
+	struct udevice *dev;
 	int ret;
 
-	/* Enable EXT1_PWREN for PCIE_3.3V */
-	ret = dm_gpio_lookup_name("gpio@22_13", &desc);
-	if (ret)
+	imx_iomux_v3_setup_multiple_pads(gpio_pads, ARRAY_SIZE(gpio_pads));
+
+	/* Enable the CompuLab carrier I/O expander before it is probed. */
+	ret = uclass_get_device_by_seq(UCLASS_GPIO, 0, &dev);
+	if (ret) {
+		printf("%s: failed to find GPIO1, ret=%d\n", __func__, ret);
 		return;
-
-	ret = dm_gpio_request(&desc, "EXT1_PWREN");
-	if (ret)
-		return;
-
-	dm_gpio_set_dir_flags(&desc, GPIOD_IS_OUT);
-	dm_gpio_set_value(&desc, 1);
-
-	/* Deassert SD3_nRST */
-	ret = dm_gpio_lookup_name("gpio@22_12", &desc);
-	if (ret)
-		return;
-
-	ret = dm_gpio_request(&desc, "SD3_nRST");
-	if (ret)
-		return;
-
-	dm_gpio_set_dir_flags(&desc, GPIOD_IS_OUT);
-	dm_gpio_set_value(&desc, 1);
-
-	if (IS_ENABLED(CONFIG_TARGET_IMX93_14X14_EVK)) {
-		/* Enable I2C_LS_EN levelshift */
-		ret = dm_gpio_lookup_name("gpio@20_16", &desc);
-		if (ret)
-			return;
-
-		ret = dm_gpio_request(&desc, "I2C_LS_EN");
-		if (ret)
-			return;
-
-		dm_gpio_set_dir_flags(&desc, GPIOD_IS_OUT);
-		dm_gpio_set_value(&desc, 1);
 	}
+
+	desc.dev = dev;
+	desc.offset = 8;
+	desc.flags = 0;
+	ret = dm_gpio_request(&desc, "EXP_nPWREN");
+	if (ret) {
+		printf("%s: failed to request EXP_nPWREN, ret=%d\n", __func__, ret);
+		return;
+	}
+
+	dm_gpio_set_dir_flags(&desc, GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE);
+	dm_gpio_set_value(&desc, 1);
 }
 
 int board_init(void)
@@ -276,6 +268,10 @@ int board_init(void)
 
 int board_late_init(void)
 {
+	const char *fdtfile = "cl-imx93.dtb";
+	const char *model;
+	int ret;
+
 #if CONFIG_IS_ENABLED(ENV_IS_IN_MMC) || CONFIG_IS_ENABLED(ENV_IS_NOWHERE)
 	board_late_mmc_env_init();
 #endif
@@ -285,12 +281,25 @@ int board_late_init(void)
 	env_set("sec_boot", "yes");
 #endif
 
-	if (of_machine_is_compatible("compulab,ucm-imx93"))
-		env_set("fdtfile", "ucm-imx93.dtb");
-	else if (of_machine_is_compatible("compulab,mcm-imx93"))
-		env_set("fdtfile", "mcm-imx93.dtb");
-	else if (of_machine_is_compatible("compulab,iot-link"))
-		env_set("fdtfile", "iot-link.dtb");
+	model = fdt_getprop(gd->fdt_blob, 0, "model", NULL);
+	if ((model && strstr(model, "UCM-i.MX93")) ||
+	    !fdt_node_check_compatible(gd->fdt_blob, 0,
+				       "compulab,ucm-imx93"))
+		fdtfile = "ucm-imx93.dtb";
+	else if ((model && strstr(model, "MCM-i.MX93")) ||
+		 !fdt_node_check_compatible(gd->fdt_blob, 0,
+					      "compulab,mcm-imx93"))
+		fdtfile = "mcm-imx93.dtb";
+	else if ((model && strstr(model, "IOT-LINK")) ||
+		 !fdt_node_check_compatible(gd->fdt_blob, 0,
+					      "compulab,iot-link"))
+		fdtfile = "iot-link.dtb";
+
+	ret = env_set("fdtfile", fdtfile);
+	if (ret)
+		printf("Failed to set fdtfile=%s, ret=%d\n", fdtfile, ret);
+	else
+		printf("FDT:   %s\n", fdtfile);
 
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 	env_set("board_name", "11X11_EVK");
