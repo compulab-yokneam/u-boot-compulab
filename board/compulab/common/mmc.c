@@ -14,7 +14,7 @@ __weak int mmc_map_to_kernel_blk(int dev_no)
 	return dev_no;
 }
 
-void board_late_mmc_env_init(void)
+__weak void board_late_mmc_env_init(void)
 {
 	char cmd[32];
 	char mmcblk[32];
