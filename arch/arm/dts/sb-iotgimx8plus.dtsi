@@ -8,6 +8,19 @@
 		bootargs = "console=ttymxc1,115200 earlycon=ec_imx6q,0x30890000,115200 console=tty0";
 		stdout-path = &uart2;
 	};
+
+	w1_00: w1-00 {
+		compatible = "w1-gpio";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_w1_00>;
+		gpios = <&gpio2 15 GPIO_ACTIVE_HIGH>;
+
+		w1_eeprom: w1_eeprom@00 {
+			compatible = "maxim,ds2431";
+			/* This should not really be enabled, as the W1 bus driver can detect any attached device */
+			status = "disabled";
+		};
+	};
 };
 
 &fec {
@@ -109,19 +122,19 @@
 };
 
 &cpu_alert0 {
-    temperature = <100000>;
+	temperature = <100000>;
 };
 
 &cpu_crit0 {
-    temperature = <105000>;
+	temperature = <105000>;
 };
 
 &soc_alert0 {
-    temperature = <100000>;
+	temperature = <100000>;
 };
 
 &soc_crit0 {
-    temperature = <105000>;
+	temperature = <105000>;
 };
 
 &iomuxc {
@@ -171,6 +184,12 @@
 	pinctrl_usdhc2_gpio: usdhc2gpiogrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_GPIO1_IO04__GPIO1_IO04			0x100
+		>;
+	};
+
+	pinctrl_w1_00: w1grp-00 {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD2_DATA0__GPIO2_IO15			0x140
 		>;
 	};
 };

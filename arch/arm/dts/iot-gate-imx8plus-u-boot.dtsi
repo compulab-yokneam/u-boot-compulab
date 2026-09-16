@@ -184,6 +184,14 @@
 	u-boot,dm-spl;
 };
 
+&w1_00 {
+	u-boot,dm-spl;
+};
+
+&pinctrl_w1_00 {
+	u-boot,dm-spl;
+};
+
 #ifdef CONFIG_SPL_OS_BOOT
 &usdhc2 {
 	u-boot,dm-spl;

@@ -77,7 +77,10 @@ static uint iotg_imx8plus_addon_i2c_addr[IOTG_IMX8PLUS_ADDON_LAST] = {
 /* Extension board type detected */
 static int iotg_imx8plus_addon_id = IOTG_IMX8PLUS_ADDON_EMPTY;
 
+static char *iotg_imx8plus_rev2_dtbo="sb-iotgimx8plus-rev2.dtbo";
+
 #define IOTG_IMX8PLUS_ENV_FDT_FILE	"fdtfile"
+#define IOTG_IMX8PLUS_ENV_FDTO_FILE	"fdtofile"
 #define IOTG_IMX8PLUS_ENV_ADDON_SETUP	"addon_smart_setup"
 #define IOTG_IMX8PLUS_ENV_ADDON_BOARD	"addon_board"
 
@@ -138,7 +141,65 @@ static void iotg_imx8plus_select_dtb(void)
 		iotg_imx8plus_dtb[iotg_imx8plus_addon_id]);
 }
 
-void board_vendor_late_init(void) {
+#include <dm.h>
+#include <w1.h>
+#include <w1-eeprom.h>
+#include <dm/device-internal.h>
+
+/*
+ * sb_iotgimx8plus_w1_init() - Initialize the 1-Wire bus and access the
+ *                             1-Wire EEPROM (supported on rev. 2.x and later)
+ * Return: 0 on success, or an error code on failure.
+ */
+int sb_iotgimx8plus_w1_init(void)
+{
+	int bus_n = 0, offset = 0, len = 1;
+	struct udevice *bus, *dev;
+	int ret;
+	u8 buf[32];
+
+	/* Try to acquire the 1-Wire bus */
+	ret = w1_get_bus(bus_n, &bus);
+	if (ret)
+		return ret;
+
+	/* Check for a device on the bus */
+	ret = device_find_first_child(bus, &dev);
+	if (ret)
+		return ret;
+
+	/* Probe the device */
+	ret = device_probe(dev);
+	if (ret || !dev)
+		return ret;
+
+	/* Read the very first byte. Its value is ignored because the EEPROM may not have been initialized */
+	ret = w1_eeprom_read_buf(dev, offset, (u8 *)buf, len);
+	if (ret)
+		return ret;
+
+	return 0;
+}
+
+/*
+ * sb_iotgimx8plus_rev2x_init() - Check whether the baseboard revision is 2.x and
+ * initialize it if necessary
+ */
+void sb_iotgimx8plus_rev2x_init(void)
+{
+	int ret;
+
+	ret = sb_iotgimx8plus_w1_init();
+	if (ret)
+		return;
+
+	/* 1-Wire EEPROM detected: the board is revision 2.x;
+	   enable 1-Wire support in the kernel using a Device Tree overlay */
+	env_set(IOTG_IMX8PLUS_ENV_FDTO_FILE, iotg_imx8plus_rev2_dtbo);
+}
+
+void board_vendor_late_init(void)
+{
 #ifdef CONFIG_ADDON_SMART_SETUP
 	/* Check feature strategy and set to default if not defined explicitly */
 	if (env_get_yesno(IOTG_IMX8PLUS_ENV_ADDON_SETUP) == -1) {
@@ -154,4 +215,6 @@ void board_vendor_late_init(void) {
 	/* Apply an appropriate dtb */
 	iotg_imx8plus_select_dtb();
 #endif
+	/* Check whether the baseboard revision is 2.x and initialize it if necessary */
+	sb_iotgimx8plus_rev2x_init();
 }
