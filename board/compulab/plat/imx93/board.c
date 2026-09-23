@@ -292,7 +292,7 @@ int board_late_init(void)
 	else if ((model && strstr(model, "MCM-i.MX93")) ||
 		 !fdt_node_check_compatible(gd->fdt_blob, 0,
 					      "compulab,mcm-imx93"))
-		fdtfile = "mcm-imx93.dtb";
+		fdtfile = "sbc-mcm-imx93.dtb";
 	else if ((model && strstr(model, "IOT-LINK")) ||
 		 !fdt_node_check_compatible(gd->fdt_blob, 0,
 					      "compulab,iot-link"))

@@ -298,6 +298,13 @@ clean-files := generated
 # build it on demand, i.e. not add it to 'always'.
 hostprogs += printinitialenv
 
+# This on-demand host binary can otherwise survive changes to the selected
+# CompuLab platform's generated text environment in an incremental build.
+ifeq ($(CONFIG_TARGET_CL_IMX93),y)
+$(obj)/printinitialenv: $(objtree)/include/generated/environment.h \
+	$(objtree)/include/generated/autoconf.h
+endif
+
 # Generated LCD/video logo
 LOGO_H = $(objtree)/include/bmp_logo.h
 LOGO_DATA_H = $(objtree)/include/bmp_logo_data.h
