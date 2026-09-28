@@ -320,5 +320,6 @@ source "board/toradex/verdin-imx95/Kconfig"
 source "board/compulab/common/Kconfig"
 source "board/compulab/ucm-imx95/Kconfig"
 source "board/compulab/ucm-imx952/Kconfig"
+source "board/compulab/plat/imx93/Kconfig"
 
 endif
