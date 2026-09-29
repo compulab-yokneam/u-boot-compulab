@@ -8,18 +8,20 @@
 #define __DDR_H__
 
 #ifdef CONFIG_SPL_BUILD
-#ifdef CONFIG_DRAM_D2D4
 extern struct dram_timing_info ucm_dram_timing_01061010_2G;
 extern struct dram_timing_info ucm_dram_timing_ff000010;
 extern struct dram_timing_info ucm_dram_timing_01061010_4G;
 extern struct dram_timing_info ucm_dram_timing_13000210_2G;
+extern struct dram_timing_info ucm_dram_timing_ff070010_2G;
+extern struct dram_timing_info ucm_dram_timing_ff070010_kingston_2G;
+extern struct dram_timing_info ucm_dram_timing_ff070010_kingston_4G;
 extern struct dram_timing_info ucm_dram_timing_ff070018_4G;
-#else
+extern struct dram_timing_info ucm_dram_timing_1a000008_1G;
+extern struct dram_timing_info ucm_dram_timing_1b000008_1G;
 extern struct dram_timing_info ucm_dram_timing_01061010_1G;
 extern struct dram_timing_info ucm_dram_timing_01061010_1G_4000;
 extern struct dram_timing_info ucm_dram_timing_ff060018;
 extern struct dram_timing_info ucm_dram_timing_ff070018_8G;
-#endif
 #endif
 
 void spl_dram_init(void);
@@ -71,7 +73,19 @@ static const struct lpddr4_desc lpddr4_array[] = {
 #else /* CONFIG_SPL_OS_BOOT */
 
 static const struct lpddr4_desc lpddr4_array[] = {
-#ifdef CONFIG_DRAM_D2D4
+#ifdef CONFIG_DRAM_D8
+	{ .name = "Micron",	.id = 0xff060018, .subind = 0x8, .size = 8192, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff060018
+#endif
+	},
+	{ .name = "Kingston",	.id = 0xff070018, .subind = 0x8, .size = 8192, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff070018_8G
+#endif
+	},
+#endif /* CONFIG_DRAM_D8 */
+#ifdef CONFIG_DRAM_D4
 	{ .name = "deadbeaf",	.id = 0xdeadbeef, .subind = 0x4, .size = 4096, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_4G
@@ -112,6 +126,13 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_ff070018_4G
 #endif
 	},
+#endif /* CONFIG_DRAM_D4 */
+#ifdef CONFIG_DRAM_D2
+	{ .name = "deadbeaf",	.id = 0xdeadbeef, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
 	{ .name = "Nanya",	.id = 0x05000010, .subind = 0x2, .size = 2048, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_2G
@@ -137,17 +158,8 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_01061010_2G
 #endif
 	},
-#else /* CONFIG_DRAM_D2D4 */
-	{ .name = "Micron",	.id = 0xff060018, .subind = 0x8, .size = 8192, .count = 1,
-#ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_ff060018
-#endif
-	},
-	{ .name = "Kingston",	.id = 0xff070018, .subind = 0x8, .size = 8192, .count = 1,
-#ifdef CONFIG_SPL_BUILD
-		.timing = &ucm_dram_timing_ff070018_8G
-#endif
-	},
+#endif /* CONFIG_DRAM_D2 */
+#ifdef CONFIG_DRAM_D1
 	{ .name = "deadbeaf",	.id = 0xdeadbeaf, .subind = 0x1, .size = 1024, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_1G
@@ -163,7 +175,7 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_01061010_1G_4000
 #endif
 	},
-#endif
+#endif /* CONFIG_DRAM_D1 */
 };
 #endif /* CONFIG_SPL_OS_BOOT */
 

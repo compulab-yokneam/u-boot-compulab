@@ -99,12 +99,33 @@ endmenu
 menu  "Compulab i.MX8MP platform features"
 	depends on TARGET_COMPULAB_IMX8MP
 
-config DRAM_D2D4
-	bool "Enable D2D4 or D1D8 dram support"
-	default y
+config DRAM_D1
+	bool "Enable D1 DRAM support"
+	default n
 	help
-	  If 'Y' then support for D2 and D4 configuration is enabled
-	  else support for D1 and D8 configuration is enabled
+	  If 'Y' then support for D1 is enabled.
+
+config DRAM_D2
+	bool "Enable D2 DRAM support"
+	default y if SPL_OS_BOOT
+	help
+	  If 'Y' then support for D2 is enabled.
+
+config DRAM_D4
+	bool "Enable D4 DRAM support"
+	default y if !SPL_OS_BOOT
+	help
+	  If 'Y' then support for D4 is enabled.
+
+config DRAM_D8
+	bool "Enable D8 DRAM support"
+	default n
+	help
+	  If 'Y' then support for D8 is enabled.
+
+config SPL_MAX_SIZE
+	hex
+	default 0x2C000
 
 menu  "Compulab IOT-GATE-IMX8PLUS features"
 	depends on TARGET_IOT_GATE_IMX8PLUS

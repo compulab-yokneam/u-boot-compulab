@@ -146,15 +146,9 @@ int do_ddr(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
    return 0;
 }
 
-#ifdef CONFIG_DRAM_D2D4
-#define SUPPORTED_CONF "D2,D4"
-#else
-#define SUPPORTED_CONF "D1,D8"
-#endif
-
 U_BOOT_CMD(
 	ddr,	2,	1,	do_ddr,
-	"rdmr/read/clear\nSupported configurations : [ "SUPPORTED_CONF" ]" ,
+	"rdmr/read/clear\nSupported configurations : [ "DRAM_CONF" ]" ,
 	ddr_help_text
 );
 

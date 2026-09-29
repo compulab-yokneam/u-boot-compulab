@@ -320,11 +320,7 @@ int board_late_init(void)
 	env_set("board_rev", "iMX8MP");
 #endif
 
-#ifdef CONFIG_DRAM_D2D4
-	env_set("dram_subset", "d2d4");
-#else
-	env_set("dram_subset", "d1d8");
-#endif
+	env_set("dram_subset", DRAM_CONF);
 	board_vendor_late_init();
 
 	do_pbb_restore();
