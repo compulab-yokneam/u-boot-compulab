@@ -30,7 +30,7 @@ export BUILD=$(pwd)/build
 
 * Clone the source code:
 ```
-git clone --branch u-boot-compulab_v2023.04 https://github.com/compulab-yokneam/u-boot-compulab.git
+git clone --branch u-boot-compulab_v2023.04-d1d8_d2d4 https://github.com/compulab-yokneam/u-boot-compulab.git
 cd u-boot-compulab
 ```
 
@@ -40,6 +40,85 @@ cd u-boot-compulab
 ```
 make O=${BUILD} ${MACHINE}_defconfig
 ```
+
+### DRAM configuration
+
+The DRAM configuration controls which LPDDR4 timing sets are included in SPL:
+
+| Option | Supported capacity |
+|---|---:|
+| `d1` | 1 GiB |
+| `d2` | 2 GiB |
+| `d4` | 4 GiB |
+| `d8` | 8 GiB |
+
+A CompuLab i.MX8MP defconfig selects D4 by default. All DRAM configurations
+use `CONFIG_SPL_MAX_SIZE=0x2C000`.
+
+Configuration fragments are processed from left to right. Always apply a
+machine defconfig first. Use `d0.config` before a manual selection to disable
+all default DRAM options, and then enable the required capacities.
+
+#### Predefined two-size configurations
+
+The predefined D1D8 and D2D4 fragments select both required timing sets:
+
+```bash
+# Include 1 GiB and 8 GiB timing sets
+make O=${BUILD} ${MACHINE}_defconfig d1d8.config
+
+# Include 2 GiB and 4 GiB timing sets
+make O=${BUILD} ${MACHINE}_defconfig d2d4.config
+```
+
+#### Single-size configurations
+
+Single-size configurations use the same `0x2C000` SPL size:
+
+```bash
+# D1: 1 GiB
+make O=${BUILD} ${MACHINE}_defconfig d0.config d1.config
+
+# D2: 2 GiB
+make O=${BUILD} ${MACHINE}_defconfig d0.config d2.config
+
+# D4: 4 GiB
+make O=${BUILD} ${MACHINE}_defconfig d0.config d4.config
+
+# D8: 8 GiB
+make O=${BUILD} ${MACHINE}_defconfig d0.config d8.config
+```
+
+Do not apply a single-size fragment without `d0.config`. For example,
+`d1.config` alone is added to the normal D4 default and produces a D1+D4
+configuration.
+
+#### Manual two-size configurations
+
+Manual two-size configurations combine two individual DRAM fragments:
+
+```bash
+# D1D2
+make O=${BUILD} ${MACHINE}_defconfig d0.config d1.config d2.config
+
+# D1D4
+make O=${BUILD} ${MACHINE}_defconfig d0.config d1.config d4.config
+
+# D1D8 (the predefined d1d8.config fragment is preferred)
+make O=${BUILD} ${MACHINE}_defconfig d0.config d1.config d8.config
+
+# D2D4 (the predefined d2d4.config fragment is preferred)
+make O=${BUILD} ${MACHINE}_defconfig d0.config d2.config d4.config
+
+# D2D8
+make O=${BUILD} ${MACHINE}_defconfig d0.config d2.config d8.config
+
+# D4D8
+make O=${BUILD} ${MACHINE}_defconfig d0.config d4.config d8.config
+```
+
+At least one DRAM capacity must be selected. Only use combinations supported
+by the target hardware.
 
 * Build flash.bin file:
 ```
@@ -58,22 +137,13 @@ ls -al ${BUILD}/{flash.bin,u-boot-initial-env}
 
 ## Extra
 
-### Configuration fragments compatibility matrix:
+### Extended-temperature configuration
 
-|_|_|d2d4|d1d8|etron|lab_temp|spl_size|
-|---|---|---|---|---|---|---|
-|Dram D2/D4 support|d2d4|.|n/a|v|v|v|
-|Dram D1/D8 support|d1d8|n/a|.|v|v|v|
-|Dram Etron support|etron|v|v|.|v|v|
-|Extended temp range|lab_temp|v|v|v|.|v|
-|Extra spl size|spl_size|v|v|v|v|.|
+`lab_temp.config` can be appended to any supported DRAM configuration to
+enable the extended-temperature range:
 
-### Examples for applying configuration fragments:
-* d2d4 with all options:
-```
-make O=${BUILD} ${MACHINE}_defconfig d2d4.config etron.config lab_temp.config spl_size.config
-```
-* d1d8 with all options:
-```
-make O=${BUILD} ${MACHINE}_defconfig d1d8.config etron.config lab_temp.config spl_size.config
+```bash
+make O=${BUILD} ${MACHINE}_defconfig d2d4.config lab_temp.config
+
+make O=${BUILD} ${MACHINE}_defconfig d0.config d4.config lab_temp.config
 ```
