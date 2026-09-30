@@ -208,6 +208,14 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 		/* Do this authentication in boota command */
 		break;
 #endif
+#if defined(CONFIG_FIT) && defined(CONFIG_TARGET_UCM_IMX8M_PLUS)
+	case IMAGE_FORMAT_FIT:
+		if (authenticate_image(image_load_addr,
+				       fit_get_size((void *)image_load_addr)))
+			return CMD_RET_FAILURE;
+		break;
+#endif
+
 	default:
 		printf("Not valid image format for Authentication, Please check\n");
 		return 1;

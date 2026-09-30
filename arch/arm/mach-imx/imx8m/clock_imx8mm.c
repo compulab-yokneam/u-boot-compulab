@@ -315,7 +315,11 @@ static int intpll_configure(enum pll_clocks pll, ulong freq)
 	return 0;
 }
 
+#if defined(CONFIG_TARGET_UCM_IMX8M_PLUS)
+#define VIDEO_PLL_RATE 400000000U
+#else
 #define VIDEO_PLL_RATE 594000000U
+#endif
 
 void mxs_set_lcdclk(uint32_t base_addr, uint32_t freq)
 {
@@ -369,6 +373,10 @@ void enable_display_clk(unsigned char enable)
 
 		/* 27Mhz MIPI DPHY PLL ref from video PLL */
 		clock_set_target_val(MEDIA_MIPI_PHY1_REF_CLK_ROOT, CLK_ROOT_ON | CLK_ROOT_SOURCE_SEL(7) |CLK_ROOT_POST_DIV(CLK_ROOT_POST_DIV22));
+
+		/* Enable the LVDS reference clock for the CompuLab panel. */
+		if (IS_ENABLED(CONFIG_TARGET_UCM_IMX8M_PLUS))
+		clock_set_target_val(MEDIA_LDB_CLK_ROOT, CLK_ROOT_ON | CLK_ROOT_SOURCE_SEL(7) |CLK_ROOT_POST_DIV(CLK_ROOT_POST_DIV2));
 		clock_enable(CCGR_DISPMIX, true);
 	} else {
 		clock_enable(CCGR_DISPMIX, false);

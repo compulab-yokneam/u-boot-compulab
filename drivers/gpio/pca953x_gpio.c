@@ -28,6 +28,7 @@
 #include <dm/device_compat.h>
 #include <dt-bindings/gpio/gpio.h>
 #include <linux/bitops.h>
+#include <linux/delay.h>
 
 #define PCA953X_INPUT           0
 #define PCA953X_OUTPUT          1
@@ -334,6 +335,10 @@ static int pca953x_probe(struct udevice *dev)
 	info->bank_count = DIV_ROUND_UP(info->gpio_count, BANK_SZ);
 
 	ret = pca953x_read_regs(dev, info->regs->output, info->reg_output);
+	if (ret && IS_ENABLED(CONFIG_TARGET_UCM_IMX8M_PLUS)) {
+		mdelay(1000);
+		ret = pca953x_read_regs(dev, info->regs->output, info->reg_output);
+	}
 	if (ret) {
 		dev_err(dev, "Error reading output register\n");
 		return ret;

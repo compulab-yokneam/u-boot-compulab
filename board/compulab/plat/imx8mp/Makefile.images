@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: GPL-2.0+
+# Firmware and image helpers for UCM-iMX8M-Plus.
+.PHONY: mk_firmware rm_firmware
+mk_firmware:
+	$(Q)$(MAKE) $(build)=board/compulab/plat/imx8mp/firmware all
+
+rm_firmware:
+	$(Q)$(MAKE) $(build)=board/compulab/plat/imx8mp/firmware clean
+
+.binman_stamp flash.bin: mk_firmware
+
+DRAM_CONF := $(if $(CONFIG_IMX8MP_DRAM_D4),d4,$(if $(CONFIG_IMX8MP_DRAM_D1D8),d1d8,d2))
+UBOOT_ENV_OFFSET = $(shell echo $$(( $(CONFIG_ENV_OFFSET) >> 9)))
+
+flash.bin-with-env: flash.bin u-boot-initial-env
+	$(Q)dd if=/dev/zero of=$@ bs=512 count=8192 2>/dev/null
+	$(Q)dd if=flash.bin of=$@ bs=512 conv=notrunc 2>/dev/null
+	$(Q)$(objtree)/tools/mkenvimage -s $(CONFIG_ENV_SIZE) -o $@.env u-boot-initial-env
+	$(Q)dd if=$@.env of=$@ bs=512 seek=$(UBOOT_ENV_OFFSET) conv=notrunc 2>/dev/null
+	$(Q)rm -f $@.env
+	$(Q)cp $@ $@.$(DRAM_CONF)
+
+flash.bin-with-custom-env: flash.bin u-boot-custom-env
+	$(Q)dd if=/dev/zero of=$@ bs=512 count=8192 2>/dev/null
+	$(Q)dd if=flash.bin of=$@ bs=512 conv=notrunc 2>/dev/null
+	$(Q)$(objtree)/tools/mkenvimage -s $(CONFIG_ENV_SIZE) -o $@.env u-boot-custom-env
+	$(Q)dd if=$@.env of=$@ bs=512 seek=$(UBOOT_ENV_OFFSET) conv=notrunc 2>/dev/null
+	$(Q)rm -f $@.env
+	$(Q)cp $@ $@.$(DRAM_CONF)

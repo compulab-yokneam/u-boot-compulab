@@ -1849,6 +1849,9 @@ else
 ifeq ($(CONFIG_BINMAN),y)
 flash.bin: spl/u-boot-spl.bin $(INPUTS-y) FORCE
 	$(call if_changed,binman)
+ifeq ($(CONFIG_TARGET_UCM_IMX8M_PLUS),y)
+	@cp $@ $@.$(DRAM_CONF)
+endif
 else
 flash.bin: spl/u-boot-spl.bin u-boot.itb FORCE
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
@@ -2874,3 +2877,7 @@ FORCE:
 # Declare the contents of the PHONY variable as phony.  We keep that
 # information in a variable so we can use it in if_changed and friends.
 .PHONY: $(PHONY)
+
+ifeq ($(CONFIG_TARGET_UCM_IMX8M_PLUS),y)
+include $(srctree)/board/compulab/plat/imx8mp/Makefile.images
+endif

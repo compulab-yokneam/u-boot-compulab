@@ -19,6 +19,9 @@
 #include <crypto/mscode.h>
 #include <crypto/pkcs7_parser.h>
 #include <linux/err.h>
+#if defined(CONFIG_TARGET_UCM_IMX8M_PLUS) && defined(CONFIG_IMX_HAB) && !defined(CONFIG_AVB_SUPPORT)
+#include <asm/mach-imx/hab.h>
+#endif
 
 const efi_guid_t efi_global_variable_guid = EFI_GLOBAL_VARIABLE_GUID;
 const efi_guid_t efi_guid_device_path = EFI_DEVICE_PATH_PROTOCOL_GUID;
@@ -852,6 +855,20 @@ efi_status_t efi_load_pe(struct efi_loaded_image_obj *handle,
 		log_err("Not a PE-COFF file\n");
 		return EFI_LOAD_ERROR;
 	}
+
+#if defined(CONFIG_TARGET_UCM_IMX8M_PLUS) && defined(CONFIG_IMX_HAB) && !defined(CONFIG_AVB_SUPPORT)
+	/* Preserve the CompuLab HAB-signed EFI image format. */
+	{
+		ulong addr = (ulong)efi;
+		u32 ivt_offset = efi_size & ~0xfffU;
+
+		if (addr > U32_MAX || efi_size > U32_MAX ||
+		    efi_size > U32_MAX - addr ||
+		    efi_size - ivt_offset < IVT_SIZE ||
+		    imx_hab_authenticate_image(addr, efi_size, ivt_offset))
+			return EFI_SECURITY_VIOLATION;
+	}
+#endif
 
 	for (i = 0; machines[i]; i++)
 		if (machines[i] == nt->FileHeader.Machine) {

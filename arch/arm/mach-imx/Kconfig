@@ -561,3 +561,5 @@ config BOOTLOADER_MENU
 	bootloader menu feature for android device.
 
 endif
+
+source "board/compulab/common/Kconfig"

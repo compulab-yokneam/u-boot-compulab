@@ -483,6 +483,16 @@ u32 get_cpu_temp_grade(int *minc, int *maxc)
 			*maxc = 95;
 		}
 	}
+	if (IS_ENABLED(CONFIG_TARGET_UCM_IMX8M_PLUS) &&
+	    IS_ENABLED(CONFIG_LAB_TEMPERATURE_RANGE)) {
+		if (minc)
+			*minc = -40;
+		if (maxc)
+			*maxc = 125;
+		if (IS_ENABLED(CONFIG_LAB_TEMPERATURE_RANGE_WARNING))
+			printf("Laboratory build: extended temperature range -40 to 125 C\n");
+	}
+
 	return val;
 }
 #endif
