@@ -1,0 +1,106 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2026 CompuLab Ltd.
+ */
+
+/ {
+	aliases {
+		video2 = &lcdif3;
+	};
+
+	lcdif3: display-controller@32fc6000 {
+		compatible = "fsl,imx8mp-lcdif3";
+		reg = <0 0x32fc6000 0 0x1000>;
+		thres-low = <1 2>;
+		thres-high = <3 4>;
+		status = "okay";
+
+		port {
+			lcdif3_to_hdmi: endpoint {
+				remote-endpoint = <&hdmi_from_lcdif3>;
+			};
+		};
+	};
+
+	hdmi: hdmi@32fd8000 {
+		compatible = "fsl,imx8mp-hdmi";
+		reg = <0 0x32fd8000 0 0x7f00>,
+		      <0 0x32fdff00 0 0x100>,
+		      <0 0x32fc4000 0 0x1000>,
+		      <0 0x32fc0000 0 0x1000>;
+		reg-names = "tx", "phy", "pvi", "blk-ctrl";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_hdmi>;
+		clocks = <&clk IMX8MP_CLK_HDMI_APB>,
+			 <&clk IMX8MP_CLK_HDMI_ROOT>,
+			 <&clk IMX8MP_CLK_HDMI_REF_266M>,
+			 <&clk IMX8MP_CLK_HDMI_24M>,
+			 <&clk IMX8MP_CLK_HDMI_FDCC_TST>;
+		clock-names = "apb", "axi", "ref_266m", "ref_24m", "fdcc";
+		assigned-clocks = <&clk IMX8MP_CLK_HDMI_AXI>,
+				  <&clk IMX8MP_CLK_HDMI_APB>,
+				  <&clk IMX8MP_CLK_HDMI_REF_266M>,
+				  <&clk IMX8MP_CLK_HDMI_24M>;
+		assigned-clock-parents = <&clk IMX8MP_SYS_PLL2_500M>,
+					  <&clk IMX8MP_SYS_PLL1_133M>,
+					  <&clk IMX8MP_SYS_PLL1_266M>,
+					  <&clk IMX8MP_CLK_24M>;
+		assigned-clock-rates = <500000000>, <133000000>,
+				       <266000000>, <24000000>;
+		power-domains = <&pgc_hdmimix>, <&pgc_hdmi_phy>;
+		status = "okay";
+
+		display-timings {
+			native-mode = <&hdmi_720p60>;
+
+			hdmi_720p60: timing0 {
+				clock-frequency = <74250000>;
+				hactive = <1280>;
+				vactive = <720>;
+				hfront-porch = <110>;
+				hback-porch = <220>;
+				hsync-len = <40>;
+				vfront-porch = <5>;
+				vback-porch = <20>;
+				vsync-len = <5>;
+				hsync-active = <1>;
+				vsync-active = <1>;
+				de-active = <1>;
+				pixelclk-active = <0>;
+			};
+
+			hdmi_1080p60: timing1 {
+				clock-frequency = <148500000>;
+				hactive = <1920>;
+				vactive = <1080>;
+				hfront-porch = <88>;
+				hback-porch = <148>;
+				hsync-len = <44>;
+				vfront-porch = <4>;
+				vback-porch = <36>;
+				vsync-len = <5>;
+				hsync-active = <1>;
+				vsync-active = <1>;
+				de-active = <1>;
+				pixelclk-active = <0>;
+			};
+		};
+
+		port {
+			hdmi_from_lcdif3: endpoint {
+				remote-endpoint = <&lcdif3_to_hdmi>;
+			};
+		};
+	};
+};
+
+&iomuxc {
+	pinctrl_hdmi: hdmigrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_HDMI_DDC_SCL__HDMIMIX_HDMI_SCL	0x400001c2
+			MX8MP_IOMUXC_HDMI_DDC_SDA__HDMIMIX_HDMI_SDA	0x400001c2
+			MX8MP_IOMUXC_HDMI_HPD__HDMIMIX_HDMI_HPD		0x40000154
+			MX8MP_IOMUXC_HDMI_CEC__HDMIMIX_HDMI_CEC		0x40000010
+		>;
+	};
+};

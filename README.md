@@ -135,6 +135,32 @@ make O=${BUILD} u-boot-initial-env
 ls -al ${BUILD}/{flash.bin,u-boot-initial-env}
 ```
 
+## HDMI video output
+
+U-Boot HDMI video is available on UCM-iMX8M-Plus, SBEV-UCMIMX8PLUS,
+SOM-iMX8M-Plus, MCM-iMX8M-Plus, and IOT-GATE-IMX8PLUS. IOTDIN-IMX8P is not
+supported because its carrier uses the HDMI DDC, HPD, and CEC pads as GPIOs.
+
+The existing LVDS and MIPI display selection is preserved. HDMI is video link
+2. Select HDMI and one of its supported modes persistently, then reboot:
+
+```text
+setenv video_link 2
+setenv hdmi_mode 1080p60
+saveenv
+reset
+```
+
+The `hdmi_mode` values are:
+
+| Value | Behaviour |
+|---|---|
+| `720p60` | Force 1280x720 at 60 Hz; this is the default. |
+| `1080p60` | Force 1920x1080 at 60 Hz. |
+| `auto` | Prefer EDID-advertised 1080p60, otherwise use 720p60. |
+
+Use `videolink` at the U-Boot prompt to list the available display pipelines.
+
 ## Extra
 
 ### Extended-temperature configuration

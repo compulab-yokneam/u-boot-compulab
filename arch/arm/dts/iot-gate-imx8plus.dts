@@ -4,6 +4,7 @@
  */
 
 #include "ucm-imx8m-plus.dtsi"
+#include "compulab-imx8mp-hdmi.dtsi"
 #include "sb-iotgimx8plus.dtsi"
 #include "iot-gate-imx8plus-m2tpm.dtsi"
 
