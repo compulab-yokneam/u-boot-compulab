@@ -40,6 +40,7 @@ struct lcdifv3_priv {
 	u32 thres_low_div;
 	u32 thres_high_mul;
 	u32 thres_high_div;
+	bool pixclk_from_phy;
 };
 
 static int lcdifv3_set_pix_fmt(struct lcdifv3_priv *priv, unsigned int format)
@@ -206,8 +207,9 @@ static void lcdifv3_init(struct udevice *dev,
 	struct lcdifv3_priv *priv = dev_get_priv(dev);
 	int ret;
 
-	/* Kick in the LCDIF clock */
-	mxs_set_lcdclk(priv->reg_base, PS2KHZ(mode->pixclock));
+	/* LCDIF3 receives its pixel clock from the HDMI PHY. */
+	if (!priv->pixclk_from_phy)
+		mxs_set_lcdclk(priv->reg_base, PS2KHZ(mode->pixclock));
 
 	writel(CTRL_SW_RESET, (ulong)(priv->reg_base + LCDIFV3_CTRL_CLR));
 
@@ -266,6 +268,11 @@ static int lcdifv3_of_get_timings(struct udevice *dev,
 	}
 
 	debug("disp_dev %s\n", priv->disp_dev->name);
+	if (device_get_uclass_id(priv->disp_dev) == UCLASS_DISPLAY) {
+		ret = display_read_timing(priv->disp_dev, timings);
+		if (!ret)
+			return 0;
+	}
 
 	ret = video_link_get_display_timings(timings);
 	if (ret) {
@@ -343,6 +350,7 @@ static int lcdifv3_video_probe(struct udevice *dev)
 		dev_err(dev, "lcdif base address is not found\n");
 		return -EINVAL;
 	}
+	priv->pixclk_from_phy = priv->reg_base == 0x32fc6000;
 
 	ret = lcdifv3_of_get_timings(dev, &timings);
 	if (ret)
@@ -443,6 +451,7 @@ static int lcdifv3_video_remove(struct udevice *dev)
 static const struct udevice_id lcdifv3_video_ids[] = {
 	{ .compatible = "fsl,imx8mp-lcdif1" },
 	{ .compatible = "fsl,imx8mp-lcdif2" },
+	{ .compatible = "fsl,imx8mp-lcdif3" },
 	{ .compatible = "fsl,imx93-lcdif" },
 	{ /* sentinel */ }
 };

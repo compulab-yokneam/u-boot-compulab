@@ -88,6 +88,17 @@ config VIDEO_IMX8M_HDMI
 	help
 	  Support for HDMI on i.MX8MQ processors.
 
+config VIDEO_IMX8MP_HDMI
+	bool "i.MX8MP HDMI display support"
+	default n
+	depends on IMX8MP && VIDEO
+	select DISPLAY
+	select VIDEO_DW_HDMI
+	select VIDEO_LINK
+	help
+	  Enable the LCDIF3, HDMI PVI, DesignWare HDMI transmitter and
+	  Samsung HDMI PHY display pipeline found on i.MX8MP processors.
+
 config VIDEO_SEC_MIPI_DSI
 	bool
 	select VIDEO_MIPI_DSI

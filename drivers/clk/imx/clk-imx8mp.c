@@ -50,6 +50,24 @@ static const char * imx8mp_media_axi_sels[] = {"clock-osc-24m", "sys_pll2_1000m"
 static const char * imx8mp_media_apb_sels[] = {"clock-osc-24m", "sys_pll2_125m", "sys_pll1_800m",
 						     "sys_pll3_out", "sys_pll1_40m", "audio_pll2_out",
 						     "clk_ext1", "sys_pll1_133m", };
+
+static const char * const imx8mp_hdmi_fdcc_tst_sels[] = {
+	"clock-osc-24m", "sys_pll1_266m", "sys_pll2_250m",
+	"sys_pll1_800m", "sys_pll2_1000m", "sys_pll3_out",
+	"audio_pll2_out", "video_pll1_out",
+};
+
+static const char * const imx8mp_hdmi_24m_sels[] = {
+	"clock-osc-24m", "sys_pll1_160m", "sys_pll2_50m",
+	"sys_pll3_out", "audio_pll1_out", "video_pll1_out",
+	"audio_pll2_out", "sys_pll1_133m",
+};
+
+static const char * const imx8mp_hdmi_ref_266m_sels[] = {
+	"clock-osc-24m", "sys_pll1_400m", "sys_pll3_out",
+	"sys_pll2_333m", "sys_pll1_266m", "sys_pll2_200m",
+	"audio_pll1_out", "video_pll1_out",
+};
 #endif
 
 static const char *imx8mp_noc_sels[] = {"clock-osc-24m", "sys_pll1_800m", "sys_pll3_out",
@@ -292,6 +310,12 @@ static int imx8mp_clk_probe(struct udevice *dev)
 #ifndef CONFIG_SPL_BUILD
 	clk_dm(IMX8MP_CLK_MEDIA_AXI, imx8m_clk_composite("media_axi", imx8mp_media_axi_sels, base + 0x8a00));
 	clk_dm(IMX8MP_CLK_MEDIA_APB, imx8m_clk_composite("media_apb", imx8mp_media_apb_sels, base + 0x8a80));
+	clk_dm(IMX8MP_CLK_HDMI_APB,
+	       imx8m_clk_composite("hdmi_apb", imx8mp_media_apb_sels,
+				   base + 0x8b00));
+	clk_dm(IMX8MP_CLK_HDMI_AXI,
+	       imx8m_clk_composite("hdmi_axi", imx8mp_media_axi_sels,
+				   base + 0x8b80));
 #endif
 	clk_dm(IMX8MP_CLK_HSIO_AXI, imx8m_clk_composite("hsio_axi", imx8mp_hsio_axi_sels, base + 0x8380));
 	clk_dm(IMX8MP_CLK_MAIN_AXI, imx8m_clk_composite_critical("main_axi", imx8mp_main_axi_sels, base + 0x8800));
@@ -345,6 +369,17 @@ static int imx8mp_clk_probe(struct udevice *dev)
 #ifndef CONFIG_SPL_BUILD
 	clk_dm(IMX8MP_CLK_MEDIA_MIPI_PHY1_REF, imx8m_clk_composite("media_mipi_phy1_ref", imx8mp_media_mipi_phy1_ref_sels, base + 0xbd80));
 	clk_dm(IMX8MP_CLK_MEDIA_DISP1_PIX, imx8m_clk_composite("media_disp1_pix", imx8mp_media_disp_pix_sels, base + 0xbe00));
+	clk_dm(IMX8MP_CLK_HDMI_FDCC_TST,
+	       imx8m_clk_composite("hdmi_fdcc_tst",
+				   imx8mp_hdmi_fdcc_tst_sels,
+				   base + 0xbb00));
+	clk_dm(IMX8MP_CLK_HDMI_24M,
+	       imx8m_clk_composite("hdmi_24m", imx8mp_hdmi_24m_sels,
+				   base + 0xbb80));
+	clk_dm(IMX8MP_CLK_HDMI_REF_266M,
+	       imx8m_clk_composite("hdmi_ref_266m",
+				   imx8mp_hdmi_ref_266m_sels,
+				   base + 0xbc00));
 #endif
 	clk_dm(IMX8MP_CLK_DRAM_ALT_ROOT, imx_clk_fixed_factor("dram_alt_root", "dram_alt", 1, 4));
 	clk_dm(IMX8MP_CLK_DRAM_CORE, imx_clk_mux2_flags("dram_core_clk", base + 0x9800, 24, 1, imx8mp_dram_core_sels, ARRAY_SIZE(imx8mp_dram_core_sels), CLK_IS_CRITICAL));
@@ -393,6 +428,7 @@ static int imx8mp_clk_probe(struct udevice *dev)
 	clk_dm(IMX8MP_CLK_MEDIA_DISP1_PIX_ROOT, imx_clk_gate2_shared2("media_disp1_pix_root_clk", "media_disp1_pix", base + 0x45d0, 0, &share_count_media));
 	clk_dm(IMX8MP_CLK_MEDIA_DISP2_PIX_ROOT, imx_clk_gate2_shared2("media_disp2_pix_root_clk", "media_disp2_pix", base + 0x45d0, 0, &share_count_media));
 	clk_dm(IMX8MP_CLK_MEDIA_MIPI_PHY1_REF_ROOT, imx_clk_gate2_shared2("media_mipi_phy1_ref_root", "media_mipi_phy1_ref", base + 0x45d0, 0, &share_count_media));
+	clk_dm(IMX8MP_CLK_HDMI_ROOT, imx_clk_gate4("hdmi_root_clk", "hdmi_axi", base + 0x45f0, 0));
 #endif
 
 	clk_dm(IMX8MP_CLK_USDHC3_ROOT, imx_clk_gate4("usdhc3_root_clk", "usdhc3", base + 0x45e0, 0));

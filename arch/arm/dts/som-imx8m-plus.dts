@@ -7,6 +7,9 @@
 
 #include <dt-bindings/usb/pd.h>
 #include "imx8mp.dtsi"
+#ifdef CONFIG_VIDEO_IMX8MP_HDMI
+#include "compulab-imx8mp-hdmi.dtsi"
+#endif
 
 / {
 	model = "CompuLab SOM-iMX8M-Plus";
