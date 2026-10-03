@@ -12,6 +12,7 @@
 #include <asm/global_data.h>
 #include <linux/libfdt.h>
 #include <video.h>
+#include <video_link.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -26,9 +27,15 @@ static int fdt_simplefb_configure_node(void *blob, int off)
 	struct udevice *dev;
 	int ret;
 
-	ret = uclass_first_device_err(UCLASS_VIDEO, &dev);
-	if (ret)
-		return ret;
+	if (IS_ENABLED(CONFIG_VIDEO_LINK)) {
+		dev = video_link_get_video_device();
+		if (!dev)
+			return -ENODEV;
+	} else {
+		ret = uclass_first_device_err(UCLASS_VIDEO, &dev);
+		if (ret)
+			return ret;
+	}
 	uc_priv = dev_get_uclass_priv(dev);
 	plat = dev_get_uclass_plat(dev);
 	xsize = uc_priv->xsize;

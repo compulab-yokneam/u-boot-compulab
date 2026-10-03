@@ -13,9 +13,10 @@
 #include <dm/device-internal.h>
 #include <dm/ofnode.h>
 #include <dm/read.h>
-#include <video.h>
-#include <panel.h>
 #include <env.h>
+#include <panel.h>
+#include <video.h>
+#include <video_link.h>
 
 struct of_endpoint {
 	unsigned int port;
@@ -516,10 +517,20 @@ int video_link_shut_down(void)
 {
 	struct udevice *video_dev = video_link_get_video_device();
 
-	if (video_dev)
+	if (video_dev && !video_link_should_retain())
 		device_remove(video_dev, DM_REMOVE_NORMAL);
 
 	return 0;
+}
+
+bool video_link_should_retain(void)
+{
+	const char *value = env_get("video_retain");
+
+	if (!IS_ENABLED(CONFIG_COMPULAB_VIDEO_HANDOFF) || !value || video_off)
+		return false;
+
+	return !strcmp(value, "yes") || !strcmp(value, "auto");
 }
 
 #ifdef CONFIG_SYS_LONGHELP

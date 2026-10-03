@@ -440,10 +440,15 @@ static int lcdifv3_video_remove(struct udevice *dev)
 
 	debug("%s\n", __func__);
 
+	/*
+	 * Stop LCDIF while its registers and pixel clock are still accessible.
+	 * The downstream display remove callback may power down the shared media
+	 * or HDMI MIX domain that contains this LCDIF instance.
+	 */
+	lcdifv3_power_down(priv);
+
 	if (priv->disp_dev)
 		device_remove(priv->disp_dev, DM_REMOVE_NORMAL);
-
-	lcdifv3_power_down(priv);
 
 	return 0;
 }

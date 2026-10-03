@@ -10,6 +10,8 @@ int video_link_init(void);
 
 int video_link_shut_down(void);
 
+bool video_link_should_retain(void);
+
 struct udevice *video_link_get_next_device(struct udevice *curr_dev);
 
 struct udevice *video_link_get_video_device(void);

@@ -4,11 +4,15 @@
  */
 
 #include <common.h>
+#include <dm/read.h>
 #include <env.h>
 #include <errno.h>
+#include <fdt_simplefb.h>
+#include <fdt_support.h>
 #include <init.h>
 #include <miiphy.h>
 #include <netdev.h>
+#include <dt-bindings/power/imx8mp-power.h>
 #include <linux/delay.h>
 #include <asm/global_data.h>
 #include <asm/io.h>
@@ -27,6 +31,7 @@
 #include "common/tcpc.h"
 #include "common/fdt.h"
 #include <usb.h>
+#include <video_link.h>
 #include <dwc3-uboot.h>
 #include <imx_sip.h>
 #include <linux/arm-smccc.h>
@@ -51,6 +56,179 @@ int board_phys_sdram_size(phys_size_t *size)
 
 
 #ifdef CONFIG_OF_BOARD_SETUP
+static const char * const lcdif_compatibles[] = {
+	"fsl,imx8mp-lcdif",
+	"fsl,imx8mp-lcdif1",
+	"fsl,imx8mp-lcdif2",
+};
+
+#define IMX8MP_HDMI_LCDIF_BASE	0x32fc6000
+#define COMPULAB_VIDEO_HANDOFF_PROP	"compulab,video-handoff"
+
+static int fdt_mark_boot_on_power_domain(void *blob, u32 domain_id)
+{
+	const fdt32_t *reg;
+	int gpc, pgc, node;
+	int len;
+
+	gpc = fdt_node_offset_by_compatible(blob, -1, "fsl,imx8mp-gpc");
+	if (gpc < 0)
+		return gpc;
+
+	pgc = fdt_subnode_offset(blob, gpc, "pgc");
+	if (pgc < 0)
+		return pgc;
+
+	fdt_for_each_subnode(node, blob, pgc) {
+		reg = fdt_getprop(blob, node, "reg", &len);
+		if (!reg || len < sizeof(*reg) || fdt32_to_cpu(*reg) != domain_id)
+			continue;
+
+		return fdt_setprop_empty(blob, node, "fsl,boot-on");
+	}
+
+	return -FDT_ERR_NOTFOUND;
+}
+
+static int fdt_mark_hdmi_power_domains_on(void *blob)
+{
+	int ret;
+
+	ret = fdt_mark_boot_on_power_domain(blob,
+					    IMX8MP_POWER_DOMAIN_HDMIMIX);
+	if (ret)
+		return ret;
+
+	return fdt_mark_boot_on_power_domain(blob,
+					     IMX8MP_POWER_DOMAIN_HDMI_PHY);
+}
+
+static int fdt_find_lcdif(void *blob, phys_addr_t address)
+{
+	int display;
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(lcdif_compatibles); i++) {
+		display = fdt_node_offset_by_compat_reg(blob,
+							lcdif_compatibles[i],
+							address);
+		if (display >= 0)
+			return display;
+	}
+
+	return -FDT_ERR_NOTFOUND;
+}
+
+static int ft_board_setup_simplefb(void *blob)
+{
+	struct udevice *video_dev;
+	unsigned int display_phandle;
+	phys_addr_t display_addr;
+	int address_cells, size_cells;
+	int chosen, display = -FDT_ERR_NOTFOUND, framebuffer;
+	int ret;
+
+	if (!IS_ENABLED(CONFIG_COMPULAB_VIDEO_HANDOFF) ||
+	    !video_link_should_retain())
+		return 0;
+
+	ret = fdt_increase_size(blob, 1024);
+	if (ret)
+		return ret;
+
+	chosen = fdt_find_or_add_subnode(blob, 0, "chosen");
+	if (chosen < 0)
+		return chosen;
+
+	/* Allow Linux to decode a framebuffer reg property below /chosen. */
+	address_cells = fdt_address_cells(blob, 0);
+	if (address_cells < 0)
+		return address_cells;
+
+	size_cells = fdt_size_cells(blob, 0);
+	if (size_cells < 0)
+		return size_cells;
+
+	ret = fdt_setprop_u32(blob, chosen, "#address-cells", address_cells);
+	if (ret)
+		return ret;
+
+	ret = fdt_setprop_u32(blob, chosen, "#size-cells", size_cells);
+	if (ret)
+		return ret;
+
+	ret = fdt_setprop_empty(blob, chosen, "ranges");
+	if (ret)
+		return ret;
+
+	framebuffer = fdt_node_offset_by_compatible(blob, -1,
+						    "simple-framebuffer");
+	if (framebuffer == -FDT_ERR_NOTFOUND) {
+		framebuffer = fdt_add_subnode(blob, chosen, "framebuffer");
+		if (framebuffer < 0)
+			return framebuffer;
+	} else if (framebuffer < 0) {
+		return framebuffer;
+	}
+
+	ret = fdt_setprop_string(blob, framebuffer, "compatible",
+				 "simple-framebuffer");
+	if (ret)
+		return ret;
+
+	ret = fdt_setprop_string(blob, framebuffer, "status", "disabled");
+	if (ret)
+		return ret;
+
+	display_addr = FDT_ADDR_T_NONE;
+	video_dev = video_link_get_video_device();
+	if (video_dev) {
+		display_addr = dev_read_addr(video_dev);
+		display = fdt_find_lcdif(blob, display_addr);
+
+		if (display >= 0) {
+			display_phandle = fdt_create_phandle(blob, display);
+			if (!display_phandle)
+				return -FDT_ERR_NOPHANDLES;
+
+			framebuffer = fdt_node_offset_by_compatible(blob, -1,
+								    "simple-framebuffer");
+			if (framebuffer < 0)
+				return framebuffer;
+
+			ret = fdt_setprop_u32(blob, framebuffer, "display",
+					      display_phandle);
+			if (ret)
+				return ret;
+		}
+	}
+
+	ret = fdt_simplefb_enable_and_mem_rsv(blob);
+	if (ret)
+		return ret;
+
+	/*
+	 * Linux normally assumes GPC domains are off when registering them.
+	 * Tell it that the HDMI domains are already running so it does not run
+	 * the cold power-up/reset sequence over the retained display pipeline.
+	 */
+	if (display_addr == IMX8MP_HDMI_LCDIF_BASE) {
+		ret = fdt_mark_hdmi_power_domains_on(blob);
+		if (ret)
+			return ret;
+	}
+
+	if (display < 0)
+		return display;
+
+	ret = fdt_setprop_empty(blob, display,
+				COMPULAB_VIDEO_HANDOFF_PROP);
+	if (!ret)
+		printf("Retaining video for Linux handoff\n");
+
+	return ret;
+}
+
 __weak int fdt_board_vendor_setup(void *blob) {
 	return 0;
 }
@@ -111,12 +289,22 @@ static  int fdt_set_som_info(void *blob) {
 
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
+	int ret;
 
 	fdt_set_env_addr(blob);
 	fdt_set_sn(blob);
 	fdt_set_soc_info(blob);
 	fdt_set_som_info(blob);
 	fdt_board_vendor_setup(blob);
+
+	ret = ft_board_setup_simplefb(blob);
+	if (ret) {
+		printf("Unable to set up simple framebuffer, err=%s\n",
+		       fdt_strerror(ret));
+		/* Ensure announce_and_cleanup() shuts down a partial handoff. */
+		env_set("video_retain", "no");
+	}
+
 	return 0;
 }
 #endif

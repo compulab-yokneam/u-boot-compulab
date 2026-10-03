@@ -460,6 +460,57 @@ static int imx8mp_hdmi_probe(struct udevice *dev)
 	return 0;
 }
 
+static int imx8mp_hdmi_remove(struct udevice *dev)
+{
+	struct imx8mp_hdmi_priv *priv = dev_get_priv(dev);
+	int err = 0;
+	int ret;
+
+	/* Stop the pixel stream before resetting or powering down HDMI. */
+	writel(0, priv->pvi + HTX_PVI_CTRL);
+
+	writeb(HDMI_IH_MUTE_MUTE_WAKEUP_INTERRUPT |
+	       HDMI_IH_MUTE_MUTE_ALL_INTERRUPT,
+	       priv->hdmi.ioaddr + HDMI_IH_MUTE);
+	writeb(HDMI_MC_PHYRSTZ_ASSERT,
+	       priv->hdmi.ioaddr + HDMI_MC_PHYRSTZ);
+	writeb(HDMI_MC_CLKDIS_HDCPCLK_DISABLE |
+	       HDMI_MC_CLKDIS_CECCLK_DISABLE |
+	       HDMI_MC_CLKDIS_CSCCLK_DISABLE |
+	       HDMI_MC_CLKDIS_AUDCLK_DISABLE |
+	       HDMI_MC_CLKDIS_PREPCLK_DISABLE |
+	       HDMI_MC_CLKDIS_TMDSCLK_DISABLE |
+	       HDMI_MC_CLKDIS_PIXELCLK_DISABLE,
+	       priv->hdmi.ioaddr + HDMI_MC_CLKDIS);
+
+	/*
+	 * Quiesce only the HDMI TX and PHY paths before switching off their
+	 * power domains. Do not clear the global MIX reset and clock registers:
+	 * asserting the MIX APB reset from an APB write prevents that transaction
+	 * from completing and hangs the CPU before Linux can start.
+	 */
+	clrbits_le32(priv->blk + HDMI_TX_CONTROL0, BIT(1));
+	setbits_le32(priv->blk + HDMI_TX_CONTROL0, BIT(3));
+
+	ret = power_domain_off(&priv->phy_pd);
+	if (ret)
+		err = ret;
+
+	ret = power_domain_off(&priv->hdmimix);
+	if (ret) {
+		if (!err)
+			err = ret;
+	}
+
+	ret = clk_disable_bulk(&priv->clocks);
+	if (ret) {
+		if (!err)
+			err = ret;
+	}
+
+	return err;
+}
+
 static const struct dm_display_ops imx8mp_hdmi_ops = {
 	.read_timing = imx8mp_hdmi_read_timing,
 	.read_edid = imx8mp_hdmi_read_edid,
@@ -477,6 +528,7 @@ U_BOOT_DRIVER(imx8mp_hdmi) = {
 	.id = UCLASS_DISPLAY,
 	.of_match = imx8mp_hdmi_ids,
 	.probe = imx8mp_hdmi_probe,
+	.remove = imx8mp_hdmi_remove,
 	.ops = &imx8mp_hdmi_ops,
 	.priv_auto = sizeof(struct imx8mp_hdmi_priv),
 	.flags = DM_FLAG_DEFAULT_PD_CTRL_OFF,

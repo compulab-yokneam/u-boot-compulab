@@ -99,6 +99,19 @@ endmenu
 menu  "Compulab i.MX8MP platform features"
 	depends on TARGET_COMPULAB_IMX8MP
 
+config COMPULAB_VIDEO_HANDOFF
+	bool "Preserve the U-Boot display for Linux (EXPERIMENTAL)"
+	default n
+	depends on VIDEO
+	select FDT_SIMPLEFB
+	help
+	  Keep the selected U-Boot video pipeline active while booting Linux and
+	  describe its framebuffer with a reserved simple-framebuffer node.
+	  The video_retain environment variable accepts "yes" or "auto" to
+	  retain an active link. Any other value selects normal video shutdown.
+	  U-Boot marks the retained LCDIF with compulab,video-handoff for Linux.
+	  This feature is experimental and requires matching Linux support.
+
 config DRAM_D1
 	bool "Enable D1 DRAM support"
 	default n

@@ -49,12 +49,20 @@
 #define CL_DEPLOY_CMD \
 	"cl-deploy=setenv boot_opt init=/usr/local/bin/cl-init; run bsp_bootcmd;\0"
 
+#ifdef CONFIG_COMPULAB_VIDEO_HANDOFF
+#define COMPULAB_VIDEO_HANDOFF_ENV \
+	"video_retain=auto\0"
+#else
+#define COMPULAB_VIDEO_HANDOFF_ENV
+#endif
+
 /* Initial environment variables */
 #define CFG_EXTRA_ENV_SETTINGS		\
 	CL_DEPLOY_CMD \
 	CFG_MFG_ENV_SETTINGS \
 	BOOTENV \
 	MACHINE_EXTRA_ENV_SETTINGS \
+	COMPULAB_VIDEO_HANDOFF_ENV \
 	"video_link=1\0" \
 	"stdout=serial,vidconsole\0" \
 	"stderr=serial,vidconsole\0" \
