@@ -16,6 +16,8 @@
 #include <asm/gpio.h>
 #include <i2c.h>
 #include <linux/string.h>
+#include <net.h>
+#include "../../common/eeprom.h"
 
 #if CONFIG_IS_ENABLED(EFI_HAVE_CAPSULE_SUPPORT)
 #define IMX_BOOT_IMAGE_GUID \
@@ -266,10 +268,73 @@ int board_init(void)
 	return 0;
 }
 
+static const char *cl_imx93_detect_platform(void)
+{
+	const char *configured = env_get("platform");
+	char product[PRODUCT_NAME_SIZE] = {};
+
+	/* IOT-LINK deliberately remains a separate, RT-oriented platform. */
+	if (!fdt_node_check_compatible(gd->fdt_blob, 0,
+				       "compulab,iot-link")) {
+		printf("Platform: IOT-LINK (control DT)\n");
+		return "iot-link";
+	}
+
+	if (configured) {
+		if (!strcasecmp(configured, "ucm") ||
+		    !strcasecmp(configured, "ucm-imx93")) {
+			printf("Platform: UCM-i.MX93 (environment override)\n");
+			return "ucm-imx93";
+		}
+
+		if (!strcasecmp(configured, "mcm") ||
+		    !strcasecmp(configured, "mcm-imx93")) {
+			printf("Platform: MCM-i.MX93 (environment override)\n");
+			return "mcm-imx93";
+		}
+
+		printf("WARN: ignoring unknown platform override '%s'\n",
+		       configured);
+	}
+
+	cl_eeprom_read_som_name(product);
+	if (!strncasecmp(product, "UCM", 3)) {
+		printf("Platform: UCM-i.MX93 (EEPROM: %s)\n", product);
+		return "ucm-imx93";
+	}
+
+	if (!strncasecmp(product, "MCM", 3)) {
+		printf("Platform: MCM-i.MX93 (EEPROM: %s)\n", product);
+		return "mcm-imx93";
+	}
+
+	printf("WARN: unknown i.MX93 module EEPROM product '%s'; "
+	       "defaulting to UCM-i.MX93\n", product);
+	printf("WARN: use 'setenv platform mcm-imx93' to override\n");
+	return "ucm-imx93";
+}
+
+#if defined(CONFIG_FEC_MXC) || defined(CONFIG_DWC_ETH_QOS)
+static void board_get_mac_from_eeprom(int dev_id)
+{
+	uchar mac[ARP_HLEN];
+
+	cl_eeprom_read_n_mac_addr(mac, dev_id, CONFIG_SYS_I2C_EEPROM_BUS);
+	if (is_zero_ethaddr(mac) || !is_valid_ethaddr(mac))
+		return;
+
+	eth_env_set_enetaddr_by_index("eth", dev_id, mac);
+}
+#else
+static void board_get_mac_from_eeprom(int dev_id)
+{
+}
+#endif
+
 int board_late_init(void)
 {
-	const char *fdtfile = "cl-imx93.dtb";
-	const char *model;
+	const char *platform;
+	const char *fdtfile;
 	int ret;
 
 #if CONFIG_IS_ENABLED(ENV_IS_IN_MMC) || CONFIG_IS_ENABLED(ENV_IS_NOWHERE)
@@ -284,19 +349,15 @@ int board_late_init(void)
 	env_set("sec_boot", "yes");
 #endif
 
-	model = fdt_getprop(gd->fdt_blob, 0, "model", NULL);
-	if ((model && strstr(model, "UCM-i.MX93")) ||
-	    !fdt_node_check_compatible(gd->fdt_blob, 0,
-				       "compulab,ucm-imx93"))
-		fdtfile = "ucm-imx93.dtb";
-	else if ((model && strstr(model, "MCM-i.MX93")) ||
-		 !fdt_node_check_compatible(gd->fdt_blob, 0,
-					      "compulab,mcm-imx93"))
-		fdtfile = "sbc-mcm-imx93.dtb";
-	else if ((model && strstr(model, "IOT-LINK")) ||
-		 !fdt_node_check_compatible(gd->fdt_blob, 0,
-					      "compulab,iot-link"))
+	platform = cl_imx93_detect_platform();
+	if (!strcmp(platform, "iot-link"))
 		fdtfile = "iot-link.dtb";
+	else if (!strcmp(platform, "mcm-imx93"))
+		fdtfile = "sbc-mcm-imx93.dtb";
+	else
+		fdtfile = "ucm-imx93.dtb";
+
+	env_set("platform_detected", platform);
 
 	ret = env_set("fdtfile", fdtfile);
 	if (ret)
@@ -305,9 +366,11 @@ int board_late_init(void)
 		printf("FDT:   %s\n", fdtfile);
 
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-	env_set("board_name", "11X11_EVK");
+	env_set("board_name", platform);
 	env_set("board_rev", "iMX93");
 #endif
+	board_get_mac_from_eeprom(0);
+	board_get_mac_from_eeprom(1);
 	return 0;
 }
 
