@@ -2168,6 +2168,13 @@ quiet_cmd_envc = ENVC    $@
 include/generated/env.txt: $(wildcard $(ENV_FILE)) include/generated/autoconf.h
 	$(call cmd,envc)
 
+# The CompuLab i.MX93 platform environment is a small wrapper around this
+# shared environment.  Kbuild otherwise only tracks the wrapper itself, so an
+# incremental build can silently retain stale environment data.
+ifeq ($(CONFIG_TARGET_CL_IMX93),y)
+include/generated/env.txt: $(srctree)/include/env/compulab-imx93.env
+endif
+
 # Write out the resulting environment, converted to a C string
 quiet_cmd_gen_envt = ENVT    $@
       cmd_gen_envt = \

@@ -16,6 +16,7 @@
 #include <asm/gpio.h>
 #include <i2c.h>
 #include <linux/string.h>
+#include <malloc.h>
 #include <net.h>
 #include "../../common/eeprom.h"
 
@@ -373,6 +374,75 @@ int board_late_init(void)
 	board_get_mac_from_eeprom(1);
 	return 0;
 }
+
+#ifdef CONFIG_OF_BOARD_SETUP
+static int cl_imx93_set_linux_hostname(void *blob, const char *platform)
+{
+	const char *current;
+	char *updated;
+	size_t size;
+	int chosen, ret;
+
+	chosen = fdt_path_offset(blob, "/chosen");
+	if (chosen < 0)
+		return chosen;
+
+	current = fdt_getprop(blob, chosen, "bootargs", NULL);
+	if (!current)
+		current = "";
+
+	size = strlen(current) + strlen(platform) +
+	       sizeof(" systemd.hostname=");
+	updated = malloc(size);
+	if (!updated)
+		return -ENOMEM;
+
+	if (*current)
+		snprintf(updated, size, "%s systemd.hostname=%s",
+			 current, platform);
+	else
+		snprintf(updated, size, "systemd.hostname=%s", platform);
+
+	ret = fdt_setprop_string(blob, chosen, "bootargs", updated);
+	free(updated);
+
+	return ret;
+}
+
+int ft_board_setup(void *blob, struct bd_info *bd)
+{
+	const char *platform = env_get("platform_detected");
+	int node, ret;
+
+	(void)bd;
+
+	if (!platform)
+		platform = cl_imx93_detect_platform();
+
+	node = fdt_add_subnode(blob, 0, "som.info");
+	if (node == -FDT_ERR_EXISTS)
+		node = fdt_path_offset(blob, "/som.info");
+	if (node < 0) {
+		printf("Failed to create /som.info, ret=%d\n", node);
+		return node;
+	}
+
+	ret = fdt_setprop_string(blob, node, "board.name", platform);
+	if (ret) {
+		printf("Failed to set /som.info/board.name, ret=%d\n", ret);
+		return ret;
+	}
+
+	ret = cl_imx93_set_linux_hostname(blob, platform);
+	if (ret) {
+		printf("Failed to set Linux hostname to %s, ret=%d\n",
+		       platform, ret);
+		return ret;
+	}
+
+	return 0;
+}
+#endif
 
 #ifdef CONFIG_FSL_FASTBOOT
 #ifdef CONFIG_ANDROID_RECOVERY
