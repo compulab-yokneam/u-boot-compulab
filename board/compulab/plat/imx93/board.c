@@ -3,6 +3,7 @@
  * Copyright 2022 NXP
  */
 
+#include <autoboot.h>
 #include <env.h>
 #include <efi_loader.h>
 #include <fdt_support.h>
@@ -130,6 +131,90 @@ static const char *cl_imx93_detect_platform(void)
 	return "ucm-imx93";
 }
 
+#define IOT_LINK_EEPROM_BUS	2
+#define IOT_LINK_EEPROM_ADDR	0x50
+#define IOT_LINK_EEPROM_SIZE	256
+
+struct iot_link_overlay {
+	const char *option;
+	const char *configuration;
+	const char *filename;
+};
+
+static const struct iot_link_overlay iot_link_overlays[] = {
+	{ "FARS4", "#conf-iot-link-fars485.dtbo", "iot-link-fars485.dtbo" },
+	{ "FACAN", "#conf-iot-link-facan.dtbo", "iot-link-facan.dtbo" },
+	{ "FBCAN", "#conf-iot-link-fbcan.dtbo", "iot-link-fbcan.dtbo" },
+	{ "FBRS4", "#conf-iot-link-fbrs485.dtbo", "iot-link-fbrs485.dtbo" },
+};
+
+static bool iot_link_eeprom_has_option(const u8 *data, size_t data_size,
+				       const char *option)
+{
+	size_t option_size = strlen(option);
+	size_t offset;
+
+	for (offset = 0; offset + option_size <= data_size; offset++) {
+		if (!memcmp(data + offset, option, option_size))
+			return true;
+	}
+
+	return false;
+}
+
+static int iot_link_set_overlays(void)
+{
+	char configurations[160] = {};
+	char filenames[160] = {};
+	u8 eeprom[IOT_LINK_EEPROM_SIZE];
+	struct udevice *dev;
+	int found = 0;
+	int ret;
+	int i;
+
+	ret = i2c_get_chip_for_busnum(IOT_LINK_EEPROM_BUS,
+				      IOT_LINK_EEPROM_ADDR, 1, &dev);
+	if (ret) {
+		printf("IOT-LINK: baseboard EEPROM not found, ret=%d\n", ret);
+		goto set_environment;
+	}
+
+	ret = dm_i2c_read(dev, 0, eeprom, sizeof(eeprom));
+	if (ret) {
+		printf("IOT-LINK: failed to read baseboard EEPROM, ret=%d\n", ret);
+		goto set_environment;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(iot_link_overlays); i++) {
+		const struct iot_link_overlay *overlay = &iot_link_overlays[i];
+
+		if (!iot_link_eeprom_has_option(eeprom, sizeof(eeprom),
+						overlay->option))
+			continue;
+
+		strlcat(configurations, overlay->configuration,
+			sizeof(configurations));
+		if (*filenames)
+			strlcat(filenames, " ", sizeof(filenames));
+		strlcat(filenames, overlay->filename, sizeof(filenames));
+		printf("IOT-LINK: detected %s, enabling %s\n",
+		       overlay->option, overlay->filename);
+		found++;
+	}
+
+	if (!found)
+		printf("IOT-LINK: no optional CAN/RS-485 interfaces detected\n");
+
+set_environment:
+	/* Hardware configuration takes precedence over a saved environment. */
+	if (env_set("overlays", configurations))
+		return -EIO;
+	if (env_set("overlays_files", filenames))
+		return -EIO;
+
+	return ret;
+}
+
 #if defined(CONFIG_FEC_MXC) || defined(CONFIG_DWC_ETH_QOS)
 static void board_get_mac_from_eeprom(int dev_id)
 {
@@ -147,7 +232,7 @@ static void board_get_mac_from_eeprom(int dev_id)
 }
 #endif
 
-int board_late_init(void)
+static void cl_imx93_setup_runtime_env(void)
 {
 	const char *platform;
 	const char *fdtfile;
@@ -174,6 +259,20 @@ int board_late_init(void)
 		fdtfile = "ucm-imx93.dtb";
 
 	env_set("platform_detected", platform);
+	if (!strcmp(platform, "iot-link")) {
+		cl_eeprom_set_sb_path(IOT_LINK_EEPROM_BUS,
+				      IOT_LINK_EEPROM_ADDR);
+		env_set("image", "fitImage");
+		env_set("boot_fit", "yes");
+		ret = iot_link_set_overlays();
+		if (ret)
+			printf("WARN: IOT-LINK overlays disabled, ret=%d\n", ret);
+	} else {
+		env_set("image", "Image");
+		env_set("boot_fit", "no");
+		env_set("overlays", NULL);
+		env_set("overlays_files", NULL);
+	}
 
 	ret = env_set("fdtfile", fdtfile);
 	if (ret)
@@ -187,7 +286,18 @@ int board_late_init(void)
 #endif
 	board_get_mac_from_eeprom(0);
 	board_get_mac_from_eeprom(1);
+}
+
+int board_late_init(void)
+{
+	cl_imx93_setup_runtime_env();
 	return 0;
+}
+
+void board_autoboot_env_init(void)
+{
+	/* SDP manufacturing boot resets the environment after board_late_init(). */
+	cl_imx93_setup_runtime_env();
 }
 
 #ifdef CONFIG_OF_BOARD_SETUP

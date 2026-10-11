@@ -50,6 +50,14 @@ static inline bool autoboot_set_keyed(bool autoboot_keyed)
 
 #ifdef CONFIG_AUTOBOOT
 /**
+ * board_autoboot_env_init() - restore board settings after the USB boot reset
+ *
+ * Called after manufacturing boot restores the default environment, before
+ * selecting the boot command. Boards may reapply hardware-derived settings.
+ */
+void board_autoboot_env_init(void);
+
+/**
  * bootdelay_process() - process the bootd delay
  *
  * Process the boot delay, boot limit, then get the value of either

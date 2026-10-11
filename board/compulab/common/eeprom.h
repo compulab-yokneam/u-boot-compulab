@@ -37,6 +37,7 @@ int cl_eeprom_read_sb_name(char *buf);
 int cl_eeprom_read_som_name(char *buf);
 int cl_eeprom_read_som_options(char *buf);
 int cl_eeprom_read_sb_options(char *buf);
+void cl_eeprom_set_sb_path(int bus, uint8_t chip);
 void cl_eeprom_get_suite(char* buf);
 void cpl_get_som_serial(struct tag_serialnr *serialnr);
 void cpl_get_sb_serial(struct tag_serialnr *serialnr);

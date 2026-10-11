@@ -461,6 +461,10 @@ static void process_fdt_options(void)
 #endif /* CONFIG_TEXT_BASE */
 }
 
+__weak void board_autoboot_env_init(void)
+{
+}
+
 const char *bootdelay_process(void)
 {
 	char *s;
@@ -486,6 +490,7 @@ const char *bootdelay_process(void)
 		bootdelay = 0;
 		env_set_default("Use default environment for \
 				 mfgtools\n", 0);
+		board_autoboot_env_init();
 	} else if (is_boot_from_usb()) {
 		printf("Boot from USB for uuu\n");
 		env_set("bootcmd", "fastboot 0");

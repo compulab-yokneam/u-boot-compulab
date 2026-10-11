@@ -50,7 +50,7 @@ static const struct eeprom_path eeprom_som = {
 	CONFIG_SYS_I2C_EEPROM_BUS,
 	CONFIG_SYS_I2C_EEPROM_ADDR
 };
-static const struct eeprom_path eeprom_sb = {
+static struct eeprom_path eeprom_sb = {
 	CONFIG_SYS_I2C_EEPROM_BUS_SB,
 	CONFIG_SYS_I2C_EEPROM_ADDR_SB
 };
@@ -58,6 +58,22 @@ static const struct eeprom_path eeprom_sb = {
 static const struct eeprom_path *working_eeprom;
 
 static struct udevice *g_dev = NULL;
+
+void cl_eeprom_set_sb_path(int bus, uint8_t chip)
+{
+	if (eeprom_sb.bus == bus && eeprom_sb.chip == chip)
+		return;
+
+	eeprom_sb.bus = bus;
+	eeprom_sb.chip = chip;
+
+	/* Force the next baseboard access to probe the new EEPROM path. */
+	if (working_eeprom == &eeprom_sb) {
+		working_eeprom = NULL;
+		g_dev = NULL;
+		cl_eeprom_layout = LAYOUT_INVALID;
+	}
+}
 
 static int cpl_eeprom_init(void) {
 
