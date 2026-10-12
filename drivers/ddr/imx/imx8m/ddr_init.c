@@ -6,6 +6,7 @@
 #include <common.h>
 #include <errno.h>
 #include <log.h>
+#include <linux/iopoll.h>
 #include <asm/io.h>
 #include <asm/arch/ddr.h>
 #include <asm/arch/clock.h>
@@ -311,10 +312,31 @@ void update_umctl2_rank_space_setting(unsigned int pstat_num)
 	}
 }
 
-int ddr_init(struct dram_timing_info *dram_timing)
+/* Preserve unbounded normal-init waits; bound every experimental probe wait. */
+static int ddrc_wait(unsigned long addr, u32 mask, u32 value, bool probe)
+{
+	u32 tmp;
+	int ret;
+
+	if (!probe) {
+		do {
+			tmp = reg32_read(addr);
+		} while ((tmp & mask) != value);
+		return 0;
+	}
+
+	ret = read_poll_timeout(reg32_read, tmp, (tmp & mask) == value,
+				false, 100000, addr);
+	if (ret)
+		printf("DDRINFO: MRR setup timeout at 0x%lx (0x%x)\n", addr, tmp);
+	return ret;
+}
+
+static int ddr_init_internal(struct dram_timing_info *dram_timing, int probe_fsp)
 {
 	unsigned int tmp, initial_drate, target_freq;
 	int ret;
+	bool probe = probe_fsp >= 0;
 
 	printf("DDRINFO: start DRAM init\n");
 
@@ -337,7 +359,7 @@ int ddr_init(struct dram_timing_info *dram_timing)
 	reg32_write(0x303A00EC, 0x0000ffff); /* PGC_CPU_MAPPING */
 	reg32setbit(0x303A00F8, 5); /* PU_PGC_SW_PUP_REQ */
 
-	initial_drate = dram_timing->fsp_msg[0].drate;
+	initial_drate = dram_timing->fsp_msg[probe ? probe_fsp : 0].drate;
 	/* default to the frequency point 0 clock */
 	printf("DDRINFO: DRAM rate %dMTS\n", initial_drate);
 	ddrphy_init_set_dfi_clk(initial_drate);
@@ -348,6 +370,12 @@ int ddr_init(struct dram_timing_info *dram_timing)
 	/* Step2: Program the dwc_ddr_umctl2 registers */
 	debug("DDRINFO: ddrc config start\n");
 	ddr_cfg_umctl2(dram_timing->ddrc_cfg, dram_timing->ddrc_cfg_num);
+	if (probe) {
+		/* Keep all timing banks intact and boot at the low-speed bank. */
+		reg32_write(DDRC_MSTR2(0), probe_fsp);
+		setbits_le32(DDRC_MSTR(0), BIT(29));
+		reg32_write(DDRC_PCTRL_0(0), 0);
+	}
 	debug("DDRINFO: ddrc config done\n");
 
 	/* Step3: De-assert reset signal(core_ddrc_rstn & aresetn_n) */
@@ -382,9 +410,9 @@ int ddr_init(struct dram_timing_info *dram_timing)
 
 	/* Step7: Set SWCTL.sw_done to 1; need to polling SWSTAT.sw_done_ack */
 	reg32_write(DDRC_SWCTL(0), 0x00000001);
-	do {
-		tmp = reg32_read(DDRC_SWSTAT(0));
-	} while ((tmp & 0x1) == 0x0);
+	ret = ddrc_wait(DDRC_SWSTAT(0), 0x1, 0x1, probe);
+	if (ret)
+		return ret;
 
 	/*
 	 * Step8 ~ Step13: Start PHY initialization and training by
@@ -392,7 +420,12 @@ int ddr_init(struct dram_timing_info *dram_timing)
 	 */
 	debug("DDRINFO:ddrphy config start\n");
 
+#ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
+	ret = probe ? ddr_cfg_phy_mrr(dram_timing, probe_fsp) :
+		ddr_cfg_phy(dram_timing);
+#else
 	ret = ddr_cfg_phy(dram_timing);
+#endif
 	if (ret)
 		return ret;
 
@@ -402,9 +435,9 @@ int ddr_init(struct dram_timing_info *dram_timing)
 	 * step14 CalBusy.0 =1, indicates the calibrator is actively
 	 * calibrating. Wait Calibrating done.
 	 */
-	do {
-		tmp = reg32_read(DDRPHY_CalBusy(0));
-	} while ((tmp & 0x1));
+	ret = ddrc_wait(DDRPHY_CalBusy(0), 0x1, 0, probe);
+	if (ret)
+		return ret;
 
 	printf("DDRINFO:ddrphy calibration done\n");
 
@@ -412,21 +445,22 @@ int ddr_init(struct dram_timing_info *dram_timing)
 	reg32_write(DDRC_SWCTL(0), 0x00000000);
 
 	/* Apply rank-to-rank workaround */
-	update_umctl2_rank_space_setting(dram_timing->fsp_msg_num - 1);
+	if (!probe)
+		update_umctl2_rank_space_setting(dram_timing->fsp_msg_num - 1);
 
 	/* Step16: Set DFIMISC.dfi_init_start to 1 */
 	setbits_le32(DDRC_DFIMISC(0), (0x1 << 5));
 
 	/* Step17: Set SWCTL.sw_done to 1; need to polling SWSTAT.sw_done_ack */
 	reg32_write(DDRC_SWCTL(0), 0x00000001);
-	do {
-		tmp = reg32_read(DDRC_SWSTAT(0));
-	} while ((tmp & 0x1) == 0x0);
+	ret = ddrc_wait(DDRC_SWSTAT(0), 0x1, 0x1, probe);
+	if (ret)
+		return ret;
 
 	/* Step18: Polling DFISTAT.dfi_init_complete = 1 */
-	do {
-		tmp = reg32_read(DDRC_DFISTAT(0));
-	} while ((tmp & 0x1) == 0x0);
+	ret = ddrc_wait(DDRC_DFISTAT(0), 0x1, 0x1, probe);
+	if (ret)
+		return ret;
 
 	/* Step19: Set SWCTL.sw_done to 0 */
 	reg32_write(DDRC_SWCTL(0), 0x00000000);
@@ -444,18 +478,22 @@ int ddr_init(struct dram_timing_info *dram_timing)
 
 	/* Step24: Set SWCTL.sw_done to 1; need polling SWSTAT.sw_done_ack */
 	reg32_write(DDRC_SWCTL(0), 0x00000001);
-	do {
-		tmp = reg32_read(DDRC_SWSTAT(0));
-	} while ((tmp & 0x1) == 0x0);
+	ret = ddrc_wait(DDRC_SWSTAT(0), 0x1, 0x1, probe);
+	if (ret)
+		return ret;
 
 	/* Step25: Wait for dwc_ddr_umctl2 to move to normal operating mode by monitoring
 	 * STAT.operating_mode signal */
-	do {
-		tmp = reg32_read(DDRC_STAT(0));
-	} while ((tmp & 0x3) != 0x1);
+	ret = ddrc_wait(DDRC_STAT(0), 0x3, 0x1, probe);
+	if (ret)
+		return ret;
 
 	/* Step26: Set back register in Step4 to the original values if desired */
 	reg32_write(DDRC_RFSHCTL3(0), 0x0000000);
+
+	/* The probe only issues MR commands; never expose DDR to AXI or save data. */
+	if (probe)
+		return 0;
 
 	/* enable port 0 */
 	reg32_write(DDRC_PCTRL_0(0), 0x00000001);
@@ -471,6 +509,23 @@ int ddr_init(struct dram_timing_info *dram_timing)
 
 	return 0;
 }
+
+int ddr_init(struct dram_timing_info *dram_timing)
+{
+	return ddr_init_internal(dram_timing, -1);
+}
+
+#ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
+int ddr_init_mrr(struct dram_timing_info *dram_timing, unsigned int fsp)
+{
+	if (!is_imx8mp() || fsp >= dram_timing->fsp_msg_num || fsp > 2 ||
+	    dram_timing->fsp_msg[fsp].fw_type != FW_1D_IMAGE ||
+	    dram_timing->fsp_msg[fsp].drate != 100)
+		return -EINVAL;
+
+	return ddr_init_internal(dram_timing, fsp);
+}
+#endif
 
 ulong ddrphy_addr_remap(uint32_t paddr_apb_from_ctlr)
 {

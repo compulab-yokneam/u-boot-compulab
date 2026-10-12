@@ -104,6 +104,60 @@ int wait_ddrphy_training_complete(void)
 	}
 }
 
+/* A single deadline bounds both mailbox handshakes and streaming messages. */
+static int get_pmu_message_timeout(ulong start, bool stream, u32 *message)
+{
+	u32 reg;
+
+	while (dwc_ddrphy_apb_rd(0xd0004) & 1)
+		if (get_timer(start) >= 500)
+			return -ETIMEDOUT;
+	if (get_timer(start) >= 500)
+		return -ETIMEDOUT;
+
+	reg = dwc_ddrphy_apb_rd(0xd0032);
+	if (stream)
+		reg |= dwc_ddrphy_apb_rd(0xd0034) << 16;
+	*message = reg;
+	dwc_ddrphy_apb_wr(0xd0031, 0);
+	while (!(dwc_ddrphy_apb_rd(0xd0004) & 1)) {
+		if (get_timer(start) >= 500) {
+			dwc_ddrphy_apb_wr(0xd0031, 1);
+			return -ETIMEDOUT;
+		}
+	}
+	dwc_ddrphy_apb_wr(0xd0031, 1);
+	return 0;
+}
+
+int wait_ddrphy_init_complete_timeout(void)
+{
+	ulong start = get_timer(0);
+	u32 mail, count, arg;
+	int ret;
+
+	for (;;) {
+		ret = get_pmu_message_timeout(start, false, &mail);
+		if (ret)
+			return ret;
+		if (mail == 0x07)
+			return 0;
+		if (mail == 0xff)
+			return -EIO;
+		if (mail != 0x08)
+			continue;
+		ret = get_pmu_message_timeout(start, true, &count);
+		if (ret)
+			return ret;
+		count &= 0xffff;
+		while (count--) {
+			ret = get_pmu_message_timeout(start, true, &arg);
+			if (ret)
+				return ret;
+		}
+	}
+}
+
 void ddrphy_init_set_dfi_clk(unsigned int drate)
 {
 	switch (drate) {

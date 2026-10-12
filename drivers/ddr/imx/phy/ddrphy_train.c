@@ -9,7 +9,8 @@
 #include <asm/arch/ddr.h>
 #include <asm/arch/sys_proto.h>
 
-int ddr_cfg_phy(struct dram_timing_info *dram_timing)
+static int ddr_cfg_phy_internal(struct dram_timing_info *dram_timing,
+				int probe_fsp)
 {
 	struct dram_cfg_param *dram_cfg;
 	struct dram_fsp_msg *fsp_msg;
@@ -28,8 +29,8 @@ int ddr_cfg_phy(struct dram_timing_info *dram_timing)
 	}
 
 	/* load the frequency setpoint message block config */
-	fsp_msg = dram_timing->fsp_msg;
-	for (i = 0; i < dram_timing->fsp_msg_num; i++) {
+	fsp_msg = dram_timing->fsp_msg + (probe_fsp < 0 ? 0 : probe_fsp);
+	for (i = 0; i < (probe_fsp < 0 ? dram_timing->fsp_msg_num : 1); i++) {
 		debug("DRAM PHY training for %dMTS\n", fsp_msg->drate);
 		/* set dram PHY input clocks to desired frequency */
 		ddrphy_init_set_dfi_clk(fsp_msg->drate);
@@ -44,6 +45,12 @@ int ddr_cfg_phy(struct dram_timing_info *dram_timing)
 		for (j = 0; j < num; j++) {
 			dwc_ddrphy_apb_wr(dram_cfg->reg, dram_cfg->val);
 			dram_cfg++;
+		}
+		if (probe_fsp >= 0) {
+			/* Message blocks end by handing APB ownership to the PMU. */
+			dwc_ddrphy_apb_wr(0xd0000, 0x0);
+			/* LPDDR4 SequenceCtrl: device/PHY init, no timing training. */
+			dwc_ddrphy_apb_wr(0x54008, 0x1);
 		}
 
 		/*
@@ -62,7 +69,8 @@ int ddr_cfg_phy(struct dram_timing_info *dram_timing)
 		dwc_ddrphy_apb_wr(0xd0099, 0x0);
 
 		/* Wait for the training firmware to complete */
-		ret = wait_ddrphy_training_complete();
+		ret = probe_fsp < 0 ? wait_ddrphy_training_complete() :
+			wait_ddrphy_init_complete_timeout();
 		if (ret)
 			return ret;
 
@@ -74,7 +82,7 @@ int ddr_cfg_phy(struct dram_timing_info *dram_timing)
 
 		ddrphy_init_read_msg_block(fsp_msg->fw_type);
 
-		if(fsp_msg->fw_type != FW_2D_IMAGE)
+		if (probe_fsp < 0 && fsp_msg->fw_type != FW_2D_IMAGE)
 			get_trained_CDD(i);
 
 		dwc_ddrphy_apb_wr(0xd0000, 0x1);
@@ -92,7 +100,20 @@ int ddr_cfg_phy(struct dram_timing_info *dram_timing)
 	}
 
 	/* save the ddr PHY trained CSR in memory for low power use */
-	ddrphy_trained_csr_save(ddrphy_trained_csr, ddrphy_trained_csr_num);
+	if (probe_fsp < 0)
+		ddrphy_trained_csr_save(ddrphy_trained_csr, ddrphy_trained_csr_num);
 
 	return 0;
 }
+
+int ddr_cfg_phy(struct dram_timing_info *dram_timing)
+{
+	return ddr_cfg_phy_internal(dram_timing, -1);
+}
+
+#ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
+int ddr_cfg_phy_mrr(struct dram_timing_info *dram_timing, unsigned int fsp)
+{
+	return ddr_cfg_phy_internal(dram_timing, fsp);
+}
+#endif

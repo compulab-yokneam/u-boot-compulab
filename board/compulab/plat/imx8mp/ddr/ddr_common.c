@@ -4,7 +4,63 @@
 #include <errno.h>
 #include <asm/io.h>
 #include <asm/arch/ddr.h>
+#include <linux/iopoll.h>
 #include "ddr.h"
+
+#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_COMPULAB_LPDDR4_MRR_PROBE)
+/* Preserve raw lane data: a zero MR6/MR7 byte is a valid result. */
+static int lpddr4_mr_read_timeout(unsigned int mr_addr, u32 *data)
+{
+	u32 tmp;
+	int ret;
+
+	reg32_write(DRC_PERF_MON_MRR0_DAT(0), 0x1);
+	ret = read_poll_timeout(reg32_read, tmp, !(tmp & 1), false,
+				10000, DDRC_MRSTAT(0));
+	if (ret)
+		goto out;
+	/* Read CS0 only; do not broadcast to possibly absent ranks. */
+	reg32_write(DDRC_MRCTRL0(0), (1 << 4) | 1);
+	reg32_write(DDRC_MRCTRL1(0), mr_addr << 8);
+	reg32setbit(DDRC_MRCTRL0(0), 31);
+	ret = read_poll_timeout(reg32_read, tmp, tmp & 0x8, false,
+				10000, DRC_PERF_MON_MRR0_DAT(0));
+	if (!ret)
+		*data = reg32_read(DRC_PERF_MON_MRR1_DAT(0));
+out:
+	reg32_write(DRC_PERF_MON_MRR0_DAT(0), 0x4);
+	return ret;
+}
+
+int lpddr4_get_mr_probe(u32 *id)
+{
+	u32 raw[4], previous[4], value, byte;
+	int pass, mr, lane, ret;
+
+	for (pass = 0; pass < 3; pass++) {
+		value = 0;
+		for (mr = 0; mr < 4; mr++) {
+			ret = lpddr4_mr_read_timeout(mr + 5, &raw[mr]);
+			if (ret)
+				return ret;
+			/* Match the existing CompuLab significant-byte extraction. */
+			byte = raw[mr];
+			for (lane = 0; lane < 3 && !(byte & 0xff); lane++)
+				byte >>= 8;
+			value = (value << 8) | (byte & 0xff);
+		}
+		printf("DDRINFO: MRR probe raw MR5-8: %08x %08x %08x %08x\n",
+		       raw[0], raw[1], raw[2], raw[3]);
+		if (!value || value == 0xffffffff)
+			return -EIO;
+		if (pass && memcmp(previous, raw, sizeof(raw)))
+			return -EIO;
+		memcpy(previous, raw, sizeof(raw));
+	}
+	*id = value;
+	return 0;
+}
+#endif
 
 static unsigned int _lpddr4_mr_read(unsigned int mr_rank, unsigned int mr_addr)
 {

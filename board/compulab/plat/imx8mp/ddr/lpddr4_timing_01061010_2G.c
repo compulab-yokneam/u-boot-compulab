@@ -336,6 +336,11 @@ static struct dram_cfg_param ddr_ddrphy_cfg[] = {
 	{ 0x2002c, 0x0 },
 };
 
+/*
+ * The i.MX8MP driver saves the shared CSR table, not this duplicate.
+ * Omit it for the experimental probe to keep SPL within its SRAM limit.
+ */
+#ifndef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
 /* ddr phy trained csr */
 static struct dram_cfg_param ddr_ddrphy_trained_csr[] = {
 	{ 0x200b2, 0x0 },
@@ -1058,6 +1063,7 @@ static struct dram_cfg_param ddr_ddrphy_trained_csr[] = {
 	{ 0x13730, 0x0 },
 	{ 0x13830, 0x0 },
 };
+#endif
 /* P0 message block paremeter for training firmware */
 static struct dram_cfg_param ddr_fsp0_cfg[] = {
 	{ 0xd0000, 0x0 },
@@ -1845,8 +1851,10 @@ struct dram_timing_info ucm_dram_timing_01061010_2G = {
 	.ddrphy_cfg_num = ARRAY_SIZE(ddr_ddrphy_cfg),
 	.fsp_msg = ddr_dram_fsp_msg,
 	.fsp_msg_num = ARRAY_SIZE(ddr_dram_fsp_msg),
+#ifndef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
 	.ddrphy_trained_csr = ddr_ddrphy_trained_csr,
 	.ddrphy_trained_csr_num = ARRAY_SIZE(ddr_ddrphy_trained_csr),
+#endif
 	.ddrphy_pie = ddr_phy_pie,
 	.ddrphy_pie_num = ARRAY_SIZE(ddr_phy_pie),
 	.fsp_table = { 3000, 400, 100, },

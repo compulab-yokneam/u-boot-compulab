@@ -66,6 +66,49 @@ static struct lpddr4_tcm_desc spl_tcm_data;
 #define SPL_TCM_INIT spl_tcm_init(lpddr4_tcm_desc)
 #define SPL_TCM_FINI spl_tcm_fini(lpddr4_tcm_desc)
 
+#ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
+static int lpddr4_probe_profile(void)
+{
+	struct dram_timing_info *seed = &ucm_dram_timing_01061010_2G;
+	u32 id;
+	int ret, found = -1;
+	unsigned int fsp, i;
+
+	for (fsp = 0; fsp < seed->fsp_msg_num; fsp++)
+		if (seed->fsp_msg[fsp].drate == 100 &&
+		    seed->fsp_msg[fsp].fw_type == FW_1D_IMAGE)
+			break;
+	if (fsp == seed->fsp_msg_num)
+		return -ENOENT;
+
+	puts("DDRINFO: experimental 100 MT/s MRR probe (DevInit only)\n");
+	ret = ddr_init_mrr(seed, fsp);
+	if (!ret)
+		ret = lpddr4_get_mr_probe(&id);
+
+	/* Discard all probe state, including a stalled PMU, before full training. */
+	reg32_write(SRC_DDRC_RCR_ADDR, 0x8f00001f);
+	if (ret) {
+		printf("DDRINFO: MRR probe failed (%d); use normal initialization\n", ret);
+		return ret;
+	}
+
+	printf("DDRINFO: MRR probe ID 0x%08x\n", id);
+	for (i = 0; i < ARRAY_SIZE(lpddr4_array); i++) {
+		if (lpddr4_array[i].id != id)
+			continue;
+		if (found >= 0) {
+			puts("DDRINFO: ambiguous MRR ID; use normal discovery\n");
+			return -EINVAL;
+		}
+		found = i;
+	}
+	if (found < 0)
+		puts("DDRINFO: unknown MRR ID; use normal discovery\n");
+	return found;
+}
+#endif
+
 static int _spl_dram_init(void)
 {
 	unsigned int ddr_info = 0xdeadbeef;
@@ -74,6 +117,7 @@ static int _spl_dram_init(void)
 	unsigned int ddr_found = 0;
 	unsigned int ddr_init_rc = 0;
 	int i = 0;
+	int probe_index = -1;
 
 	struct lpddr4_tcm_desc *lpddr4_tcm_desc = SPL_TCM_DATA;
 
@@ -94,6 +138,13 @@ static int _spl_dram_init(void)
 		}
 	}
 
+#ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
+	/* Try once per discovery cycle; persisted scan state prevents retry loops. */
+	if (lpddr4_tcm_desc->sign != DEFAULT &&
+	    (!ddr_found || IS_ENABLED(CONFIG_COMPULAB_LPDDR4_MRR_PROBE_ALWAYS)))
+		probe_index = lpddr4_probe_profile();
+#endif
+
 	/* Walk trought all available ddr ids and apply
 	 * one by one. Save the index at the tcm memory that
 	 * persists after the reset.
@@ -108,7 +159,11 @@ static int _spl_dram_init(void)
 				lpddr4_tcm_desc->index += 1;
 		}
 
-		if (lpddr4_tcm_desc->index < ARRAY_SIZE(lpddr4_array)) {
+		if (probe_index >= 0) {
+			i = probe_index;
+			printf("DDRINFO: probe selected %s %uMB; full training follows\n",
+			       lpddr4_array[i].name, lpddr4_array[i].size);
+		} else if (lpddr4_tcm_desc->index < ARRAY_SIZE(lpddr4_array)) {
 			printf("DDRINFO: Cfg attempt: [ %d/%lu ; ( %s / 0x%x) ]\n", lpddr4_tcm_desc->index+1, ARRAY_SIZE(lpddr4_array), lpddr4_array[lpddr4_tcm_desc->index].name ,  lpddr4_array[lpddr4_tcm_desc->index].id );
 			i = lpddr4_tcm_desc->index;
 			lpddr4_tcm_desc->index += 1;

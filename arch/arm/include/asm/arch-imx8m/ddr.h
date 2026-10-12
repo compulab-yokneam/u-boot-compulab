@@ -707,6 +707,10 @@ extern struct dram_timing_info dram_timing;
 void ddr_load_train_firmware(enum fw_type type);
 int ddr_init(struct dram_timing_info *timing_info);
 int ddr_cfg_phy(struct dram_timing_info *timing_info);
+/* Experimental OCRAM-only MRR setup; caller must reinitialize before DDR use. */
+int ddr_init_mrr(struct dram_timing_info *timing_info, unsigned int fsp);
+int ddr_cfg_phy_mrr(struct dram_timing_info *timing_info, unsigned int fsp);
+int wait_ddrphy_init_complete_timeout(void);
 void load_lpddr4_phy_pie(void);
 void ddrphy_trained_csr_save(struct dram_cfg_param *param, unsigned int num);
 void* dram_config_save(struct dram_timing_info *info, unsigned long base);
