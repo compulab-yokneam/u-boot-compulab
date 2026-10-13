@@ -20,9 +20,9 @@ to UCM. The imported SOM board retains its expansion-power, Wi-Fi and
 board-revision PHY-address handling.
 
 The new boards retain EQOS assigned clocks (125 MHz transmit, 100 MHz
-timer). Their LCDIF1/DSI configuration retains the legacy divider code
-and assigns the matching 594 MHz video PLL. The UCM Startec LVDS clock
-override is not copied into these board trees.
+timer). CL-SOM retains the legacy LCDIF1 divider code and matching 594 MHz
+video PLL. MCM configures its Startec 1024x600 LVDS output with a 594 MHz
+video PLL, 42.428572 MHz pixel clock and 297 MHz LVDS clock.
 
 Building
 --------
@@ -54,3 +54,22 @@ stability, both Ethernet interfaces, USB, the actual carrier and panel,
 environment persistence and Linux boot on each physical board.
 A successful build does not establish HAB/EFI authentication behavior;
 no new signing or security qualification is performed here.
+
+MCM Startec LVDS follow-up
+-------------------------
+
+A user-provided hardware log confirms MCM boots commit 4e796967a0d2 and
+initializes Samsung 4 GB DDR at 3200 MT/s. The panel fails to probe with
+-ENODEV. The I2C expander at bus 1/address 0x20 and fixed panel regulator
+are present; the missing PWM backlight driver is the panel dependency
+that cannot bind.
+
+The fix enables DM_PWM/PWM_IMX (and therefore BACKLIGHT_PWM), applies the
+Startec pixel/LVDS clock dividers to MCM, enables the LDB clock through
+the clock framework, and makes the LDB driver honor fsl,data-mapping
+instead of forcing JEIDA for non-UCM boards. Display-enable errors now
+propagate to the caller.
+
+The corrected MCM D4 image and SBEV regression image compile successfully.
+Visual confirmation on the corrected MCM image is still required; the
+backlight-only symptom on the earlier image is not a display pass.

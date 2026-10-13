@@ -8,6 +8,8 @@
 #include <clk.h>
 #include <dm.h>
 #include <dm/device_compat.h>
+#include <dm/ofnode.h>
+#include <linux/string.h>
 #include <display.h>
 #include <video.h>
 #include <video_bridge.h>
@@ -73,6 +75,7 @@
 #define serial_clk 74250*7000
 
 struct imx8mp_ldb_priv {
+	struct clk ldb_clk;
 	struct regmap *regmap;
 	struct udevice *conn_dev;
 	unsigned int ldb_id;
@@ -100,6 +103,17 @@ static int imx8mp_lvds_phy_power_on(struct udevice *dev)
 
 	unsigned int val;
 	bool bg_en;
+	ofnode channel = ofnode_find_subnode(dev_ofnode(dev), "lvds-channel@0");
+	const char *mapping = ofnode_read_string(channel, "fsl,data-mapping");
+	u32 ldb_ctrl = LDB_CH0_MODE_EN_TO_DI0 | CH0_DATA_WIDTH_24BIT;
+
+	/* Preserve the legacy default only when the DT omits the mapping. */
+	if (!mapping)
+		mapping = IS_ENABLED(CONFIG_TARGET_UCM_IMX8M_PLUS) ? "spwg" : "jeida";
+	if (!strcmp(mapping, "jeida"))
+		ldb_ctrl |= CH0_BIT_MAPPING_JEIDA;
+	else if (strcmp(mapping, "spwg"))
+		return -EINVAL;
 
 	media_blk_write(priv, LVDS_CTRL, HS_DISABLE);
 
@@ -117,11 +131,7 @@ static int imx8mp_lvds_phy_power_on(struct udevice *dev)
 	val |= BIT(3);
 	media_blk_write(priv, LVDS_CTRL, val);
 
-#ifdef CONFIG_TARGET_UCM_IMX8M_PLUS
-	media_blk_write(priv, LDB_CTRL, LDB_CH0_MODE_EN_TO_DI0 | CH0_DATA_WIDTH_24BIT);
-#else
-	media_blk_write(priv, LDB_CTRL, LDB_CH0_MODE_EN_TO_DI0 | CH0_DATA_WIDTH_24BIT | CH0_BIT_MAPPING_JEIDA);
-#endif
+	media_blk_write(priv, LDB_CTRL, ldb_ctrl);
 
 	usleep_range(5, 10);
 
@@ -157,6 +167,13 @@ static int imx8mp_ldb_probe(struct udevice *dev)
 			debug("fail to get fsl,imx8mp-mediamix-blk-ctl regmap\n");
 			return PTR_ERR(priv->regmap);
 		}
+
+		ret = clk_get_by_name(dev, "ldb", &priv->ldb_clk);
+		if (ret)
+			return ret;
+		ret = clk_enable(&priv->ldb_clk);
+		if (ret)
+			return ret;
 
 		/* Require to add alias in DTB */
 		priv->ldb_id = dev_seq(dev);
@@ -211,6 +228,16 @@ static int imx8mp_ldb_probe(struct udevice *dev)
 
 }
 
+static int imx8mp_ldb_remove(struct udevice *dev)
+{
+	struct imx8mp_ldb_priv *priv = dev_get_priv(dev);
+
+	if (dev->plat_ == NULL)
+		return clk_disable(&priv->ldb_clk);
+
+	return 0;
+}
+
 static int imx8mp_ldb_bind(struct udevice *dev)
 {
 	ofnode lvds_ch_node;
@@ -239,9 +266,11 @@ int imx8mp_ldb_enable(struct udevice *dev, int panel_bpp,
 
 	if (dev->plat_ == NULL) {
 
-		imx8mp_lvds_phy_power_on(dev);
+		return imx8mp_lvds_phy_power_on(dev);
 	} else {
-		display_enable(dev->parent, panel_bpp, &priv->timings);
+		ret = display_enable(dev->parent, panel_bpp, &priv->timings);
+		if (ret)
+			return ret;
 
 		if (IS_ENABLED(CONFIG_VIDEO_BRIDGE)) {
 			if (priv->conn_dev &&
@@ -275,6 +304,7 @@ U_BOOT_DRIVER(imx8mp_ldb) = {
 	.of_match			= imx8mp_ldb_ids,
 	.bind				= imx8mp_ldb_bind,
 	.probe				= imx8mp_ldb_probe,
+	.remove				= imx8mp_ldb_remove,
 	.ops				= &imx8mp_ldb_ops,
 	.priv_auto		= sizeof(struct imx8mp_ldb_priv),
 };
