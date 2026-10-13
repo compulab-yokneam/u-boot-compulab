@@ -1551,7 +1551,7 @@ static int eqos_probe(struct udevice *dev)
 	eth_phy_set_mdio_bus(dev, eqos->mii);
 #endif
 
-	if (IS_ENABLED(CONFIG_TARGET_UCM_IMX8M_PLUS)) {
+	if (IS_ENABLED(CONFIG_COMPULAB_IMX8MP)) {
 		ret = eqos_phy_init(eqos, dev);
 		if (ret < 0) {
 			pr_err("eqos_phy_init() failed: %d\n", ret);

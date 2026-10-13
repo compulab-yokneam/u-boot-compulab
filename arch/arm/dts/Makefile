@@ -1277,3 +1277,6 @@ DTC_FLAGS_imx8mp-dhcom-som-overlay-rev100 += -Wno-avoid_default_addr_size -Wno-r
 DTC_FLAGS_imx8mp-dhcom-pdk3-overlay-rev100 += -Wno-avoid_default_addr_size -Wno-reg_format
 
 dtb-$(CONFIG_TARGET_UCM_IMX8M_PLUS) += ucm-imx8m-plus.dtb
+
+dtb-$(CONFIG_TARGET_MCM_IMX8M_PLUS) += mcm-imx8m-plus.dtb
+dtb-$(CONFIG_TARGET_SOM_IMX8M_PLUS) += som-imx8m-plus.dtb

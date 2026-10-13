@@ -261,7 +261,7 @@ static int rtl8211f_config(struct phy_device *phydev)
 	phy_write(phydev, MDIO_DEVAD_NONE,
 		  MIIM_RTL8211F_PAGE_SELECT, 0xd04);
 	phy_write(phydev, MDIO_DEVAD_NONE, 0x10,
-		  IS_ENABLED(CONFIG_TARGET_UCM_IMX8M_PLUS) ? 0x2d7b : 0x617f);
+		  IS_ENABLED(CONFIG_COMPULAB_IMX8MP) ? 0x2d7b : 0x617f);
 	phy_write(phydev, MDIO_DEVAD_NONE,
 		  MIIM_RTL8211F_PAGE_SELECT, 0x0);
 

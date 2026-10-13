@@ -13,13 +13,13 @@ obj-y				+= eeprom.o
 endif
 endif
 
-ifdef CONFIG_TARGET_UCM_IMX8M_PLUS
+ifdef CONFIG_COMPULAB_IMX8MP
 ifndef CONFIG_SPL_BUILD
 obj-y += fake_backlight.o
 obj-y += ../../nxp/common/mmc.o
 endif
 endif
 
-ifeq ($(CONFIG_TARGET_UCM_IMX8M_PLUS)$(CONFIG_SPL_BUILD),yy)
+ifeq ($(CONFIG_COMPULAB_IMX8MP)$(CONFIG_SPL_BUILD),yy)
 obj-y += eeprom.o
 endif

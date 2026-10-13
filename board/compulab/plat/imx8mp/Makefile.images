@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0+
-# Firmware and image helpers for UCM-iMX8M-Plus.
+# Firmware and image helpers for CompuLab i.MX8M-Plus modules.
 .PHONY: mk_firmware rm_firmware
 mk_firmware:
 	$(Q)$(MAKE) $(build)=board/compulab/plat/imx8mp/firmware all

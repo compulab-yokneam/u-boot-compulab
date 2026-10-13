@@ -9,8 +9,8 @@ Source: u-boot-compulab_v2023.04, commit 4c9fce9e0b5.
 Branch: u-boot-kostya-2026.04.
 
 This is a source port of UCM-iMX8M-Plus and its shared dependencies,
-including the standard, SBEV and Falcon configurations. Other CompuLab
-boards are outside its scope. The original source commits remain in the
+including the standard, SBEV and Falcon configurations. The subsequent MCM/CL-SOM extension is documented in
+mcm-som-imx8m-plus-2026.rst; other CompuLab boards remain outside scope. The original source commits remain in the
 repository; this branch imports their final board state and adapts it to
 the 2026.04 APIs rather than merging the old NXP/U-Boot core.
 

@@ -335,7 +335,7 @@ static int pca953x_probe(struct udevice *dev)
 	info->bank_count = DIV_ROUND_UP(info->gpio_count, BANK_SZ);
 
 	ret = pca953x_read_regs(dev, info->regs->output, info->reg_output);
-	if (ret && IS_ENABLED(CONFIG_TARGET_UCM_IMX8M_PLUS)) {
+	if (ret && IS_ENABLED(CONFIG_COMPULAB_IMX8MP)) {
 		mdelay(1000);
 		ret = pca953x_read_regs(dev, info->regs->output, info->reg_output);
 	}

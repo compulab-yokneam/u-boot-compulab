@@ -382,12 +382,29 @@ config TARGET_IMX8MP_ICORE_MX8MP
 	  * i.Core MX8M Plus needs to mount on top of EDIMM2.2 for
 	    creating complete i.Core MX8M Plus EDIMM2.2 Starter Kit.
 
+config TARGET_MCM_IMX8M_PLUS
+	bool "CompuLab MCM-iMX8M-Plus"
+	select IMX8MP
+	select BINMAN
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select COMPULAB_IMX8MP
+
+config TARGET_SOM_IMX8M_PLUS
+	bool "CompuLab CL-SOM-iMX8M-Plus"
+	select IMX8MP
+	select BINMAN
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select COMPULAB_IMX8MP
+
 config TARGET_UCM_IMX8M_PLUS
-bool "CompuLab UCM-iMX8M-Plus"
-select IMX8MP
-select BINMAN
-select SUPPORT_SPL
-select IMX8M_LPDDR4
+	bool "CompuLab UCM-iMX8M-Plus"
+	select IMX8MP
+	select BINMAN
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select COMPULAB_IMX8MP
 
 config TARGET_IMX8MP_EVK
 	bool "imx8mp LPDDR4 EVK board"
@@ -616,8 +633,13 @@ source "board/toradex/verdin-imx8mp/Kconfig"
 
 endif
 
-if TARGET_UCM_IMX8M_PLUS
+config COMPULAB_IMX8MP
+	bool
 
+if COMPULAB_IMX8MP
+
+source "board/compulab/mcm-imx8m-plus/Kconfig"
+source "board/compulab/som-imx8m-plus/Kconfig"
 source "board/compulab/ucm-imx8m-plus/Kconfig"
 source "board/compulab/plat/imx8mp/Kconfig"
 endif

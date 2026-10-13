@@ -483,7 +483,7 @@ u32 get_cpu_temp_grade(int *minc, int *maxc)
 			*maxc = 95;
 		}
 	}
-	if (IS_ENABLED(CONFIG_TARGET_UCM_IMX8M_PLUS) &&
+	if (IS_ENABLED(CONFIG_COMPULAB_IMX8MP) &&
 	    IS_ENABLED(CONFIG_LAB_TEMPERATURE_RANGE)) {
 		if (minc)
 			*minc = -40;

@@ -1849,7 +1849,7 @@ else
 ifeq ($(CONFIG_BINMAN),y)
 flash.bin: spl/u-boot-spl.bin $(INPUTS-y) FORCE
 	$(call if_changed,binman)
-ifeq ($(CONFIG_TARGET_UCM_IMX8M_PLUS),y)
+ifeq ($(CONFIG_COMPULAB_IMX8MP),y)
 	@cp $@ $@.$(DRAM_CONF)
 endif
 else
@@ -2878,6 +2878,6 @@ FORCE:
 # information in a variable so we can use it in if_changed and friends.
 .PHONY: $(PHONY)
 
-ifeq ($(CONFIG_TARGET_UCM_IMX8M_PLUS),y)
+ifeq ($(CONFIG_COMPULAB_IMX8MP),y)
 include $(srctree)/board/compulab/plat/imx8mp/Makefile.images
 endif

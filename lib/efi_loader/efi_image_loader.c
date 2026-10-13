@@ -19,7 +19,7 @@
 #include <crypto/mscode.h>
 #include <crypto/pkcs7_parser.h>
 #include <linux/err.h>
-#if defined(CONFIG_TARGET_UCM_IMX8M_PLUS) && defined(CONFIG_IMX_HAB) && !defined(CONFIG_AVB_SUPPORT)
+#if defined(CONFIG_COMPULAB_IMX8MP) && defined(CONFIG_IMX_HAB) && !defined(CONFIG_AVB_SUPPORT)
 #include <asm/mach-imx/hab.h>
 #endif
 
@@ -856,7 +856,7 @@ efi_status_t efi_load_pe(struct efi_loaded_image_obj *handle,
 		return EFI_LOAD_ERROR;
 	}
 
-#if defined(CONFIG_TARGET_UCM_IMX8M_PLUS) && defined(CONFIG_IMX_HAB) && !defined(CONFIG_AVB_SUPPORT)
+#if defined(CONFIG_COMPULAB_IMX8MP) && defined(CONFIG_IMX_HAB) && !defined(CONFIG_AVB_SUPPORT)
 	/* Preserve the CompuLab HAB-signed EFI image format. */
 	{
 		ulong addr = (ulong)efi;
