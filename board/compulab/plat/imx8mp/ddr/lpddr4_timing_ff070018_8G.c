@@ -5,7 +5,7 @@
  *
  * Code generated with DDR Tool v4.1.0_10-862cf4d1a.
  * DDR PHY FW2020.06
- * Part number: NXP LPDDR4 EVK board's default DDR part
+ * Part number: Micron MT53E2G32D4DT-046 Rev. A
  */
 
 #include <linux/kernel.h>
@@ -123,6 +123,8 @@ static struct dram_cfg_param ddr_ddrc_cfg[] = {
     {0x3d4031b4, 0x100},
     {0x3d4030f4, 0x599},
     {0x3d400028, 0x0},
+    {0x3d402108, 0x203080c},
+    {0x3d403108, 0x203080c},
 };
 
 /* PHY Initialize Configuration */
