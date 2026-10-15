@@ -22,6 +22,8 @@ extern struct dram_timing_info ucm_dram_timing_01061010_1G;
 extern struct dram_timing_info ucm_dram_timing_01061010_1G_4000;
 extern struct dram_timing_info ucm_dram_timing_ff060018;
 extern struct dram_timing_info ucm_dram_timing_ff070018_8G;
+extern struct dram_timing_info ucm_dram_timing_13000518_4G;
+extern struct dram_timing_info ucm_dram_timing_13000518_8G;
 #endif
 
 void spl_dram_init(void);
@@ -84,6 +86,11 @@ static const struct lpddr4_desc lpddr4_array[] = {
 		.timing = &ucm_dram_timing_ff070018_8G
 #endif
 	},
+	{ .name = "Rayson",	.id = 0x13000518, .subind = 0x8, .size = 8192, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_13000518_8G
+#endif
+	},
 #endif /* CONFIG_DRAM_D8 */
 #ifdef CONFIG_DRAM_D4
 	{ .name = "deadbeaf",	.id = 0xdeadbeef, .subind = 0x4, .size = 4096, .count = 1,
@@ -94,6 +101,11 @@ static const struct lpddr4_desc lpddr4_array[] = {
 	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x4, .size = 4096, .count = 1,
 #ifdef CONFIG_SPL_BUILD
 		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+	{ .name = "Rayson",	.id = 0x13000518, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_13000518_4G
 #endif
 	},
 	{ .name = "ISSI",	.id = 0x13000518, .subind = 0x4, .size = 4096, .count = 1,
