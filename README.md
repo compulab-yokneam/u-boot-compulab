@@ -1,37 +1,24 @@
-# CompuLab i.MX8M-Plus U-Boot 2026.04 (experimental)
+# Building CompuLab U-Boot 2026.04
 
-## Scope
+## 1. Prepare the build host
 
-This branch ports UCM-iMX8M-Plus, UCM SBEV, MCM-iMX8PLUS and
-CL-SOM-iMX8PLUS support from the 2023.04 tree to U-Boot 2026.04.
-It is an experimental branch, not a production or security qualification.
-The build workflow below follows the 2023.04 README.
+Use a Linux PC with an AArch64 cross compiler and the
+[U-Boot build dependencies](doc/build/gcc.rst).
 
-## Prerequisites
-
-Use a Linux build host and an AArch64 cross compiler. See
-[the U-Boot GCC build requirements](doc/build/gcc.rst) for your distribution.
-Install the host tools and Python/binman dependencies listed there, including
-SWIG and efitools (which provides cert-to-efi-sig-list).
-
-For a distribution cross compiler:
+Select your cross compiler:
 
 ```sh
 export CROSS_COMPILE=aarch64-linux-gnu-
 ```
 
-The development builds were tested with GCC 15.2.0:
+On the existing development machine, use the installed tools instead:
 
 ```sh
 export CROSS_COMPILE=/opt/gcc-15.2.0-nolibc/aarch64-linux/bin/aarch64-linux-
+export PATH=/mnt/devel/Kostya/u-boot/ucm-imx8plus/kostya-build-tools/usr/bin:$PATH
 ```
 
-If using locally extracted host tools, add their bin directory to PATH.
-The repository includes compressed BL31, OP-TEE and DDR training firmware
-under board/compulab/plat/imx8mp/firmware; the build extracts these automatically.
-Their inclusion does not imply a firmware update or security audit.
-
-## Setup U-Boot environment
+## 2. Download the source
 
 ```sh
 mkdir -p compulab-bootloader
@@ -41,103 +28,93 @@ git clone --branch u-boot-compulab_v2026.04-ucm-imx8mp-experimental \
 cd u-boot-compulab
 ```
 
-Select one machine:
+## 3. Select the product
+
+Run **one** command from the table:
 
 | Product | Command |
 |---|---|
 | UCM-iMX8M-Plus | `export MACHINE=ucm-imx8m-plus` |
-| UCM-iMX8M-Plus, SBEV/eval V2 | `export MACHINE=ucm-imx8m-plus-sbev` |
+| UCM-iMX8M-Plus — SBEV / eval V2 | `export MACHINE=ucm-imx8m-plus-sbev` |
 | MCM-iMX8PLUS | `export MACHINE=mcm-imx8m-plus` |
 | CL-SOM-iMX8PLUS | `export MACHINE=som-imx8m-plus` |
+| 🔴 IOT-GATE-iMX8PLUS — not supported in this port | ~~`export MACHINE=iot-gate-imx8plus`~~ |
+| 🔴 IOT-DIN-iMX8PLUS — not supported in this port | ~~`export MACHINE=iotdin-imx8p`~~ |
 
-IOT-GATE and IOT-DIN entries from the 2023.04 README are outside this port's
-scope. Do not infer support for them from the shared platform code.
+## 4. Select RAM capacity and configure
 
-Select the RAM subset and a separate output directory for each combination:
+Run **one** RAM-selection command matching your module:
+
+| Module RAM | Command |
+|---|---|
+| 2 GB | `export DRAM=d2` |
+| 4 GB, including ISSI | `export DRAM=d4` |
+| 1 GB or 8 GB | `export DRAM=d1d8` |
+
+Then configure the build:
 
 ```sh
-export DRAM=d4
 export BUILD="$(pwd)/../build-${MACHINE}-${DRAM}"
 make O="$BUILD" "${MACHINE}_defconfig" "${DRAM}.config"
 ```
 
-The bare defconfig defaults to D2. Use D4 for the tested 4 GB MCM and CL-SOM
-modules, including the ISSI 4 GB part with ID 0x13000518.
+For the tested **4 GB MCM and CL-SOM modules**, select `d4`.
 
-## Create U-Boot binary
+## 5. Build
 
 ```sh
-nice make -j"$(nproc)" O="$BUILD" flash.bin
+make -j"$(nproc)" O="$BUILD" flash.bin
 make O="$BUILD" u-boot-initial-env
-ls -l "$BUILD/flash.bin" "$BUILD/u-boot-initial-env"
+```
+
+The required firmware is included in the repository and extracted automatically.
+
+## 6. Find the output files
+
+```sh
+ls -lh "$BUILD/flash.bin" "$BUILD/u-boot-initial-env"
 sha256sum "$BUILD/flash.bin"
 ```
 
-These commands create files only; they do not program the board.
-u-boot-initial-env is a text environment, not a standalone boot image.
-
-## Extra
-
-### Configuration fragments
-
-| Fragment | Description |
+| File | Purpose |
 |---|---|
-| d2.config | 2 GB DDR timing subset (default) |
-| d4.config | 4 GB DDR timing subset, including ISSI |
-| d1d8.config | 1 GB / 8 GB subset; includes the larger SPL allowance |
-| lab_temp.config | Lab temperature configuration; not temperature qualification |
-| spl_size.config | Larger SPL size allowance |
+| `flash.bin` | Bootloader image |
+| `u-boot-initial-env` | Default U-Boot environment as text |
 
-Examples matching the 2023.04 workflow:
+Building does not program the board.
 
-```sh
-make O="$BUILD" "${MACHINE}_defconfig" d2.config lab_temp.config spl_size.config
-make O="$BUILD" "${MACHINE}_defconfig" d4.config lab_temp.config spl_size.config
-make O="$BUILD" "${MACHINE}_defconfig" d1d8.config lab_temp.config spl_size.config
-```
+## Optional configuration fragments
 
-These are alternatives: choose one configuration, then build. Each defconfig
-invocation resets the configuration. Match the RAM subset to the module.
+| Fragment | Purpose |
+|---|---|
+| `lab_temp.config` | Lab temperature settings |
+| `spl_size.config` | Larger SPL size allowance |
 
-### Optional environment images
+To apply these options, replace the configuration command in step 4 with:
 
 ```sh
-make O="$BUILD" flash.bin-with-env
-# First create $BUILD/u-boot-custom-env as a text environment:
-make O="$BUILD" flash.bin-with-custom-env
+make O="$BUILD" "${MACHINE}_defconfig" "${DRAM}.config" \
+    lab_temp.config spl_size.config
 ```
 
-These images embed an environment at the configured offset. Use them only
-with a deployment procedure appropriate to the board and storage layout.
+Then repeat step 5. Running a defconfig resets previous configuration changes.
 
-### USB RAM-boot testing
+## Optional USB RAM-boot test
 
-With the board in ROM SDP mode, run on the connected host:
+Connect the board's SDP USB port to the build PC, select SDP boot mode, and reset
+the board. With NXP UUU installed, run:
 
 ```sh
 sudo uuu -d -v -b spl "$BUILD/flash.bin"
 ```
 
-The daemon mode allows DDR discovery resets and repeated downloads. Stop UUU
-with Ctrl-C when finished. This command does not flash eMMC; DDR discovery
-may update the module's EEPROM. Keep the existing bootloader backup before
-using any separate flash procedure.
+Stop UUU with **Ctrl-C** when finished. This loads the image into RAM without
+flashing eMMC. DDR discovery may update the module's EEPROM.
 
-## Display and validation
+## Additional notes
 
-CL-SOM uses Startec 1024x600 LVDS as its sole U-Boot display; MIPI-DSI is
-disabled and HDMI is not enabled. This does not configure Linux's separate
-device tree. MCM and UCM also have Startec LVDS support.
-
-CL-SOM ISSI 4 GB boot and LVDS were verified on hardware: correct text,
-colors and no flicker. UCM DHCP and LVDS were previously confirmed.
-MCM boots with Samsung 4 GB; the user reports completing MCM validation,
-but a detailed final test matrix was not recorded here.
-
-See [UCM port notes](doc/board/compulab/ucm-imx8m-plus-kostya.rst) and
-[MCM/CL-SOM port notes](doc/board/compulab/mcm-som-imx8m-plus-2026.rst).
-Successful builds and these board tests do not establish complete
-2023.04 feature parity, long-duration DDR stability, or secure-boot compliance.
-
-See [the build compatibility review](doc/board/compulab/build-review-2026.md)
-for the checked scope and outstanding style findings.
+- CL-SOM uses the Startec 1024 × 600 LVDS panel as its U-Boot display. HDMI is
+  not enabled in U-Boot.
+- This is an experimental branch. See the separate
+  [build compatibility review](doc/board/compulab/build-review-2026.md) for
+  validation results and remaining limitations.
