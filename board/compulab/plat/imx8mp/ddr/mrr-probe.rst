@@ -75,14 +75,19 @@ state prevents repeatedly attempting the probe across scan resets. EEPROM
 identification is updated only by the existing post-training verification
 path.
 
-The timing profiles omit unused per-profile CSR arrays and share identical
-initialization tables through lpddr4_timing_shared.c. Normal training and
-configuration saving use the driver's shared CSR array. Table sharing
-preserves every register value, entry count and write order.
+The timing profiles use the compact storage described in
+``compact-timings.rst``. Rank lookup decodes the controller table with the
+same iterator used to program it. The seed's 100 MT/s firmware message and
+PHY Init Engine are streamed without expanding the profile into OCRAM.
+Temporary controller and message-block overrides are still applied directly
+to registers after streaming; stored tables are never modified. Normal
+training and configuration saving retain the driver's shared CSR list.
 
-See ``timing-tables.rst`` for the step-by-step procedure to register a new
-chip, use ``import.py`` to identify reusable shared tables, and verify the
-compiled timing data before testing on hardware.
+The observed Rayson 4 GiB assembly has stable CS0 identity 0x13000518 but
+unstable CS1 captures with this probe. The two imported probe changes retain
+their conservative fallback for that condition. Compression does not turn
+an inconclusive rank response into proof of an absent rank or resolve
+profiles with identical IDs and topology.
 
 Validation
 ----------

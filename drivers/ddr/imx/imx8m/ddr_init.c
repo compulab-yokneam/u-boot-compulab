@@ -4,6 +4,7 @@
  */
 
 #include <common.h>
+#include <imx8m_ddr_compact.h>
 #include <errno.h>
 #include <log.h>
 #include <linux/iopoll.h>
@@ -332,7 +333,9 @@ static int ddrc_wait(unsigned long addr, u32 mask, u32 value, bool probe)
 	return ret;
 }
 
-static int ddr_init_internal(struct dram_timing_info *dram_timing, int probe_fsp)
+static int ddr_init_internal(struct dram_timing_info *dram_timing,
+			     const struct dram_compact_timing *compact,
+			     int probe_fsp)
 {
 	unsigned int tmp, initial_drate, target_freq;
 	int ret;
@@ -369,7 +372,13 @@ static int ddr_init_internal(struct dram_timing_info *dram_timing, int probe_fsp
 
 	/* Step2: Program the dwc_ddr_umctl2 registers */
 	debug("DDRINFO: ddrc config start\n");
-	ddr_cfg_umctl2(dram_timing->ddrc_cfg, dram_timing->ddrc_cfg_num);
+	if (IS_ENABLED(CONFIG_IMX8M_DDR_COMPACT) && compact) {
+		ret = ddr_compact_write(compact->ddrc_cfg, false);
+		if (ret)
+			return ret;
+	} else {
+		ddr_cfg_umctl2(dram_timing->ddrc_cfg, dram_timing->ddrc_cfg_num);
+	}
 	if (probe) {
 		/* Keep all timing banks intact and boot at the low-speed bank. */
 		reg32_write(DDRC_MSTR2(0), probe_fsp);
@@ -422,12 +431,16 @@ static int ddr_init_internal(struct dram_timing_info *dram_timing, int probe_fsp
 	 */
 	debug("DDRINFO:ddrphy config start\n");
 
+	if (IS_ENABLED(CONFIG_IMX8M_DDR_COMPACT) && compact)
+		ret = ddr_cfg_phy_compact(dram_timing, compact, probe_fsp);
+	else {
 #ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
-	ret = probe ? ddr_cfg_phy_mrr(dram_timing, probe_fsp) :
-		ddr_cfg_phy(dram_timing);
+		ret = probe ? ddr_cfg_phy_mrr(dram_timing, probe_fsp) :
+			ddr_cfg_phy(dram_timing);
 #else
-	ret = ddr_cfg_phy(dram_timing);
+		ret = ddr_cfg_phy(dram_timing);
 #endif
+	}
 	if (ret)
 		return ret;
 
@@ -493,7 +506,7 @@ static int ddr_init_internal(struct dram_timing_info *dram_timing, int probe_fsp
 	/* Step26: Set back register in Step4 to the original values if desired */
 	reg32_write(DDRC_RFSHCTL3(0), 0x0000000);
 
-	/* The probe only issues MR commands; never expose DDR to AXI or save data. */
+	/* MR-only access must not expose AXI, scrub DDR or save timings. */
 	if (probe)
 		return 0;
 
@@ -507,6 +520,8 @@ static int ddr_init_internal(struct dram_timing_info *dram_timing, int probe_fsp
 	setbits_le32(DDRC_PWRCTL(0), 0x1);
 
 	/* save the dram timing config into memory */
+	if (IS_ENABLED(CONFIG_IMX8M_DDR_COMPACT) && compact)
+		return ddr_compact_save(compact, CONFIG_SAVED_DRAM_TIMING_BASE);
 	dram_config_save(dram_timing, CONFIG_SAVED_DRAM_TIMING_BASE);
 
 	return 0;
@@ -514,7 +529,7 @@ static int ddr_init_internal(struct dram_timing_info *dram_timing, int probe_fsp
 
 int ddr_init(struct dram_timing_info *dram_timing)
 {
-	return ddr_init_internal(dram_timing, -1);
+	return ddr_init_internal(dram_timing, NULL, -1);
 }
 
 #ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
@@ -525,8 +540,48 @@ int ddr_init_mrr(struct dram_timing_info *dram_timing, unsigned int fsp)
 	    dram_timing->fsp_msg[fsp].drate != 100)
 		return -EINVAL;
 
-	return ddr_init_internal(dram_timing, fsp);
+	return ddr_init_internal(dram_timing, NULL, fsp);
 }
+#endif
+
+#ifdef CONFIG_IMX8M_DDR_COMPACT
+static int ddr_init_compact_internal(const struct dram_compact_timing *compact,
+				     int probe_fsp)
+{
+	struct dram_fsp_msg messages[4] = { 0 };
+	struct dram_timing_info timing = { 0 };
+	unsigned int i;
+
+	if (!compact->fsp_msg_num || compact->fsp_msg_num > ARRAY_SIZE(messages))
+		return -EINVAL;
+	for (i = 0; i < compact->fsp_msg_num; i++) {
+		messages[i].drate = compact->fsp_msg[i].drate;
+		messages[i].fw_type = compact->fsp_msg[i].fw_type;
+	}
+	timing.fsp_msg = messages;
+	timing.fsp_msg_num = compact->fsp_msg_num;
+	/* Only metadata is adapted on the stack; register tables stay packed. */
+	return ddr_init_internal(&timing, compact, probe_fsp);
+}
+
+int ddr_init_compact(const struct dram_compact_timing *compact)
+{
+	return ddr_init_compact_internal(compact, -1);
+}
+
+#ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
+int ddr_init_mrr_compact(const struct dram_compact_timing *compact,
+			 unsigned int fsp)
+{
+	if (!is_imx8mp() || fsp >= compact->fsp_msg_num || fsp > 2 ||
+	    compact->fsp_msg[fsp].fw_type != FW_1D_IMAGE ||
+	    compact->fsp_msg[fsp].drate != 100)
+		return -EINVAL;
+
+	return ddr_init_compact_internal(compact, fsp);
+}
+#endif
+
 #endif
 
 ulong ddrphy_addr_remap(uint32_t paddr_apb_from_ctlr)

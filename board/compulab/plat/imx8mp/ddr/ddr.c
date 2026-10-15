@@ -67,19 +67,21 @@ static struct lpddr4_tcm_desc spl_tcm_data;
 #define SPL_TCM_FINI spl_tcm_fini(lpddr4_tcm_desc)
 
 #ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
-static unsigned int lpddr4_profile_rank_mask(const struct dram_timing_info *timing)
+static unsigned int lpddr4_profile_rank_mask(const struct dram_compact_timing *timing)
 {
-	unsigned int i;
+	struct dram_compact_iter it;
+	struct dram_cfg_param entry;
 
-	for (i = 0; i < timing->ddrc_cfg_num; i++)
-		if (timing->ddrc_cfg[i].reg == DDRC_MSTR(0))
-			return (timing->ddrc_cfg[i].val >> 24) & 0xf;
+	ddr_compact_iter_init(&it, timing->ddrc_cfg);
+	while (ddr_compact_next(&it, &entry) > 0)
+		if (entry.reg == DDRC_MSTR(0))
+			return (entry.val >> 24) & 0xf;
 	return 0;
 }
 
 static int lpddr4_probe_profile(void)
 {
-	struct dram_timing_info *seed = &ucm_dram_timing_01061010_2G;
+	const struct dram_compact_timing *seed = &ucm_dram_timing_01061010_2G;
 	u32 id, rank_mask;
 	int ret, found = -1;
 	unsigned int fsp, i;
@@ -92,7 +94,7 @@ static int lpddr4_probe_profile(void)
 		return -ENOENT;
 
 	puts("DDRINFO: experimental 100 MT/s MRR probe (DevInit only)\n");
-	ret = ddr_init_mrr(seed, fsp);
+	ret = ddr_init_mrr_compact(seed, fsp);
 	if (!ret)
 		ret = lpddr4_get_mr_probe(&id, &rank_mask);
 
@@ -195,7 +197,7 @@ static int _spl_dram_init(void)
 	printf("DDRINFO(%s): %s %dMB @ %d MHz\n", (ddr_found ? "D" : "?" ), lpddr4_array[i].name,
 			lpddr4_array[i].size, lpddr4_array[i].timing->fsp_table[0]);
 
-	ddr_init_rc = ddr_init(lpddr4_array[i].timing);
+	ddr_init_rc = ddr_init_compact(lpddr4_array[i].timing);
 
 	if (ddr_found == 0) {
 		/* This is a discovery case, save out ddr_init_status */

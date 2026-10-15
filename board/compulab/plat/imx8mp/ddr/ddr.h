@@ -7,23 +7,25 @@
 #ifndef __DDR_H__
 #define __DDR_H__
 
+#include <imx8m_ddr_compact.h>
+
 #ifdef CONFIG_SPL_BUILD
-extern struct dram_timing_info ucm_dram_timing_01061010_2G;
-extern struct dram_timing_info ucm_dram_timing_ff000010;
-extern struct dram_timing_info ucm_dram_timing_01061010_4G;
-extern struct dram_timing_info ucm_dram_timing_13000210_2G;
-extern struct dram_timing_info ucm_dram_timing_ff070010_2G;
-extern struct dram_timing_info ucm_dram_timing_ff070010_kingston_2G;
-extern struct dram_timing_info ucm_dram_timing_ff070010_kingston_4G;
-extern struct dram_timing_info ucm_dram_timing_ff070018_4G;
-extern struct dram_timing_info ucm_dram_timing_1a000008_1G;
-extern struct dram_timing_info ucm_dram_timing_1b000008_1G;
-extern struct dram_timing_info ucm_dram_timing_01061010_1G;
-extern struct dram_timing_info ucm_dram_timing_01061010_1G_4000;
-extern struct dram_timing_info ucm_dram_timing_ff060018;
-extern struct dram_timing_info ucm_dram_timing_ff070018_8G;
-extern struct dram_timing_info ucm_dram_timing_13000518_4G;
-extern struct dram_timing_info ucm_dram_timing_13000518_8G;
+extern const struct dram_compact_timing ucm_dram_timing_01061010_2G;
+extern const struct dram_compact_timing ucm_dram_timing_ff000010;
+extern const struct dram_compact_timing ucm_dram_timing_01061010_4G;
+extern const struct dram_compact_timing ucm_dram_timing_13000210_2G;
+extern const struct dram_compact_timing ucm_dram_timing_ff070010_2G;
+extern const struct dram_compact_timing ucm_dram_timing_ff070010_kingston_2G;
+extern const struct dram_compact_timing ucm_dram_timing_ff070010_kingston_4G;
+extern const struct dram_compact_timing ucm_dram_timing_ff070018_4G;
+extern const struct dram_compact_timing ucm_dram_timing_1a000008_1G;
+extern const struct dram_compact_timing ucm_dram_timing_1b000008_1G;
+extern const struct dram_compact_timing ucm_dram_timing_01061010_1G;
+extern const struct dram_compact_timing ucm_dram_timing_01061010_1G_4000;
+extern const struct dram_compact_timing ucm_dram_timing_ff060018;
+extern const struct dram_compact_timing ucm_dram_timing_ff070018_8G;
+extern const struct dram_compact_timing ucm_dram_timing_13000518_4G;
+extern const struct dram_compact_timing ucm_dram_timing_13000518_8G;
 #endif
 
 void spl_dram_init(void);
@@ -49,7 +51,7 @@ struct lpddr4_desc {
 	 * Default value 0xff
 	 */
 	u8	subind;
-	struct dram_timing_info *timing;
+	const struct dram_compact_timing *timing;
 	char *desc[4];
 };
 

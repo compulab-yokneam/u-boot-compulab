@@ -31,6 +31,8 @@ prefix = r'''
 #include <errno.h>
 #include <assert.h>
 typedef uint32_t u32;
+typedef uint8_t u8;
+typedef uint16_t u16;
 typedef unsigned long ulong;
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #define BIT(x) (1U << (x))
@@ -41,7 +43,7 @@ typedef unsigned long ulong;
 #define DDRC_MRCTRL0(x) 4
 #define DDRC_MRCTRL1(x) 5
 #define SRC_DDRC_RCR_ADDR 6
-#define DDRC_MSTR(x) 7
+#define DDRC_MSTR(x) 0x3d400000
 static ulong now;
 static u32 raw_data[2][4], pmu_data[12], selected_mr, rank_value, last_capture;
 static int read_number[2], fault, capture_clear, reset_count, init_calls;
@@ -90,20 +92,57 @@ static void dwc_ddrphy_apb_wr(u32 addr, u32 val) {
 }
 enum fw_type { FW_1D_IMAGE, FW_2D_IMAGE };
 struct dram_cfg_param { u32 reg, val; };
-struct dram_fsp_msg { unsigned int drate; enum fw_type fw_type; };
-struct dram_timing_info {
- struct dram_fsp_msg *fsp_msg;
- unsigned int fsp_msg_num;
- struct dram_cfg_param *ddrc_cfg;
- unsigned int ddrc_cfg_num;
+struct dram_compact_table {
+	const u8 *data;
+	const u8 *base;
+	u16 count;
+	u16 size;
+	u16 base_count;
+	u8 width;
 };
-static struct dram_fsp_msg messages[] = {{3200, FW_1D_IMAGE}, {400, FW_1D_IMAGE}, {100, FW_1D_IMAGE}};
-static struct dram_cfg_param single_rank[] = {{DDRC_MSTR(0), 0xa1080020}};
-static struct dram_cfg_param dual_rank[] = {{DDRC_MSTR(0), 0xa3080020}};
-static struct dram_timing_info ucm_dram_timing_01061010_2G = {messages, 3, single_rank, 1};
-static struct dram_timing_info dual_timing = {messages, 3, dual_rank, 1};
-static struct { u32 id; struct dram_timing_info *timing; } lpddr4_array[3];
-static int ddr_init_mrr(struct dram_timing_info *seed, unsigned int fsp) {
+
+struct dram_compact_fsp_msg {
+	u32 drate;
+	enum fw_type fw_type;
+	const struct dram_compact_table *cfg;
+};
+
+/* Separate from the public, expanded dram_timing_info suspend/resume ABI. */
+struct dram_compact_timing {
+	const struct dram_compact_table *ddrc_cfg;
+	const struct dram_compact_table *ddrphy_cfg;
+	const struct dram_compact_table *ddrphy_pie;
+	const struct dram_compact_fsp_msg *fsp_msg;
+	u32 fsp_msg_num;
+	u32 fsp_table[4];
+};
+
+struct dram_compact_iter {
+	const struct dram_compact_table *table;
+	const u8 *cursor;
+	const u8 *run;
+	u16 remaining;
+	u16 emitted;
+};
+
+
+void ddr_compact_iter_init(struct dram_compact_iter *, const struct dram_compact_table *);
+int ddr_compact_next(struct dram_compact_iter *, struct dram_cfg_param *);
+static const struct dram_compact_fsp_msg messages[] = {
+ {3200, FW_1D_IMAGE, NULL}, {400, FW_1D_IMAGE, NULL}, {100, FW_1D_IMAGE, NULL}
+};
+static const u8 single_data[] = {0, 0, 0x20, 0, 8, 0xa1};
+static const u8 dual_data[] = {0, 0, 0x20, 0, 8, 0xa3};
+static const struct dram_compact_table single_rank = {single_data, NULL, 1, 6, 0, 6};
+static const struct dram_compact_table dual_rank = {dual_data, NULL, 1, 6, 0, 6};
+static const struct dram_compact_timing ucm_dram_timing_01061010_2G = {
+ .fsp_msg=messages, .fsp_msg_num=3, .ddrc_cfg=&single_rank
+};
+static const struct dram_compact_timing dual_timing = {
+ .fsp_msg=messages, .fsp_msg_num=3, .ddrc_cfg=&dual_rank
+};
+static struct { u32 id; const struct dram_compact_timing *timing; } lpddr4_array[3];
+static int ddr_init_mrr_compact(const struct dram_compact_timing *seed, unsigned int fsp) {
  assert(seed == &ucm_dram_timing_01061010_2G); assert(fsp == 2); init_calls++; return init_error;
 }
 static void set_id(unsigned int rank, u32 id) {
@@ -157,8 +196,10 @@ int main(void) {
  return 0;
 }
 '''
+decoder = (root / 'drivers/ddr/imx/imx8m/ddr_compact.c').read_text()
+decoder = decoder[decoder.index('static u32 compact_le'):decoder.index('\nint ddr_compact_write')]
 with tempfile.TemporaryDirectory(prefix='compulab-mrr-test-') as directory:
  path=Path(directory)
- (path/'test.c').write_text(prefix+poll+common+utils+board+controller+main)
+ (path/'test.c').write_text(prefix+decoder+poll+common+utils+board+controller+main)
  subprocess.run(['cc','-std=gnu11','-Wall','-Wextra','-Werror','-fsanitize=address,undefined','-g',str(path/'test.c'),'-o',str(path/'test')],check=True)
  subprocess.run([str(path/'test')],check=True)

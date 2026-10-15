@@ -4,12 +4,14 @@
  */
 
 #include <common.h>
+#include <imx8m_ddr_compact.h>
 #include <log.h>
 #include <linux/kernel.h>
 #include <asm/arch/ddr.h>
 #include <asm/arch/sys_proto.h>
 
 static int ddr_cfg_phy_internal(struct dram_timing_info *dram_timing,
+				const struct dram_compact_timing *compact,
 				int probe_fsp)
 {
 	struct dram_cfg_param *dram_cfg;
@@ -20,17 +22,25 @@ static int ddr_cfg_phy_internal(struct dram_timing_info *dram_timing,
 	int ret;
 
 	/* initialize PHY configuration */
-	dram_cfg = dram_timing->ddrphy_cfg;
-	num  = dram_timing->ddrphy_cfg_num;
-	for (i = 0; i < num; i++) {
-		/* config phy reg */
-		dwc_ddrphy_apb_wr(dram_cfg->reg, dram_cfg->val);
-		dram_cfg++;
+	if (IS_ENABLED(CONFIG_IMX8M_DDR_COMPACT) && compact) {
+		ret = ddr_compact_write(compact->ddrphy_cfg, true);
+		if (ret)
+			return ret;
+	} else {
+		dram_cfg = dram_timing->ddrphy_cfg;
+		num  = dram_timing->ddrphy_cfg_num;
+		for (i = 0; i < num; i++) {
+			/* config phy reg */
+			dwc_ddrphy_apb_wr(dram_cfg->reg, dram_cfg->val);
+			dram_cfg++;
+		}
 	}
 
 	/* load the frequency setpoint message block config */
 	fsp_msg = dram_timing->fsp_msg + (probe_fsp < 0 ? 0 : probe_fsp);
-	for (i = 0; i < (probe_fsp < 0 ? dram_timing->fsp_msg_num : 1); i++) {
+	for (i = probe_fsp < 0 ? 0 : probe_fsp;
+	     i < (probe_fsp < 0 ? dram_timing->fsp_msg_num : probe_fsp + 1);
+	     i++) {
 		debug("DRAM PHY training for %dMTS\n", fsp_msg->drate);
 		/* set dram PHY input clocks to desired frequency */
 		ddrphy_init_set_dfi_clk(fsp_msg->drate);
@@ -40,12 +50,19 @@ static int ddr_cfg_phy_internal(struct dram_timing_info *dram_timing,
 		ddr_load_train_firmware(fsp_msg->fw_type);
 
 		/* load the frequency set point message block parameter */
-		dram_cfg = fsp_msg->fsp_cfg;
-		num = fsp_msg->fsp_cfg_num;
-		for (j = 0; j < num; j++) {
-			dwc_ddrphy_apb_wr(dram_cfg->reg, dram_cfg->val);
-			dram_cfg++;
+		if (IS_ENABLED(CONFIG_IMX8M_DDR_COMPACT) && compact) {
+			ret = ddr_compact_write(compact->fsp_msg[i].cfg, true);
+			if (ret)
+				return ret;
+		} else {
+			dram_cfg = fsp_msg->fsp_cfg;
+			num = fsp_msg->fsp_cfg_num;
+			for (j = 0; j < num; j++) {
+				dwc_ddrphy_apb_wr(dram_cfg->reg, dram_cfg->val);
+				dram_cfg++;
+			}
 		}
+
 		if (probe_fsp >= 0) {
 			/* Message blocks end by handing APB ownership to the PMU. */
 			dwc_ddrphy_apb_wr(0xd0000, 0x0);
@@ -97,11 +114,17 @@ static int ddr_cfg_phy_internal(struct dram_timing_info *dram_timing,
 	}
 
 	/* Load PHY Init Engine Image */
-	dram_cfg = dram_timing->ddrphy_pie;
-	num = dram_timing->ddrphy_pie_num;
-	for (i = 0; i < num; i++) {
-		dwc_ddrphy_apb_wr(dram_cfg->reg, dram_cfg->val);
-		dram_cfg++;
+	if (IS_ENABLED(CONFIG_IMX8M_DDR_COMPACT) && compact) {
+		ret = ddr_compact_write(compact->ddrphy_pie, true);
+		if (ret)
+			return ret;
+	} else {
+		dram_cfg = dram_timing->ddrphy_pie;
+		num = dram_timing->ddrphy_pie_num;
+		for (i = 0; i < num; i++) {
+			dwc_ddrphy_apb_wr(dram_cfg->reg, dram_cfg->val);
+			dram_cfg++;
+		}
 	}
 
 	/* save the ddr PHY trained CSR in memory for low power use */
@@ -113,12 +136,20 @@ static int ddr_cfg_phy_internal(struct dram_timing_info *dram_timing,
 
 int ddr_cfg_phy(struct dram_timing_info *dram_timing)
 {
-	return ddr_cfg_phy_internal(dram_timing, -1);
+	return ddr_cfg_phy_internal(dram_timing, NULL, -1);
 }
 
-#ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
-int ddr_cfg_phy_mrr(struct dram_timing_info *dram_timing, unsigned int fsp)
+#ifdef CONFIG_IMX8M_DDR_COMPACT
+int ddr_cfg_phy_compact(struct dram_timing_info *timing,
+			const struct dram_compact_timing *compact, int probe_fsp)
 {
-	return ddr_cfg_phy_internal(dram_timing, fsp);
+	return ddr_cfg_phy_internal(timing, compact, probe_fsp);
+}
+#endif
+
+#ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
+int ddr_cfg_phy_mrr(struct dram_timing_info *timing, unsigned int fsp)
+{
+	return ddr_cfg_phy_internal(timing, NULL, fsp);
 }
 #endif

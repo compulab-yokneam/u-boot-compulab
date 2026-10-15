@@ -1,6 +1,13 @@
 menu "i.MX8M DDR controllers"
 	depends on ARCH_IMX8M
 
+config IMX8M_DDR_COMPACT
+	bool
+	depends on IMX8M_LPDDR4
+	help
+	  Stream compact DDRC/PHY tables while preserving the expanded saved
+	  timing ABI. Selected by platforms providing compact timing profiles.
+
 config IMX8M_DRAM
 	bool "imx8m dram"
 	select IMX_SNPS_DDR_PHY

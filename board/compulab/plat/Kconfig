@@ -1,5 +1,6 @@
 config TARGET_COMPULAB_IMX8MP
 	bool
+	select IMX8M_DDR_COMPACT
 
 config TARGET_COMPULAB_IMX8MM
 	bool
