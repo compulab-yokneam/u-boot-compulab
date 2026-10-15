@@ -167,8 +167,9 @@ static int _spl_dram_init(void)
 
 		/* Let's check the latest training status */
 		if (lpddr4_tcm_desc->ddr_init_status == DDR_INIT_IN) {
-		    printf("%s Bad attempt %d skip\n",__func__,(lpddr4_tcm_desc->index+1));
-				lpddr4_tcm_desc->index += 1;
+			/* index already points past the attempt saved before training. */
+			printf("DDRINFO: attempt %u did not finish; continue discovery\n",
+			       lpddr4_tcm_desc->index);
 		}
 
 		if (probe_index >= 0) {
@@ -228,16 +229,20 @@ static int _spl_dram_init(void)
 
 	if (ddr_found == 0) {
 		/* Update eeprom */
-		cl_eeprom_set_ddrinfo(ddr_info_mrr);
-		mdelay(10);
+		if (cl_eeprom_set_ddrinfo(ddr_info_mrr) != ddr_info_mrr ||
+		    cl_eeprom_set_subind(lpddr4_array[i].subind) !=
+		    lpddr4_array[i].subind) {
+			puts("DDRINFO: failed to write DDR identification to EEPROM\n");
+			return -EIO;
+		}
 		ddr_info = cl_eeprom_get_ddrinfo();
-		mdelay(10);
-		cl_eeprom_set_subind(lpddr4_array[i].subind);
 		/* make sure that the ddr_info has reached the eeprom */
 		printf("DDRINFO(E): mr5-8 [ 0x%x ], read back\n", ddr_info);
 		if (ddr_info_mrr != ddr_info || cl_eeprom_get_subind() != lpddr4_array[i].subind) {
 			printf("DDRINFO(EEPROM): make sure that the eeprom is accessible\n");
 			printf("DDRINFO(EEPROM): i2c dev 1; i2c md 0x51 0x40 0x50\n");
+			/* Keep discovery state; a failed commit must not restart at 1. */
+			return -EIO;
 		}
         /* Set the data valid */
 	    SPL_TCM_FINI;

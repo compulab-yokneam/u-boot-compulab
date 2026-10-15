@@ -111,6 +111,9 @@ static int cl_eeprom_write(uint offset, uchar *buf, int len)
 	cl_eeprom_we(1);
 
 	res  = dm_i2c_write(g_dev, offset, buf, len);
+	/* The EEPROM NACKs accesses while its internal write cycle is active. */
+	if (!res)
+		udelay(10000);
 
 	return res;
 }
@@ -134,14 +137,11 @@ static u32 board_drate = 0xdeadbeef;
 static u32 board_osize = 0xdeadbeef;
 #endif
 
-#define BOARD_DDRINFO_VALID(A) (A != 0xdeadbeef)
-
 u32 cl_eeprom_get_ddrinfo(void)
 {
-	if (!BOARD_DDRINFO_VALID(board_ddrinfo)) {
-		if (cl_eeprom_read(BOARD_DDRINFO_OFFSET, (uchar *)&board_ddrinfo, BOARD_DDRINFO_SIZE))
-			return 0;
-	}
+	/* Verification after a write must read the device, not the cached value. */
+	if (cl_eeprom_read(BOARD_DDRINFO_OFFSET, (uchar *)&board_ddrinfo, BOARD_DDRINFO_SIZE))
+		return 0;
 	return board_ddrinfo;
 };
 

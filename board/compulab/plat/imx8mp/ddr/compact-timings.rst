@@ -170,3 +170,27 @@ toolchain. D1/D8 with probing is 123,488 bytes, D2/D4 without probing is
 121,312 bytes and Falcon is 150,168 bytes. These remain below the normal
 0x2c000 limit. The initial compact-size comparison above predates probe
 integration and is retained as a record of that separate measurement.
+
+Discovery state and EEPROM verification
+--------------------------------------
+
+The SPL EEPROM write helper waits 10 ms after a successful transaction,
+matching the ordinary EEPROM driver's write-cycle allowance. This covers
+both discovery-state records and the final ID/subindex writes. The ID getter
+reads the physical device so readback verification cannot accept a cached
+value. Discovery is marked valid only after successful writes and verified
+ID/subindex values. A failed commit returns an error and stops this boot;
+it must not reset with a valid state and restart the same scan indefinitely.
+
+The persisted discovery index already advances before training. A reset
+while training therefore resumes at that index without incrementing again.
+The following host test compiles the production discovery and EEPROM
+functions against an EEPROM model with busy cycles, failed writes and
+write protection::
+
+    python3 test/compulab/test_ddr_discovery.py
+
+It checks mismatch-to-match discovery across resets, verified persistence,
+physical readback, failed commits, training resets and complete exhaustion
+of the scan list. Hardware EEPROM accessibility and write protection still
+need checking if a real board reports a commit failure.
