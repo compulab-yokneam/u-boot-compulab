@@ -67,10 +67,20 @@ static struct lpddr4_tcm_desc spl_tcm_data;
 #define SPL_TCM_FINI spl_tcm_fini(lpddr4_tcm_desc)
 
 #ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
+static unsigned int lpddr4_profile_rank_mask(const struct dram_timing_info *timing)
+{
+	unsigned int i;
+
+	for (i = 0; i < timing->ddrc_cfg_num; i++)
+		if (timing->ddrc_cfg[i].reg == DDRC_MSTR(0))
+			return (timing->ddrc_cfg[i].val >> 24) & 0xf;
+	return 0;
+}
+
 static int lpddr4_probe_profile(void)
 {
 	struct dram_timing_info *seed = &ucm_dram_timing_01061010_2G;
-	u32 id;
+	u32 id, rank_mask;
 	int ret, found = -1;
 	unsigned int fsp, i;
 
@@ -84,7 +94,7 @@ static int lpddr4_probe_profile(void)
 	puts("DDRINFO: experimental 100 MT/s MRR probe (DevInit only)\n");
 	ret = ddr_init_mrr(seed, fsp);
 	if (!ret)
-		ret = lpddr4_get_mr_probe(&id);
+		ret = lpddr4_get_mr_probe(&id, &rank_mask);
 
 	/* Discard all probe state, including a stalled PMU, before full training. */
 	reg32_write(SRC_DDRC_RCR_ADDR, 0x8f00001f);
@@ -93,18 +103,18 @@ static int lpddr4_probe_profile(void)
 		return ret;
 	}
 
-	printf("DDRINFO: MRR probe ID 0x%08x\n", id);
 	for (i = 0; i < ARRAY_SIZE(lpddr4_array); i++) {
-		if (lpddr4_array[i].id != id)
+		if (lpddr4_array[i].id != id ||
+		    lpddr4_profile_rank_mask(lpddr4_array[i].timing) != rank_mask)
 			continue;
 		if (found >= 0) {
-			puts("DDRINFO: ambiguous MRR ID; use normal discovery\n");
+			puts("DDRINFO: ambiguous MRR ID/topology; use normal initialization\n");
 			return -EINVAL;
 		}
 		found = i;
 	}
 	if (found < 0)
-		puts("DDRINFO: unknown MRR ID; use normal discovery\n");
+		puts("DDRINFO: unknown MRR ID/topology; use normal initialization\n");
 	return found;
 }
 #endif

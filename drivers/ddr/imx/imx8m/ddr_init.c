@@ -374,6 +374,8 @@ static int ddr_init_internal(struct dram_timing_info *dram_timing, int probe_fsp
 		/* Keep all timing banks intact and boot at the low-speed bank. */
 		reg32_write(DDRC_MSTR2(0), probe_fsp);
 		setbits_le32(DDRC_MSTR(0), BIT(29));
+		/* Permit independent MR commands to CS0 and CS1. No AXI access. */
+		clrsetbits_le32(DDRC_MSTR(0), 0xf << 24, 3 << 24);
 		reg32_write(DDRC_PCTRL_0(0), 0);
 	}
 	debug("DDRINFO: ddrc config done\n");

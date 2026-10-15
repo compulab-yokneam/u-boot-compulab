@@ -51,6 +51,11 @@ static int ddr_cfg_phy_internal(struct dram_timing_info *dram_timing,
 			dwc_ddrphy_apb_wr(0xd0000, 0x0);
 			/* LPDDR4 SequenceCtrl: device/PHY init, no timing training. */
 			dwc_ddrphy_apb_wr(0x54008, 0x1);
+			/* CsPresentChA is the upper byte; ChB is the lower byte. */
+			dwc_ddrphy_apb_wr(0x54012,
+					  (dwc_ddrphy_apb_rd(0x54012) & 0xff) | 0x300);
+			dwc_ddrphy_apb_wr(0x5402c,
+					  (dwc_ddrphy_apb_rd(0x5402c) & 0xff00) | 0x3);
 		}
 
 		/*

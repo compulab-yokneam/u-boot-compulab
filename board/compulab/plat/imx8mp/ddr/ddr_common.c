@@ -8,8 +8,9 @@
 #include "ddr.h"
 
 #if defined(CONFIG_SPL_BUILD) && defined(CONFIG_COMPULAB_LPDDR4_MRR_PROBE)
-/* Preserve raw lane data: a zero MR6/MR7 byte is a valid result. */
-static int lpddr4_mr_read_timeout(unsigned int mr_addr, u32 *data)
+/* Read one rank at a time; capture completion is not a DRAM presence bit. */
+static int lpddr4_mr_read_timeout(unsigned int rank, unsigned int mr_addr,
+				  u32 *data)
 {
 	u32 tmp;
 	int ret;
@@ -19,8 +20,7 @@ static int lpddr4_mr_read_timeout(unsigned int mr_addr, u32 *data)
 				10000, DDRC_MRSTAT(0));
 	if (ret)
 		goto out;
-	/* Read CS0 only; do not broadcast to possibly absent ranks. */
-	reg32_write(DDRC_MRCTRL0(0), (1 << 4) | 1);
+	reg32_write(DDRC_MRCTRL0(0), (BIT(rank) << 4) | 1);
 	reg32_write(DDRC_MRCTRL1(0), mr_addr << 8);
 	reg32setbit(DDRC_MRCTRL0(0), 31);
 	ret = read_poll_timeout(reg32_read, tmp, tmp & 0x8, false,
@@ -32,34 +32,98 @@ out:
 	return ret;
 }
 
-int lpddr4_get_mr_probe(u32 *id)
+static int lpddr4_read_rank(unsigned int rank, unsigned int pass, u32 raw[4])
 {
-	u32 raw[4], previous[4], value, byte;
-	int pass, mr, lane, ret;
+	unsigned int n, mr;
+	int ret;
 
-	for (pass = 0; pass < 3; pass++) {
-		value = 0;
-		for (mr = 0; mr < 4; mr++) {
-			ret = lpddr4_mr_read_timeout(mr + 5, &raw[mr]);
-			if (ret)
-				return ret;
-			/* Match the existing CompuLab significant-byte extraction. */
-			byte = raw[mr];
-			for (lane = 0; lane < 3 && !(byte & 0xff); lane++)
-				byte >>= 8;
-			value = (value << 8) | (byte & 0xff);
-		}
-		printf("DDRINFO: MRR probe raw MR5-8: %08x %08x %08x %08x\n",
-		       raw[0], raw[1], raw[2], raw[3]);
-		if (!value || value == 0xffffffff)
-			return -EIO;
-		if (pass && memcmp(previous, raw, sizeof(raw)))
-			return -EIO;
-		memcpy(previous, raw, sizeof(raw));
+	for (n = 0; n < 4; n++) {
+		/* Vary order so a stale last-MR value cannot form a valid ID. */
+		mr = rank ? (3 - n + pass) % 4 : (n + pass) % 4;
+		ret = lpddr4_mr_read_timeout(rank, mr + 5, &raw[mr]);
+		if (ret)
+			return ret;
 	}
-	*id = value;
+	printf("DDRINFO: MRR probe CS%u raw MR5-8: %08x %08x %08x %08x\n",
+	       rank, raw[0], raw[1], raw[2], raw[3]);
 	return 0;
 }
+
+static u32 lpddr4_raw_id(const u32 raw[4])
+{
+	u32 value = 0, byte;
+	unsigned int mr, lane;
+
+	for (mr = 0; mr < 4; mr++) {
+		/* Match CompuLab's extraction, including valid zero MR6/MR7. */
+		byte = raw[mr];
+		for (lane = 0; lane < 3 && !(byte & 0xff); lane++)
+			byte >>= 8;
+		value = (value << 8) | (byte & 0xff);
+	}
+	return value;
+}
+
+int lpddr4_get_mr_probe(u32 *id, u32 *rank_mask)
+{
+	u32 cs0[4], cs1[4], first0[4], first1[4], control[4];
+	u32 id0, id1, lanes = 0, fill;
+	unsigned int pass, mr, lane;
+	int ret;
+
+	for (pass = 0; pass < 3; pass++) {
+		ret = lpddr4_read_rank(0, pass, cs0);
+		if (ret)
+			return ret;
+		if (pass && memcmp(first0, cs0, sizeof(cs0)))
+			return -EIO;
+		memcpy(first0, cs0, sizeof(cs0));
+
+		ret = lpddr4_read_rank(1, pass, cs1);
+		if (ret)
+			return ret;
+		if (pass && memcmp(first1, cs1, sizeof(cs1)))
+			return -EIO;
+		memcpy(first1, cs1, sizeof(cs1));
+
+		/* An absent or noisy rank must not compromise CS0 reception. */
+		ret = lpddr4_read_rank(0, pass + 1, control);
+		if (ret || memcmp(cs0, control, sizeof(cs0)))
+			return ret ? ret : -EIO;
+	}
+
+	id0 = lpddr4_raw_id(cs0);
+	if (!(id0 >> 24) || id0 == 0xffffffff)
+		return -EIO;
+	/* Require identical data on the CS0 capture lanes, with others idle. */
+	for (lane = 0; lane < 4; lane++)
+		if ((cs0[0] >> (lane * 8)) & 0xff)
+			lanes |= 0xffU << (lane * 8);
+	for (mr = 0; mr < 4; mr++) {
+		fill = ((id0 >> ((3 - mr) * 8)) & 0xff) * 0x01010101U;
+		if (cs0[mr] != (fill & lanes))
+			return -EIO;
+	}
+
+	id1 = lpddr4_raw_id(cs1);
+	if (id1 == id0 && !memcmp(cs0, cs1, sizeof(cs0))) {
+		*rank_mask = 3;
+	} else if (!id1 || id1 == 0xffffffff) {
+		/* Completed, repeatable idle patterns only; timeout is unknown. */
+		for (mr = 0; mr < 4; mr++)
+			if (cs1[mr] != (id1 == 0 ? 0 : lanes))
+				return -EIO;
+		*rank_mask = 1;
+	} else {
+		/* Mixed IDs/channels or stale captures need normal discovery. */
+		return -EIO;
+	}
+
+	*id = id0;
+	printf("DDRINFO: MRR probe ID 0x%08x, rank mask 0x%x\n", id0, *rank_mask);
+	return 0;
+}
+
 #endif
 
 static unsigned int _lpddr4_mr_read(unsigned int mr_rank, unsigned int mr_addr)

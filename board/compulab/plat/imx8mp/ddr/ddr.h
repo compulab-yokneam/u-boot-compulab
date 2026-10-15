@@ -192,7 +192,7 @@ static const struct lpddr4_desc lpddr4_array[] = {
 #endif /* CONFIG_SPL_OS_BOOT */
 
 unsigned int lpddr4_get_mr(void);
-int lpddr4_get_mr_probe(u32 *id);
+int lpddr4_get_mr_probe(u32 *id, u32 *rank_mask);
 const struct lpddr4_desc *lpddr4_get_desc_by_id(unsigned int id);
 size_t lppdr4_get_ramsize(void);
 int lppdr4_get_ram_name(char *name);

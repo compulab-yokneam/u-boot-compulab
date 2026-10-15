@@ -50,10 +50,10 @@ config COMPULAB_LPDDR4_MRR_PROBE
 	depends on SPL && IMX8M_LPDDR4 && !SPL_OS_BOOT
 	help
 	  Try a 100 MT/s device/PHY initialization-only firmware pass in SPL
-	  and read MR5-MR8 before choosing the full training profile. Uses
-	  the CompuLab Samsung 2GB profile's low-frequency point as a seed;
+	  and read MR5-MR8 on CS0 and CS1 before choosing a training profile.
+	  Uses the Samsung 2GB low-frequency point with both ranks enabled;
 	  board wiring and PHY firmware compatibility require validation.
-	  Ambiguous IDs, inconsistent reads and timeouts fall back to the
+	  Ambiguous ID/topology, inconsistent reads and timeouts use the
 	  existing discovery procedure. EEPROM is updated only after full
 	  training and ID verification. Disabled by default.
 
