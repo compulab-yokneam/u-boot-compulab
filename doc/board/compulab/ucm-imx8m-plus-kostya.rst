@@ -6,7 +6,7 @@ Provenance and scope
 
 Base: origin/u-boot-compulab_v2026.04, commit 68f1db46d59.
 Source: u-boot-compulab_v2023.04, commit 4c9fce9e0b5.
-Branch: u-boot-kostya-2026.04.
+Branch: u-boot-compulab_v2026.04-ucm-imx8mp-experimental.
 
 This is a source port of UCM-iMX8M-Plus and its shared dependencies,
 including the standard, SBEV and Falcon configurations. The subsequent MCM/CL-SOM extension is documented in

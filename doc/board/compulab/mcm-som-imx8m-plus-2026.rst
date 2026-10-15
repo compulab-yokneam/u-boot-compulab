@@ -20,8 +20,8 @@ to UCM. The imported SOM board retains its expansion-power, Wi-Fi and
 board-revision PHY-address handling.
 
 The new boards retain EQOS assigned clocks (125 MHz transmit, 100 MHz
-timer). CL-SOM retains the legacy LCDIF1 divider code and matching 594 MHz
-video PLL. MCM configures its Startec 1024x600 LVDS output with a 594 MHz
+timer). MCM and CL-SOM configure their Startec 1024x600 LVDS output with a
+594 MHz
 video PLL, 42.428572 MHz pixel clock and 297 MHz LVDS clock.
 
 Building
@@ -48,7 +48,9 @@ UCM and SBEV are rebuilt to check the common-symbol refactoring.
 Inspect the generated DTBs for product model, EQOS assigned rates and
 SPL PMIC availability; image packaging uses the existing binman layout.
 
-These additional products have not been boot-tested during this port.
+MCM has booted with Samsung 4 GB DDR. CL-SOM has booted with ISSI 4 GB
+DDR (ID 0x13000518), and its Startec LVDS picture was visually confirmed.
+The top-level README.md provides the current portable build workflow.
 Before deployment, validate ROM/SDP and eMMC/SD boot, DDR detection and
 stability, both Ethernet interfaces, USB, the actual carrier and panel,
 environment persistence and Linux boot on each physical board.
@@ -71,5 +73,14 @@ instead of forcing JEIDA for non-UCM boards. Display-enable errors now
 propagate to the caller.
 
 The corrected MCM D4 image and SBEV regression image compile successfully.
-Visual confirmation on the corrected MCM image is still required; the
-backlight-only symptom on the earlier image is not a display pass.
+The user subsequently reported completing MCM validation; a detailed final
+hardware test matrix was not recorded.
+
+CL-SOM follow-up
+---------------
+
+Commit 9a82698543c ports the CompuLab development-branch ISSI 4 GB entry.
+Commit 830d1eddaba selects Startec LVDS as the sole CL-SOM U-Boot display,
+disables MIPI-DSI and enables PWM backlight support. HDMI is not enabled.
+USB RAM boot confirmed DDR calibration and LVDS display 0 at 1024x600.
+The user confirmed clear text, correct colors and no flicker.
