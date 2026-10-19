@@ -3,8 +3,10 @@
 Compact CompuLab i.MX8MP LPDDR4 timings
 =====================================
 
-The files under ``raw/`` are the unmodified, editable DDR-tool outputs.
-They are not compiled. ``pack.py`` generates the top-level timing C files
+The files under ``raw/`` are editable DDR-tool outputs. Normalize only local
+array linkage and the exported descriptor name as described below; preserve
+the generated timing data. These inputs are not compiled. ``pack.py``
+generates the top-level timing C files
 and ``lpddr4_compact_tables.[ch]``. Keep raw inputs and generated outputs in
 the same change. Normal builds use the checked-in outputs and need no host
 Python packages or generation step.
@@ -74,28 +76,248 @@ and initialization entry points. DDR training firmware, stage ordering,
 controller handshakes, EEPROM identification and discovery order are not
 changed by compression. Falcon/SPL_OS_BOOT selects from its existing list.
 
+Migrating an existing expanded-timing tree
+-----------------------------------------
+
+This procedure starts with a working CompuLab i.MX8MP U-Boot tree whose
+top-level ``lpddr4_timing_*.c`` files contain the complete register arrays
+and exported ``struct dram_timing_info`` descriptors. It migrates the whole
+DDR implementation, including existing board-specific profiles. Adding one
+profile after that migration is covered in `Regenerating or adding timings`_.
+
+Run commands from the source root in the same shell. You need Git, Python 3,
+a host C compiler supporting ASan/UBSan, and your working AArch64 build
+toolchain. The optional ELF comparison also needs pyelftools.
+
+1. Identify the starting point::
+
+       git status --short
+       git log -5 --oneline
+       ddr_dir=board/compulab/plat/imx8mp/ddr
+       rg -n 'struct dram_(timing_info|compact_timing)' "$ddr_dir"/lpddr4_timing_*.c
+
+   Expanded inputs declare ``struct dram_timing_info``. Compact outputs
+   declare ``const struct dram_compact_timing`` and reference the shared
+   pool. If the tree already has compact outputs, ``raw/``, ``pack.py`` and
+   the compact driver, skip this migration and use the next section.
+   The current development branch at ``609067d994d`` is already migrated.
+
+   Commit or otherwise preserve local work before continuing. The reference
+   worktree below captures committed files only. Start with a clean tree.
+   If an older implementation shares arrays through another C file or
+   header, first recover self-contained DDR-tool outputs for each profile;
+   ``pack.py`` does not resolve includes, macros or external array references.
+
+2. Preserve a reference before changing the timing files::
+
+       migration_dir=$(mktemp -d /tmp/uboot-ddr-migrate.XXXXXX)
+       git worktree add --detach "$migration_dir/reference" HEAD
+       git switch -c migrate-compact-timings
+       mkdir "$migration_dir/expanded"
+       cp "$ddr_dir"/lpddr4_timing_*.c "$migration_dir/expanded/"
+
+   Keep ``migration_dir`` and its reference worktree until validation is
+   complete. This copy must contain the expanded arrays, not generated
+   compact descriptors. Record the original revision, board configuration,
+   compiler, PHY firmware and packaging inputs. Retain a known-working full
+   boot image and its boot log.
+
+   Where the original SPL fits, build a reference with your usual board and
+   capacity configuration. For example, for SBEV D2/D4::
+
+       make -C "$migration_dir/reference" O="$migration_dir/build-original" \
+           CROSS_COMPILE=aarch64-linux-gnu- \
+           ucm-imx8m-plus-sbev_defconfig d2d4.config
+       make -C "$migration_dir/reference" O="$migration_dir/build-original" \
+           CROSS_COMPILE=aarch64-linux-gnu- -j8 spl/u-boot-spl
+       aarch64-linux-gnu-size "$migration_dir/build-original/spl/u-boot-spl"
+
+   If the expanded build exceeds the SPL limit, the source copy still
+   provides a reference. See the comparison-only ELF instructions below
+   if an original linked ELF is also needed.
+
+3. Integrate the implementation before converting additional profiles.
+   The series in this repository is ordered as follows:
+
+   * ``445b7a1e1be``: MR identification probe, equivalent to the earlier
+     ``f913c214dcd``.
+   * ``9c661795f4b``: rank-aware identification, equivalent to
+     ``c3eeaf191da``.
+   * ``bfc651a48bb``: compact pool, generator, decoder, driver integration,
+     migrated profiles and tests.
+   * ``609067d994d``: discovery-index and verified EEPROM persistence fixes.
+
+   Check which changes are already present, including equivalent commits
+   with different hashes. For a compatible base with none of these changes,
+   and with these commit objects available locally, apply them in order::
+
+       git cherry-pick 445b7a1e1be
+       git cherry-pick 9c661795f4b
+       git cherry-pick bfc651a48bb
+       git cherry-pick 609067d994d
+
+   Apply only the missing changes. A tree already containing the original
+   two probe commits starts with the compact commit. Resolve each conflict
+   before continuing; preserve local chip entries, discovery order and
+   timing values. Inspect ``git show --stat bfc651a48bb`` for the full scope.
+
+   Copying just ``pack.py`` and regenerating the C files is insufficient.
+   The migration also installs ``include/imx8m_ddr_compact.h``, the streaming
+   decoder, DDRC/PHY initialization and saved-timing support, the pool object
+   in the DDR Makefile, and the platform Kconfig selection. Board descriptors
+   and their pointers use ``const struct dram_compact_timing``;
+   initialization calls ``ddr_init_compact()`` and optional probing calls
+   ``ddr_init_mrr_compact()``. Keep the existing expanded saved-timing ABI
+   used by suspend/resume. These changes are included in the compact commit.
+
+4. Reconcile every original profile with ``raw/`` before generation.
+   The series includes its own 16 inputs; it cannot include later local
+   changes or additional chips from another branch::
+
+       diff -ru "$migration_dir/expanded" "$ddr_dir/raw"
+
+   Differences are expected where array linkage was normalized. Review
+   register values, order, messages, counts, rates and exported symbols.
+   For each locally changed or additional expanded profile, copy the saved
+   source into ``raw/`` with the same filename. For example::
+
+       profile=lpddr4_timing_newchip_4G.c
+       cp "$migration_dir/expanded/$profile" "$ddr_dir/raw/$profile"
+
+   Use the declaration-normalization command in step 2 of the next section,
+   with ``ddr_chip`` matching that profile's intended exported symbol.
+   Preserve existing symbol names for existing profiles, including cases
+   where the filename and symbol suffix differ. Do not copy compact outputs
+   into ``raw/``. Keep the trained-CSR input array as well.
+
+   For additional profiles, retain/add their top-level Makefile objects,
+   convert their SPL extern declarations to
+   ``extern const struct dram_compact_timing``, and retain/add their identity
+   entries pointing at those symbols. Convert any local timing-pointer
+   declarations too. Preserve ID/subind pairs, capacity guards and Falcon
+   entries. Follow steps 4 and 5 of the next section for registration.
+   If deliberately removing a profile, remove its raw input, generated
+   output, Makefile object, extern and references together; the generator
+   does not delete stale output files.
+
+5. Generate and validate the complete reconciled profile set::
+
+       python3 "$ddr_dir/pack.py"
+       python3 "$ddr_dir/pack.py" --check
+       python3 test/compulab/test_ddr_compact.py
+       python3 test/compulab/test_ddr_compact_phy.py
+       python3 test/compulab/test_mrr_probe.py
+       python3 test/compulab/test_ddr_discovery.py
+       git diff --check
+       git status --short
+
+   Check that every intended input produced its top-level output and that
+   no expanded top-level profile is still compiled. Generation checks all
+   inputs, including profiles disabled by the current capacity fragment.
+   Decoder tests compare against ``raw/``; the source reconciliation above
+   ensures those inputs still represent the previously working timings.
+
+6. Build into a fresh output directory, using the same compiler and board
+   settings as the reference::
+
+       build_dir="$migration_dir/build-compact-d2d4"
+       make O="$build_dir" CROSS_COMPILE=aarch64-linux-gnu- \
+           ucm-imx8m-plus-sbev_defconfig d2d4.config
+       rg '^CONFIG_IMX8M_DDR_COMPACT=y$' "$build_dir/.config"
+       make O="$build_dir" CROSS_COMPILE=aarch64-linux-gnu- \
+           -j8 spl/u-boot-spl
+       aarch64-linux-gnu-size "$build_dir/spl/u-boot-spl"
+       wc -c "$build_dir/spl/u-boot-spl-nodtb.bin"
+
+   ``IMX8M_DDR_COMPACT`` is selected by the CompuLab platform; no timing-format
+   menu option needs enabling. Repeat with separate output directories for
+   D1/D8, other supported boards, and Falcon where applicable. Preserve the
+   previous MR-probe setting when comparing sizes, and test probe-enabled
+   builds if that feature is deployed. Compare like-for-like ELF sizes and
+   SPL binaries, including the linker limit and appended device-tree size.
+
+   When a reference ELF is available, compare its linked tables as well::
+
+       python3 test/compulab/test_ddr_compact.py \
+           --reference-elf "$migration_dir/build-original/spl/u-boot-spl" \
+           --compact-elf "$build_dir/spl/u-boot-spl"
+
+   Only linked profiles can be compared through an ELF. The host decoder
+   check covers all raw profiles. A reference and compact build using the
+   same capacity selection make the linked comparison easiest to assess.
+
+7. Package the full boot image using the existing BSP process and matching
+   PHY firmware, BL31 and OP-TEE. Validate each supported assembly: selected
+   timing, MR identity, capacity, memory integrity, cold/warm boot, Linux
+   boot and suspend/resume. Exercise both saved-EEPROM selection and fresh
+   discovery using the established EEPROM service procedure. Confirm that
+   discovery advances through the list and persists the final selection.
+   If used, test MR probing and its normal-discovery fallback too.
+
+   For Yocto, ensure the recipe builds this migrated source revision, then
+   rebuild through the normal boot-image recipe and verify its deployed
+   image. A standalone SPL build does not update Yocto's ``flash.bin``.
+
+8. Review and commit raw inputs, generated profiles and shared pool,
+   registration changes and any integration adjustments together. Include
+   original/migrated revisions, configurations, measured sizes and hardware
+   results in the commit description. Keep the reference until the complete
+   boot image has passed the required board checks.
+
 Regenerating or adding timings
 ------------------------------
 
-Run all commands from the U-Boot source root.
+Run all commands from the U-Boot source root. The example imports a new
+4 GiB profile; replace ``newchip_4G`` with a unique C-identifier suffix.
 
-1. Update the appropriate original file under
-   ``board/compulab/plat/imx8mp/ddr/raw/``. For a new part, place the DDR-tool
-   output there as ``lpddr4_timing_newchip_4G.c``. Keep its exact register
+1. Set the paths and copy the DDR-tool output into ``raw/``::
+
+       ddr_dir=board/compulab/plat/imx8mp/ddr
+       ddr_chip=newchip_4G
+       ddr_timing_file="${ddr_dir}/raw/lpddr4_timing_${ddr_chip}.c"
+       cp /path/to/generated/lpddr4_timing.c "$ddr_timing_file"
+
+   Keep an untouched generator output outside the source tree. When updating
+   an existing chip, edit its existing raw input instead. Preserve register
    order, frequencies, firmware types and board-specific settings.
 
-2. Give its exported ``struct dram_timing_info`` a unique symbol, for example
-   ``ucm_dram_timing_newchip_4G``. The raw descriptor stays in the original
-   generator format; the generated top-level descriptor will be compact.
-   Existing literal arrays, ARRAY_SIZE counts and conventional FSP message
-   initializers are supported. Unsupported forms are rejected for review.
+2. Make configuration arrays and the FSP message array local, and give the
+   final timing descriptor a unique exported symbol. For the standard
+   single-line declarations emitted by the DDR tool, run::
+
+       sed -i -E \
+           -e 's/^([[:space:]]*)(static[[:space:]]+)?struct[[:space:]]+(dram_cfg_param|dram_fsp_msg)([[:space:]]+)/\1static struct \3\4/' \
+           -e "s/^([[:space:]]*)(static[[:space:]]+)?struct[[:space:]]+dram_timing_info[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=/\1struct dram_timing_info ucm_dram_timing_${ddr_chip} =/" \
+           "$ddr_timing_file"
+
+   These replacements also accept already-static declarations, so rerunning
+   them does not add another ``static``. Do not replace every occurrence of
+   ``struct``: that also changes descriptor declarations and can duplicate
+   qualifiers. The final raw descriptor must have this form::
+
+       struct dram_timing_info ucm_dram_timing_newchip_4G = {
+           /* Original generated fields */
+       };
+
+   The identifier comes before ``=``; do not produce
+   ``struct dram_timing_info = ucm_dram_timing_newchip_4G``. Inspect the
+   declarations after normalization. If a generator uses different syntax
+   such as multiline or macro-based declarations, adjust those declarations
+   explicitly rather than broadening the replacements over the whole file.
+
+   The raw descriptor retains its original type. Keep the generated
+   trained-CSR array in the raw input; the packer omits its unused local copy
+   from compiled storage. Existing literal arrays, ARRAY_SIZE counts and
+   conventional FSP message initializers are supported. Unsupported forms
+   are rejected for review.
 
 3. Regenerate all profiles and the shared pool::
 
-       python3 board/compulab/plat/imx8mp/ddr/pack.py
-       python3 board/compulab/plat/imx8mp/ddr/pack.py --check
+       python3 "$ddr_dir/pack.py"
+       python3 "$ddr_dir/pack.py" --check
 
-   Do not edit the generated pool or top-level profile files manually.
+   This creates ``ddr/lpddr4_timing_newchip_4G.c`` and updates the shared
+   compact pool and header. Do not edit these generated files manually.
    ``--source-dir`` and ``--output-dir`` allow comparison against a separate
    set of raw outputs. The output directory must already exist.
 
@@ -115,9 +337,13 @@ Run all commands from the U-Boot source root.
    distinguishable through the existing EEPROM lookup. Falcon has its own
    list; add support there only when needed and validated.
 
-6. Run the production-decoder checks::
+6. Run the production-decoder, probe and discovery checks::
 
        python3 test/compulab/test_ddr_compact.py
+       python3 test/compulab/test_ddr_compact_phy.py
+       python3 test/compulab/test_mrr_probe.py
+       python3 test/compulab/test_ddr_discovery.py
+       git diff --check
 
    This compiles every generated profile and the production decoder using
    the host C compiler with ASan/UBSan. It checks every ordered write against
