@@ -232,11 +232,57 @@ static void board_get_mac_from_eeprom(int dev_id)
 }
 #endif
 
+/*
+ * Old saved environments predate the FIT-aware boot helpers. Migrate only
+ * that vendor dispatcher; keep customer variables and custom bootcmd values.
+ * Do not save here: the original environment remains available for recovery,
+ * and booting does not introduce environment writes or power-loss exposure.
+ */
+static void cl_imx93_migrate_boot_env(void)
+{
+	const char *command = env_get("bsp_bootcmd");
+	const char *bootcmd;
+	int replace_bootcmd;
+	char *vars[] = {
+		"bsp_bootcmd", "bsp_try_usb", "bsp_try_mmc",
+		"loadbootscript", "bootscript", "load_kernel_file", "load_kernel",
+		"loadimage", "loadfdt", "loadcntr", "auth_os", "boot_os",
+		"boot_fit_os", "apply_overlays", "net_apply_overlays",
+		"mmcboot", "netboot", "loadaddr", "kernel_addr_r",
+		"fdt_addr_r", "fdt_addr", "fdtoverlay_addr_r", "cntr_addr",
+		"scriptaddr",
+	};
+	char *bootcmd_var[] = { "bootcmd" };
+	char *usb_first_var[] = { "bsp_usb_first" };
+	char *mmc_first_var[] = { "bsp_mmc_first" };
+
+	if (!command || !strstr(command, "${bootlist}") ||
+	    !strstr(command, "run ulimage") || !strstr(command, "booti "))
+		return;
+
+	bootcmd = env_get("bootcmd");
+	replace_bootcmd = bootcmd &&
+		!strcmp(bootcmd, "run bsp_bootcmd; run distro_bootcmd");
+	if (!env_set_default_vars(ARRAY_SIZE(vars), vars, 0)) {
+		printf("WARN: Cannot migrate legacy CompuLab boot commands\n");
+		return;
+	}
+	if (replace_bootcmd)
+		env_set_default_vars(ARRAY_SIZE(bootcmd_var), bootcmd_var, 0);
+	if (!env_get("bsp_usb_first"))
+		env_set_default_vars(ARRAY_SIZE(usb_first_var), usb_first_var, 0);
+	if (!env_get("bsp_mmc_first"))
+		env_set_default_vars(ARRAY_SIZE(mmc_first_var), mmc_first_var, 0);
+	printf("Migrated legacy CompuLab boot commands in RAM\n");
+}
+
 static void cl_imx93_setup_runtime_env(void)
 {
 	const char *platform;
 	const char *fdtfile;
 	int ret;
+
+	cl_imx93_migrate_boot_env();
 
 #if CONFIG_IS_ENABLED(ENV_IS_IN_MMC) || CONFIG_IS_ENABLED(ENV_IS_NOWHERE)
 	board_late_mmc_env_init();
@@ -264,6 +310,9 @@ static void cl_imx93_setup_runtime_env(void)
 				      IOT_LINK_EEPROM_ADDR);
 		env_set("image", "fitImage");
 		env_set("boot_fit", "yes");
+		/* FIT overlays are assembled in the heap, so relocate the final DT. */
+		if (env_get_hex("fdt_high", 0) == ~0UL)
+			env_set("fdt_high", NULL);
 		ret = iot_link_set_overlays();
 		if (ret)
 			printf("WARN: IOT-LINK overlays disabled, ret=%d\n", ret);
