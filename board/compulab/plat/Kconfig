@@ -124,6 +124,27 @@ config DRAM_D8
 	help
 	  If 'Y' then support for D8 is enabled.
 
+config COMPULAB_LPDDR4_MRR_PROBE
+	bool "Experimental LPDDR4 identification before timing training"
+	depends on SPL && IMX8M_LPDDR4 && !SPL_OS_BOOT
+	help
+	  Try a 100 MT/s device/PHY initialization-only firmware pass in SPL
+	  and read MR5-MR8 on CS0 and CS1 before choosing a training profile.
+	  Uses the Samsung 2GB low-frequency point with both ranks enabled;
+	  board wiring and PHY firmware compatibility require validation.
+	  Ambiguous ID/topology, inconsistent reads and timeouts use the
+	  existing discovery procedure. EEPROM is updated only after full
+	  training and ID verification. Disabled by default.
+
+config COMPULAB_LPDDR4_MRR_PROBE_ALWAYS
+	bool "Also probe when EEPROM already identifies the DRAM"
+	depends on COMPULAB_LPDDR4_MRR_PROBE
+	help
+	  Run the experimental MRR probe even on boards with valid cached
+	  identification, for hardware validation without erasing EEPROM.
+	  A valid EEPROM profile still determines full training. Resets in
+	  an ongoing discovery scan skip the probe to avoid retry loops.
+
 config SPL_MAX_SIZE
 	hex
 	default 0x2C000

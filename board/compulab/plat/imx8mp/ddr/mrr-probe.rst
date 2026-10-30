@@ -4,8 +4,9 @@ Experimental LPDDR4 identification in SPL
 =========================================
 
 Enable CONFIG_COMPULAB_LPDDR4_MRR_PROBE to attempt identification before
-normal DDR timing training on UCM-iMX8M-Plus. The option defaults to disabled
-and is unavailable with SPL_OS_BOOT. Existing defconfigs are unchanged.
+normal DDR timing training on CompuLab i.MX8MP boards selected by
+TARGET_COMPULAB_IMX8MP. The option defaults to disabled and is unavailable
+with SPL_OS_BOOT. Existing defconfigs are unchanged.
 
 For a configured output directory, enable and rebuild using::
 
