@@ -120,9 +120,9 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		sbc_fec_phy: ethernet-phy@5 {
+		sbc_fec_phy: ethernet-phy@7 {
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <5>;
+			reg = <7>;
 			reset-gpios = <&gpio4 24 GPIO_ACTIVE_LOW>;
 			reset-assert-us = <15000>;
 			reset-deassert-us = <100000>;
