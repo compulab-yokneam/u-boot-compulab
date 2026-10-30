@@ -394,6 +394,7 @@ int get_phy_id(struct mii_dev *bus, int addr, int devad, u32 *phy_id)
 	return 0;
 }
 
+#if defined(CONFIG_FEC_MXC) || defined(CONFIG_DWC_ETH_QOS)
 static int mx8_rgmii_rework_realtek(struct phy_device *phydev)
 {
 #define TXDLY_MASK ((1 << 13) | (1 << 12))
@@ -453,7 +454,6 @@ static int mx8_rgmii_rework(struct phy_device *phydev)
 	return 0;
 }
 
-#if defined(CONFIG_FEC_MXC) || defined(CONFIG_DWC_ETH_QOS)
 #include "../../common/eeprom.h"
 void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 {

@@ -462,6 +462,7 @@ config VIDEO_LCD_RAYDIUM_RM67191
 config VIDEO_LCD_STARTEK_ILI9881C
 	tristate "Startek ILI9881C-based panels"
 	depends on VIDEO
+	select BACKLIGHT
 	select VIDEO_MIPI_DSI
 	default n
 	help

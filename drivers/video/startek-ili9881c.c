@@ -6,6 +6,7 @@
  */
 
 #include <common.h>
+#include <backlight.h>
 #include <dm.h>
 #include <mipi_dsi.h>
 #include <panel.h>
@@ -260,6 +261,7 @@ static const struct ili9881c_instr ili9881c_init[] = {
 
 struct ili9881c_panel_priv {
 	struct gpio_desc reset;
+	struct udevice *backlight;
 	struct display_timing timing;
 	unsigned int lanes;
 	enum mipi_dsi_pixel_format format;
@@ -407,6 +409,7 @@ static int ili9881c_enable(struct udevice *dev)
 
 static int ili9881c_panel_enable_backlight(struct udevice *dev)
 {
+	struct ili9881c_panel_priv *priv = dev_get_priv(dev);
 	struct mipi_dsi_panel_plat *plat = dev_get_plat(dev);
 	struct mipi_dsi_device *device = plat->device;
 	int ret;
@@ -420,6 +423,19 @@ static int ili9881c_panel_enable_backlight(struct udevice *dev)
 		video_link_shut_down();
 		return ret;
 	}
+	if (priv->backlight)
+		return backlight_enable(priv->backlight);
+
+	return 0;
+}
+
+static int ili9881c_panel_set_backlight(struct udevice *dev, int percent)
+{
+	struct ili9881c_panel_priv *priv = dev_get_priv(dev);
+
+	if (priv->backlight)
+		return backlight_set_brightness(priv->backlight, percent);
+
 	return 0;
 }
 
@@ -483,6 +499,11 @@ static int ili9881c_panel_probe(struct udevice *dev)
 	struct ili9881c_panel_priv *priv = dev_get_priv(dev);
 	int ret;
 
+	ret = uclass_get_device_by_phandle(UCLASS_PANEL_BACKLIGHT, dev,
+					 "backlight", &priv->backlight);
+	if (ret && ret != -ENOENT)
+		return ret;
+
 	priv->format = MIPI_DSI_FMT_RGB888;
 	priv->mode_flags = MIPI_DSI_MODE_VIDEO_SYNC_PULSE;
 	priv->mode_flags |= MIPI_DSI_MODE_VIDEO;
@@ -520,6 +541,13 @@ static int ili9881c_panel_probe(struct udevice *dev)
 static int ili9881c_panel_disable(struct udevice *dev)
 {
 	struct ili9881c_panel_priv *priv = dev_get_priv(dev);
+	int ret;
+
+	if (priv->backlight) {
+		ret = backlight_set_brightness(priv->backlight, 0);
+		if (ret)
+			return ret;
+	}
 
 	dm_gpio_set_value(&priv->reset, true);
 
@@ -528,6 +556,7 @@ static int ili9881c_panel_disable(struct udevice *dev)
 
 static const struct panel_ops ili9881c_panel_ops = {
 	.enable_backlight = ili9881c_panel_enable_backlight,
+	.set_backlight = ili9881c_panel_set_backlight,
 	.get_display_timing = ili9881c_panel_get_display_timing,
 };
 
