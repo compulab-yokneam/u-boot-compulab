@@ -40,26 +40,29 @@ Carrier integration
 
 The module DTS includes ``arch/arm/dts/sbc-mcm8pv2.dtsi``, based on
 SBC-MCM8PV2_REV1V0.pdf, document 8000294000, revision 1.0. Carrier Ethernet,
-LVDS and MIPI-DSI definitions live in that separate file. The I2C3 bus and
+LVDS, MIPI-DSI and HDMI definitions live in that separate file. The I2C3 bus and
 PCA9555 are enabled because both display reset signals depend on them.
 
 The carrier configuration is:
 
 * EQOS: RTL8211F, MDIO address 4, active-low reset GPIO1_IO01 (sheet 4).
-* FEC: KSZ9131, MDIO address 5, active-low reset GPIO4_IO24/SAI2_TXFS
-  (sheet 5). The Micrel KSZ90x1 driver includes KSZ9131 support.
+* FEC: KSZ9131, MDIO address 7, active-low reset GPIO4_IO24/SAI2_TXFS
+  (sheet 5 annotates address 5; address 7 was confirmed on hardware). The Micrel KSZ90x1 driver includes KSZ9131 support.
 * Both MACs use ``rgmii-id`` so their PHY drivers enable RX/TX delays.
 * PCA9555: I2C3 at 0x20. IO0.2 resets DSI (active low); IO0.3 releases
   LVDS display reset (active high).
 * LVDS backlight: TPS61165 CTRL on SPDIF_RX/PWM2.
 * DSI backlight: EN/PWM on SPDIF_TX/PWM3. The schematic annotation says
   PWM1, but the i.MX8MP pin mux assigns PWM3 to this pad.
+* HDMI: P22 on sheet 8, with dedicated HDMI DDC, HPD and CEC pads.
+  Its 5 V supply and level-shifter enables are fixed in hardware; no
+  software-controlled GPIO power or reset is required.
 * Carrier EEPROM: I2C3 at 0x54. The carrier EEPROM Kconfig bus is therefore
   2 (zero-based); the module EEPROM remains on bus 1.
 
 The carrier needs the Micrel/Realtek PHY, PCA953x GPIO, i.MX PWM,
-PWM-backlight, LCDIFv3, LVDS and SEC-DSI drivers enabled in U-Boot. These
-are included in the defconfig. The U-Boot DTSI supplies the FEC driver's
+PWM-backlight, LCDIFv3, LVDS, SEC-DSI and i.MX8MP HDMI drivers enabled
+in U-Boot. These are included in the defconfig. The U-Boot DTSI supplies the FEC driver's
 MAC-level reset properties and removes clock assignments managed directly
 by the Ethernet and display drivers.
 
@@ -82,9 +85,14 @@ Panels without a backlight phandle retain their existing behavior.
 
 U-Boot's video-link framework uses one selected display path per boot.
 Run ``videolink list`` to identify each path, then set ``video_link`` to
-the desired link number, run ``saveenv`` and reboot. Check both outputs
-separately with the matching panel attached. The existing shared default
-is ``video_link=1``; use the printed link list to identify its output.
+the desired link number, run ``saveenv`` and reboot. Check the panel outputs
+separately with the matching panel attached. This board defaults to
+``video_link=2`` (LCDIF3/HDMI) and ``hdmi_mode=auto``, with EDID-based
+720p60/1080p60 selection and a 720p60 fallback. Existing saved environments
+retain their previous settings: use ``setenv video_link 2``,
+``setenv hdmi_mode auto``, ``saveenv`` and ``reset`` to select HDMI.
+Confirm link numbering with ``videolink list``.
+Other CompuLab boards retain their existing default link.
 
 The module's eMMC, UART2, PMIC, EEPROM, RTC, LED and USB1 peripheral mode
 remain enabled. USDHC2, external SPI flash and USB host remain disabled.

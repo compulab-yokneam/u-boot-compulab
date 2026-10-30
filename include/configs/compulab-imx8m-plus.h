@@ -49,13 +49,17 @@
 #define CL_DEPLOY_CMD \
 	"cl-deploy=setenv boot_opt init=/usr/local/bin/cl-init; run bsp_bootcmd;\0"
 
+#ifndef COMPULAB_DEFAULT_VIDEO_LINK
+#define COMPULAB_DEFAULT_VIDEO_LINK "1"
+#endif
+
 /* Initial environment variables */
 #define CFG_EXTRA_ENV_SETTINGS		\
 	CL_DEPLOY_CMD \
 	CFG_MFG_ENV_SETTINGS \
 	BOOTENV \
 	MACHINE_EXTRA_ENV_SETTINGS \
-	"video_link=1\0" \
+	"video_link=" COMPULAB_DEFAULT_VIDEO_LINK "\0" \
 	"stdout=serial,vidconsole\0" \
 	"stderr=serial,vidconsole\0" \
 	"stdin=serial,usbkbd\0" \
