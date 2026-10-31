@@ -87,10 +87,10 @@ U-Boot's video-link framework uses one selected display path per boot.
 Run ``videolink list`` to identify each path, then set ``video_link`` to
 the desired link number, run ``saveenv`` and reboot. Check the panel outputs
 separately with the matching panel attached. This board defaults to
-``video_link=2`` (LCDIF3/HDMI) and ``hdmi_mode=auto``, with EDID-based
-720p60/1080p60 selection and a 720p60 fallback. Existing saved environments
-retain their previous settings: use ``setenv video_link 2``,
-``setenv hdmi_mode auto``, ``saveenv`` and ``reset`` to select HDMI.
+``video_link=1`` (LCDIF2/LVDS). Existing saved environments retain their
+previous settings: use ``setenv video_link 1``, ``saveenv`` and ``reset``
+to select LVDS. MIPI-DSI is link 0. HDMI is link 2 with ``hdmi_mode=auto``,
+EDID-based 720p60/1080p60 selection and a 720p60 fallback.
 Confirm link numbering with ``videolink list``.
 Other CompuLab boards retain their existing default link.
 
