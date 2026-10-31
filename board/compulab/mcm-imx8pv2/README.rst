@@ -95,9 +95,33 @@ Confirm link numbering with ``videolink list``.
 Other CompuLab boards retain their existing default link.
 
 The module's eMMC, UART2, PMIC, EEPROM, RTC, LED and USB1 peripheral mode
-remain enabled. USDHC2, external SPI flash and USB host remain disabled.
+remain enabled. External SPI flash and USB host remain disabled.
 U-Boot's MMC aliases retain eMMC as mmc2, and environment storage and the
 default MMC root point to eMMC.
+
+The carrier's bootable micro-SD socket P4 is enabled on USDHC2 as mmc1.
+It uses a four-bit bus, active-low card detect on GPIO2_IO12 and fixed
+3.3 V power, with a 50 MHz maximum clock and no 1.8 V switching. There is
+no card-power GPIO or write-protect switch. Insert a card and check::
+
+    mmc list
+    mmc dev 1
+    mmc rescan
+    mmc info
+    part list mmc 1
+
+The default BSP and distro boot commands already scan mmc1 before mmc2.
+To try only SD for this boot using the BSP loader::
+
+    setenv bootlist sd_ul
+    run bsp_bootcmd
+
+The SD boot partition must contain the selected Image, DTB and any
+configured overlays. Linux must also enable USDHC2 to use an SD root
+filesystem. Booting the entire bootloader from SD additionally
+requires a correctly installed i.MX boot image and the board's ROM boot
+selection configured for SD2; SPL uses the ROM loader for this path.
+SD card access and ROM boot still require hardware verification.
 
 Build and validation
 --------------------
