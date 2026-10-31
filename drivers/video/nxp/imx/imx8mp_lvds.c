@@ -115,11 +115,11 @@ static int imx8mp_lvds_phy_power_on(struct udevice *dev)
 	val |= BIT(3);
 	media_blk_write(priv, LVDS_CTRL, val);
 
-#ifdef CONFIG_TARGET_UCM_IMX8M_PLUS
-	media_blk_write(priv, LDB_CTRL, LDB_CH0_MODE_EN_TO_DI0 | CH0_DATA_WIDTH_24BIT);
-#else
-	media_blk_write(priv, LDB_CTRL, LDB_CH0_MODE_EN_TO_DI0 | CH0_DATA_WIDTH_24BIT | CH0_BIT_MAPPING_JEIDA);
-#endif
+	val = LDB_CH0_MODE_EN_TO_DI0 | CH0_DATA_WIDTH_24BIT;
+	if (!IS_ENABLED(CONFIG_TARGET_UCM_IMX8M_PLUS) &&
+	    !IS_ENABLED(CONFIG_TARGET_MCM_IMX8PV2))
+		val |= CH0_BIT_MAPPING_JEIDA;
+	media_blk_write(priv, LDB_CTRL, val);
  
 	usleep_range(5, 10);
 	

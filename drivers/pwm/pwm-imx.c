@@ -19,6 +19,7 @@ int pwm_config_internal(struct pwm_regs *pwm, unsigned long period_cycles,
 			unsigned long duty_cycles, unsigned long prescale)
 {
 	u32 cr;
+	u32 enable = readl(&pwm->cr) & PWMCR_EN;
 
 	writel(0, &pwm->ir);
 	cr = PWMCR_PRESCALER(prescale) |
@@ -30,6 +31,9 @@ int pwm_config_internal(struct pwm_regs *pwm, unsigned long period_cycles,
 	writel(duty_cycles, &pwm->sar);
 	/* set period cycles */
 	writel(period_cycles, &pwm->pr);
+	/* A brightness update must not leave a running backlight disabled. */
+	if (enable)
+		setbits_le32(&pwm->cr, PWMCR_EN);
 	return 0;
 }
 
