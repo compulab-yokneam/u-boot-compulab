@@ -11,6 +11,7 @@
 #include <clk.h>
 #include <display.h>
 #include <dm.h>
+#include <dm/device_compat.h>
 #include <dm/read.h>
 #include <dw_hdmi.h>
 #include <edid.h>
@@ -248,8 +249,10 @@ static int imx8mp_hdmi_power_on(struct udevice *dev)
 	imx8mp_hdmi_block_enable(priv);
 
 	ret = power_domain_on(&priv->phy_pd);
-	if (ret)
+	if (ret) {
+		power_domain_off(&priv->hdmimix);
 		return ret;
+	}
 
 	return 0;
 }
@@ -420,13 +423,6 @@ static int imx8mp_hdmi_probe(struct udevice *dev)
 	if (!priv->hdmi.ioaddr || !priv->phy || !priv->pvi || !priv->blk)
 		return -EINVAL;
 
-	ret = clk_get_bulk(dev, &priv->clocks);
-	if (ret)
-		return ret;
-	ret = clk_enable_bulk(&priv->clocks);
-	if (ret)
-		return ret;
-
 	ret = power_domain_get_by_index(dev, &priv->hdmimix, 0);
 	if (ret)
 		return ret;
@@ -434,9 +430,18 @@ static int imx8mp_hdmi_probe(struct udevice *dev)
 	if (ret)
 		return ret;
 
-	ret = imx8mp_hdmi_power_on(dev);
+	ret = clk_get_bulk(dev, &priv->clocks);
 	if (ret)
 		return ret;
+	ret = clk_enable_bulk(&priv->clocks);
+	if (ret)
+		return ret;
+
+	ret = imx8mp_hdmi_power_on(dev);
+	if (ret) {
+		clk_release_bulk(&priv->clocks);
+		return ret;
+	}
 
 	priv->hdmi.reg_io_width = 1;
 	priv->hdmi.i2c_clk_high = 0x67;
@@ -460,6 +465,39 @@ static int imx8mp_hdmi_probe(struct udevice *dev)
 	return 0;
 }
 
+static int imx8mp_hdmi_remove(struct udevice *dev)
+{
+	struct imx8mp_hdmi_priv *priv = dev_get_priv(dev);
+	int ret;
+
+	/* LCDIF must have stopped fetching frames before reaching here. */
+	writel(0, priv->pvi + HTX_PVI_CTRL);
+	writeb(HDMI_MC_CLKDIS_HDCPCLK_DISABLE |
+	       HDMI_MC_CLKDIS_CECCLK_DISABLE |
+	       HDMI_MC_CLKDIS_CSCCLK_DISABLE |
+	       HDMI_MC_CLKDIS_AUDCLK_DISABLE |
+	       HDMI_MC_CLKDIS_PREPCLK_DISABLE |
+	       HDMI_MC_CLKDIS_TMDSCLK_DISABLE |
+	       HDMI_MC_CLKDIS_PIXELCLK_DISABLE,
+	       priv->hdmi.ioaddr + HDMI_MC_CLKDIS);
+	writeb(0, priv->hdmi.ioaddr + HDMI_MC_PHYRSTZ);
+
+	ret = power_domain_off(&priv->phy_pd);
+	if (ret) {
+		dev_err(dev, "failed to power off HDMI PHY: %d\n", ret);
+		return ret;
+	}
+
+	/* Keep the block clocks running until the ADB400 handshake completes. */
+	ret = power_domain_off(&priv->hdmimix);
+	if (ret) {
+		dev_err(dev, "failed to power off HDMIMIX: %d\n", ret);
+		return ret;
+	}
+
+	return clk_release_bulk(&priv->clocks);
+}
+
 static const struct dm_display_ops imx8mp_hdmi_ops = {
 	.read_timing = imx8mp_hdmi_read_timing,
 	.read_edid = imx8mp_hdmi_read_edid,
@@ -477,6 +515,7 @@ U_BOOT_DRIVER(imx8mp_hdmi) = {
 	.id = UCLASS_DISPLAY,
 	.of_match = imx8mp_hdmi_ids,
 	.probe = imx8mp_hdmi_probe,
+	.remove = imx8mp_hdmi_remove,
 	.ops = &imx8mp_hdmi_ops,
 	.priv_auto = sizeof(struct imx8mp_hdmi_priv),
 	.flags = DM_FLAG_DEFAULT_PD_CTRL_OFF,

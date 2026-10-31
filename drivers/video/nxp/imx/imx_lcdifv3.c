@@ -195,6 +195,9 @@ static void lcdifv3_disable_controller(struct lcdifv3_priv *priv)
 	ctrldescl0_5 &= ~CTRLDESCL0_5_EN;
 	writel(ctrldescl0_5, (ulong)(priv->reg_base + LCDIFV3_CTRLDESCL0_5));
 
+	/* DMA disable takes effect at the end of a frame, as in Linux. */
+	mdelay(25);
+
 	/* disp off */
 	disp_para &= ~DISP_PARA_DISP_ON;
 	writel(disp_para, (ulong)(priv->reg_base + LCDIFV3_DISP_PARA));
@@ -440,10 +443,11 @@ static int lcdifv3_video_remove(struct udevice *dev)
 
 	debug("%s\n", __func__);
 
-	if (priv->disp_dev)
-		device_remove(priv->disp_dev, DM_REMOVE_NORMAL);
-
+	/* Stop DMA before the display removes its pixel clock or power. */
 	lcdifv3_power_down(priv);
+
+	if (priv->disp_dev)
+		return device_remove(priv->disp_dev, DM_REMOVE_NORMAL);
 
 	return 0;
 }
