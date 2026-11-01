@@ -94,8 +94,9 @@ EDID-based 720p60/1080p60 selection and a 720p60 fallback.
 Confirm link numbering with ``videolink list``.
 Other CompuLab boards retain their existing default link.
 
-The module's eMMC, UART2, PMIC, EEPROM, RTC, LED and USB1 peripheral mode
-remain enabled. External SPI flash and USB host remain disabled.
+The module's eMMC, UART2, PMIC, EEPROM, RTC and LED remain enabled.
+USB1 uses the UCM-iMX8M-Plus OTG settings, and USB2 is enabled as a host.
+External SPI flash remains disabled.
 U-Boot's MMC aliases retain eMMC as mmc2, and environment storage and the
 default MMC root point to eMMC.
 
@@ -122,6 +123,27 @@ filesystem. Booting the entire bootloader from SD additionally
 requires a correctly installed i.MX boot image and the board's ROM boot
 selection configured for SD2; SPL uses the ROM loader for this path.
 SD card access and ROM boot still require hardware verification.
+
+USB2 host connector J2
+----------------------
+
+On the carrier board, E1 closed selects J2 and E1 open selects the USB
+interface on the P8 mini-PCIe socket. The jumper routes the USB2 D+/D-
+signals without changing the controller's host role. The SuperSpeed
+pairs connect directly to J2. Both the USB2 PHY and its controller are
+enabled in host mode.
+The U-Boot-specific controller binding and HSIO clock setup match USB1.
+
+J2 VBUS uses the shared 5V0_USB supply through U41. Its USB_PWR_EN
+signal connects to PCA9555 IO0.1 and has a hardware pull-up. Confirm
+5 V on J2 pin 1 if devices are not powered. To inspect attached devices::
+
+    usb start
+    usb tree
+    usb info
+    usb storage
+
+USB2 enumeration and SuperSpeed operation require hardware verification.
 
 Build and validation
 --------------------
