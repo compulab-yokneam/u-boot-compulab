@@ -21,10 +21,6 @@
 #include "ddr.h"
 
 /* Forward declarations */
-u32 cl_eeprom_get_ddrinfo(void);
-u32 cl_eeprom_set_ddrinfo(u32 ddrinfo);
-u8 cl_eeprom_get_subind(void);
-u8 cl_eeprom_set_subind(u8 subind);
 void reset_misc(void);
 
 static void do_reset_spl(void) { reset_misc(); }
@@ -36,6 +32,32 @@ static void do_reset_spl(void) { reset_misc(); }
 
 int cl_eeprom_buffer_write(uint offset, uchar *buf, int len);
 int cl_eeprom_buffer_read(uint offset, uchar *buf, int len);
+
+#define DDR_EEPROM_INFO_OFFSET 0x40
+
+static int lpddr4_eeprom_read(u32 *id, u8 *subind)
+{
+	u8 data[sizeof(*id) + sizeof(*subind)];
+	int ret;
+
+	ret = cl_eeprom_buffer_read(DDR_EEPROM_INFO_OFFSET, data, sizeof(data));
+	if (ret)
+		return ret;
+
+	/* Preserve the existing four-byte ID followed by the one-byte sub-ID. */
+	memcpy(id, data, sizeof(*id));
+	*subind = data[sizeof(*id)];
+	return 0;
+}
+
+static int lpddr4_eeprom_write(u32 id, u8 subind)
+{
+	u8 data[sizeof(id) + sizeof(subind)];
+
+	memcpy(data, &id, sizeof(id));
+	data[sizeof(id)] = subind;
+	return cl_eeprom_buffer_write(DDR_EEPROM_INFO_OFFSET, data, sizeof(data));
+}
 
 static inline void lpddr4_data_get(struct lpddr4_tcm_desc *lpddr4_tcm_desc) {
 	cl_eeprom_buffer_read(0, (uchar *)lpddr4_tcm_desc, sizeof(struct lpddr4_tcm_desc));
@@ -140,8 +162,8 @@ static int _spl_dram_init(void)
 
 	if (lpddr4_tcm_desc->sign == VALID) {
 		/* get ddr type from the eeprom if not in tcm scan mode */
-		ddr_info = cl_eeprom_get_ddrinfo();
-		subind = cl_eeprom_get_subind();
+		if (lpddr4_eeprom_read(&ddr_info, &subind))
+			puts("DDRINFO: failed to read DDR identification from EEPROM\n");
 
 		printf("DDRINFO: EEPROM VALID DATA [ [ %x ] = %x %x ]\n",
                 lpddr4_tcm_desc->sign, ddr_info, subind);
@@ -234,16 +256,17 @@ static int _spl_dram_init(void)
 
 	if (ddr_found == 0) {
 		/* Update eeprom */
-		if (cl_eeprom_set_ddrinfo(ddr_info_mrr) != ddr_info_mrr ||
-		    cl_eeprom_set_subind(lpddr4_array[i].subind) !=
-		    lpddr4_array[i].subind) {
+		if (lpddr4_eeprom_write(ddr_info_mrr, lpddr4_array[i].subind)) {
 			puts("DDRINFO: failed to write DDR identification to EEPROM\n");
 			return -EIO;
 		}
-		ddr_info = cl_eeprom_get_ddrinfo();
+		if (lpddr4_eeprom_read(&ddr_info, &subind)) {
+			puts("DDRINFO: failed to read DDR identification from EEPROM\n");
+			return -EIO;
+		}
 		/* make sure that the ddr_info has reached the eeprom */
 		printf("DDRINFO(E): mr5-8 [ 0x%x ], read back\n", ddr_info);
-		if (ddr_info_mrr != ddr_info || cl_eeprom_get_subind() != lpddr4_array[i].subind) {
+		if (ddr_info_mrr != ddr_info || subind != lpddr4_array[i].subind) {
 			printf("DDRINFO(EEPROM): make sure that the eeprom is accessible\n");
 			printf("DDRINFO(EEPROM): i2c dev 1; i2c md 0x51 0x40 0x50\n");
 			/* Keep discovery state; a failed commit must not restart at 1. */
