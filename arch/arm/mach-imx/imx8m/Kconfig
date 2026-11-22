@@ -382,6 +382,62 @@ config TARGET_IMX8MP_ICORE_MX8MP
 	  * i.Core MX8M Plus needs to mount on top of EDIMM2.2 for
 	    creating complete i.Core MX8M Plus EDIMM2.2 Starter Kit.
 
+config TARGET_UCM_IMX8M_PLUS
+	bool "CompuLab ucm-imx8m-plus"
+	select IMX8MP
+	select BINMAN
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MP
+
+config TARGET_MCM_IMX8M_PLUS
+	bool "CompuLab mcm-imx8m-plus"
+	select IMX8MP
+	select BINMAN
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MP
+
+config TARGET_MCM_IMX8PV2
+	bool "CompuLab mcm-imx8pv2"
+	select IMX8MP
+	select BINMAN
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MP
+
+config TARGET_SOM_IMX8M_PLUS
+	bool "CompuLab som-imx8m-plus"
+	select IMX8MP
+	select BINMAN
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MP
+
+config TARGET_IOT_GATE_IMX8PLUS
+	bool "CompuLab iot-gate-imx8plus"
+	select IMX8MP
+	select BINMAN
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MP
+
+config TARGET_IOTDIN_IMX8P
+	bool "CompuLab iotdin-imx8p"
+	select IMX8MP
+	select BINMAN
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MP
+
+config TARGET_IOT_GATE_IMX8PV2
+	bool "CompuLab iot-gate-imx8pv2"
+	select IMX8MP
+	select BINMAN
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select TARGET_COMPULAB_IMX8MP
+
 config TARGET_IMX8MP_EVK
 	bool "imx8mp LPDDR4 EVK board"
 	select IMX8MP
@@ -606,5 +662,11 @@ source "board/variscite/imx8mn_var_som/Kconfig"
 source "board/toradex/smarc-imx8mp/Kconfig"
 source "board/toradex/verdin-imx8mm/Kconfig"
 source "board/toradex/verdin-imx8mp/Kconfig"
+
+config COMPULAB_IMX8MP
+	bool
+	default y if TARGET_COMPULAB_IMX8MP
+
+source "board/compulab/plat/Kconfig"
 
 endif

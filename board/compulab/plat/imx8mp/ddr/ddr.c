@@ -1,0 +1,289 @@
+#include <config.h>
+#include <linux/types.h>
+#include <linux/delay.h>
+#include <stdio.h>
+#include <asm/global_data.h>
+#include <string.h>
+#include <spl.h>
+#include <asm/io.h>
+#include <errno.h>
+#include <asm/io.h>
+#include <asm/arch-imx8m/imx8m_ddr.h>
+#include <asm/mach-imx/iomux-v3.h>
+#include <asm/mach-imx/gpio.h>
+#include <asm-generic/gpio.h>
+#include <asm/arch/ddr.h>
+#include <asm/arch/imx8mp_pins.h>
+#include <asm/arch/sys_proto.h>
+#include <asm/arch/clock.h>
+#include <asm/mach-imx/gpio.h>
+#include <linux/delay.h>
+#include "ddr.h"
+
+/* Forward declarations */
+u32 cl_eeprom_get_ddrinfo(void);
+u32 cl_eeprom_set_ddrinfo(u32 ddrinfo);
+u8 cl_eeprom_get_subind(void);
+u8 cl_eeprom_set_subind(u8 subind);
+void reset_misc(void);
+
+static void do_reset_spl(void) { reset_misc(); }
+
+#define DEFAULT (('D' << 24) + ('E' << 16 ) + ( 'F' << 8 ) + 'A')
+#define VALID 0xCAFECAFE
+#define DDR_INIT_IN  0xCACACACA
+#define DDR_INIT_OUT 0x0C0C0C0C
+
+int cl_eeprom_buffer_write(uint offset, uchar *buf, int len);
+int cl_eeprom_buffer_read(uint offset, uchar *buf, int len);
+
+static inline void lpddr4_data_get(struct lpddr4_tcm_desc *lpddr4_tcm_desc) {
+	cl_eeprom_buffer_read(0, (uchar *)lpddr4_tcm_desc, sizeof(struct lpddr4_tcm_desc));
+}
+
+static inline void lpddr4_data_set(struct lpddr4_tcm_desc *lpddr4_tcm_desc) {
+	cl_eeprom_buffer_write(0, (uchar *)lpddr4_tcm_desc, sizeof(struct lpddr4_tcm_desc));
+}
+
+static void spl_tcm_init(struct lpddr4_tcm_desc *lpddr4_tcm_desc) {
+    if (lpddr4_tcm_desc->sign == DEFAULT)
+	    return;
+
+    memset((char *)lpddr4_tcm_desc, 0x0, sizeof(struct lpddr4_tcm_desc));
+    lpddr4_tcm_desc->sign = DEFAULT;
+}
+
+static void spl_tcm_fini(struct lpddr4_tcm_desc *lpddr4_tcm_desc) {
+    if (lpddr4_tcm_desc->sign == VALID)
+	    return;
+
+    memset((char *)lpddr4_tcm_desc, 0x0, sizeof(struct lpddr4_tcm_desc));
+    lpddr4_tcm_desc->sign = VALID;
+}
+
+static void spl_tcm_clr(struct lpddr4_tcm_desc *lpddr4_tcm_desc) {
+    memset((char *)lpddr4_tcm_desc, 0xFF, sizeof(struct lpddr4_tcm_desc));
+}
+
+static struct lpddr4_tcm_desc spl_tcm_data;
+#define SPL_TCM_DATA &spl_tcm_data
+#define SPL_TCM_CLR  spl_tcm_clr(lpddr4_tcm_desc)
+#define SPL_TCM_INIT spl_tcm_init(lpddr4_tcm_desc)
+#define SPL_TCM_FINI spl_tcm_fini(lpddr4_tcm_desc)
+
+#ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
+static unsigned int lpddr4_profile_rank_mask(const struct dram_compact_timing *timing)
+{
+	struct dram_compact_iter it;
+	struct dram_cfg_param entry;
+
+	ddr_compact_iter_init(&it, timing->ddrc_cfg);
+	while (ddr_compact_next(&it, &entry) > 0)
+		if (entry.reg == DDRC_MSTR(0))
+			return (entry.val >> 24) & 0xf;
+	return 0;
+}
+
+static int lpddr4_probe_profile(void)
+{
+	const struct dram_compact_timing *seed = &ucm_dram_timing_01061010_2G;
+	u32 id, rank_mask;
+	int ret, found = -1;
+	unsigned int fsp, i;
+
+	for (fsp = 0; fsp < seed->fsp_msg_num; fsp++)
+		if (seed->fsp_msg[fsp].drate == 100 &&
+		    seed->fsp_msg[fsp].fw_type == FW_1D_IMAGE)
+			break;
+	if (fsp == seed->fsp_msg_num)
+		return -ENOENT;
+
+	puts("DDRINFO: experimental 100 MT/s MRR probe (DevInit only)\n");
+	ret = ddr_init_mrr_compact(seed, fsp);
+	if (!ret)
+		ret = lpddr4_get_mr_probe(&id, &rank_mask);
+
+	/* Discard all probe state, including a stalled PMU, before full training. */
+	reg32_write(SRC_DDRC_RCR_ADDR, 0x8f00001f);
+	if (ret) {
+		printf("DDRINFO: MRR probe failed (%d); use normal initialization\n", ret);
+		return ret;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(lpddr4_array); i++) {
+		if (lpddr4_array[i].id != id ||
+		    lpddr4_profile_rank_mask(lpddr4_array[i].timing) != rank_mask)
+			continue;
+		if (found >= 0) {
+			puts("DDRINFO: ambiguous MRR ID/topology; use normal initialization\n");
+			return -EINVAL;
+		}
+		found = i;
+	}
+	if (found < 0)
+		puts("DDRINFO: unknown MRR ID/topology; use normal initialization\n");
+	return found;
+}
+#endif
+
+static int _spl_dram_init(void)
+{
+	unsigned int ddr_info = 0xdeadbeef;
+	unsigned char subind = 0xfF;
+	unsigned int ddr_info_mrr = 0xdeadbeef;
+	unsigned int ddr_found = 0;
+	unsigned int ddr_init_rc = 0;
+	int i = 0;
+	int probe_index = -1;
+
+	struct lpddr4_tcm_desc *lpddr4_tcm_desc = SPL_TCM_DATA;
+
+	if (lpddr4_tcm_desc->sign == VALID) {
+		/* get ddr type from the eeprom if not in tcm scan mode */
+		ddr_info = cl_eeprom_get_ddrinfo();
+		subind = cl_eeprom_get_subind();
+
+		printf("DDRINFO: EEPROM VALID DATA [ [ %x ] = %x %x ]\n",
+                lpddr4_tcm_desc->sign, ddr_info, subind);
+
+		for ( i = 0; i < ARRAY_SIZE(lpddr4_array); i++ ) {
+			if (lpddr4_array[i].id == ddr_info &&
+			lpddr4_array[i].subind == subind) {
+				ddr_found = 1;
+				break;
+			}
+		}
+	}
+
+#ifdef CONFIG_COMPULAB_LPDDR4_MRR_PROBE
+	/* Try once per discovery cycle; persisted scan state prevents retry loops. */
+	if (lpddr4_tcm_desc->sign != DEFAULT &&
+	    (!ddr_found || IS_ENABLED(CONFIG_COMPULAB_LPDDR4_MRR_PROBE_ALWAYS)))
+		probe_index = lpddr4_probe_profile();
+#endif
+
+	/* Walk trought all available ddr ids and apply
+	 * one by one. Save the index at the tcm memory that
+	 * persists after the reset.
+	 */
+	if (ddr_found == 0) {
+
+		SPL_TCM_INIT;
+
+		/* Let's check the latest training status */
+		if (lpddr4_tcm_desc->ddr_init_status == DDR_INIT_IN) {
+			/* index already points past the attempt saved before training. */
+			printf("DDRINFO: attempt %u did not finish; continue discovery\n",
+			       lpddr4_tcm_desc->index);
+		}
+
+		if (probe_index >= 0) {
+			i = probe_index;
+			printf("DDRINFO: probe selected %s %uMB; full training follows\n",
+			       lpddr4_array[i].name, lpddr4_array[i].size);
+		} else if (lpddr4_tcm_desc->index < ARRAY_SIZE(lpddr4_array)) {
+			printf("DDRINFO: Cfg attempt: [ %d/%lu ; ( %s / 0x%x) ]\n", lpddr4_tcm_desc->index+1, ARRAY_SIZE(lpddr4_array), lpddr4_array[lpddr4_tcm_desc->index].name ,  lpddr4_array[lpddr4_tcm_desc->index].id );
+			i = lpddr4_tcm_desc->index;
+			lpddr4_tcm_desc->index += 1;
+		} else {
+			/* Ran out all available ddr setings */
+			SPL_TCM_CLR;
+			printf("DDRINFO: Ran out all [ %lu ] cfg attempts. A non supported configuration.\n", ARRAY_SIZE(lpddr4_array));
+			return -1;
+		}
+
+		ddr_info = lpddr4_array[i].id;
+
+		/* This is a discovery case, save in ddr_init_status 'cause it can stack */
+		lpddr4_tcm_desc->ddr_init_status = DDR_INIT_IN;
+		/* Save the data before training */
+		lpddr4_data_set(SPL_TCM_DATA);
+	}
+
+	printf("DDRINFO(%s): %s %dMB @ %d MHz\n", (ddr_found ? "D" : "?" ), lpddr4_array[i].name,
+			lpddr4_array[i].size, lpddr4_array[i].timing->fsp_table[0]);
+
+	ddr_init_rc = ddr_init_compact(lpddr4_array[i].timing);
+
+	if (ddr_found == 0) {
+		/* This is a discovery case, save out ddr_init_status */
+		lpddr4_tcm_desc->ddr_init_status = DDR_INIT_OUT;
+		/* Save the data after training */
+		lpddr4_data_set(SPL_TCM_DATA);
+	}
+
+	if (ddr_init_rc)
+		return 1;
+
+	ddr_info_mrr = lpddr4_get_mr();
+	if (ddr_info_mrr == 0xFFFFFFFF ) {
+		printf("DDRINFO(M): mr5-8 [ 0x%x ] is invalid; reset\n", ddr_info_mrr);
+		SPL_TCM_INIT;
+		return 1;
+	}
+
+	printf("DDRINFO(M): mr5-8 [ 0x%x ]\n", ddr_info_mrr);
+	printf("DDRINFO(%s): mr5-8 [ 0x%x ]\n", (ddr_found ? "E" : "T" ), ddr_info);
+
+	if (ddr_info_mrr != ddr_info) {
+		SPL_TCM_INIT;
+		return 1;
+	}
+
+	lpddr4_tcm_desc->size = lpddr4_array[i].size;
+
+	if (ddr_found == 0) {
+		/* Update eeprom */
+		if (cl_eeprom_set_ddrinfo(ddr_info_mrr) != ddr_info_mrr ||
+		    cl_eeprom_set_subind(lpddr4_array[i].subind) !=
+		    lpddr4_array[i].subind) {
+			puts("DDRINFO: failed to write DDR identification to EEPROM\n");
+			return -EIO;
+		}
+		ddr_info = cl_eeprom_get_ddrinfo();
+		/* make sure that the ddr_info has reached the eeprom */
+		printf("DDRINFO(E): mr5-8 [ 0x%x ], read back\n", ddr_info);
+		if (ddr_info_mrr != ddr_info || cl_eeprom_get_subind() != lpddr4_array[i].subind) {
+			printf("DDRINFO(EEPROM): make sure that the eeprom is accessible\n");
+			printf("DDRINFO(EEPROM): i2c dev 1; i2c md 0x51 0x40 0x50\n");
+			/* Keep discovery state; a failed commit must not restart at 1. */
+			return -EIO;
+		}
+        /* Set the data valid */
+	    SPL_TCM_FINI;
+        /* Return with 1 in ordert to make the caller save the ddr discovery status */
+	    return 1;
+	}
+
+	return 0;
+}
+
+static inline void spl_dram_share_info(void) {
+#ifdef SHARED_DDR_INFO
+    struct lpddr4_tcm_desc *lpddr4_tcm_desc = (void *) SHARED_DDR_INFO;
+    memcpy(lpddr4_tcm_desc, SPL_TCM_DATA, sizeof(struct lpddr4_tcm_desc));
+#endif
+}
+
+void spl_dram_init(void)
+{
+    int rc=0;
+
+    lpddr4_data_get(SPL_TCM_DATA);
+
+    rc=_spl_dram_init();
+
+    if (rc==0) {
+        spl_dram_share_info();
+        return;
+    }
+
+    lpddr4_data_set(SPL_TCM_DATA);
+
+    if (rc==1) {
+        printf("%s Reset ... \n",__func__);
+        do_reset_spl();
+    }
+
+    while ( 1 ) { };
+}

@@ -26,6 +26,7 @@
 #include <dm.h>
 #include <dm/device-internal.h>
 #include <dm/device_compat.h>
+#include <display.h>
 
 #define	PS2KHZ(ps)	(1000000000UL / (ps))
 #define HZ2PS(hz)	(1000000000UL / ((hz) / 1000))
@@ -38,6 +39,7 @@ struct lcdifv3_priv {
 	u32 thres_low_div;
 	u32 thres_high_mul;
 	u32 thres_high_div;
+	bool pixclk_from_phy;
 };
 
 static int lcdifv3_set_pix_fmt(struct lcdifv3_priv *priv, unsigned int format)
@@ -192,6 +194,9 @@ static void lcdifv3_disable_controller(struct lcdifv3_priv *priv)
 	ctrldescl0_5 &= ~CTRLDESCL0_5_EN;
 	writel(ctrldescl0_5, (ulong)(priv->reg_base + LCDIFV3_CTRLDESCL0_5));
 
+	/* DMA disable takes effect at the end of a frame, as in Linux. */
+	mdelay(25);
+
 	/* disp off */
 	disp_para &= ~DISP_PARA_DISP_ON;
 	writel(disp_para, (ulong)(priv->reg_base + LCDIFV3_DISP_PARA));
@@ -204,8 +209,9 @@ static void lcdifv3_init(struct udevice *dev,
 	struct lcdifv3_priv *priv = dev_get_priv(dev);
 	int ret;
 
-	/* Kick in the LCDIF clock */
-	mxs_set_lcdclk(priv->reg_base, PS2KHZ(mode->pixclock));
+	/* LCDIF3 receives its pixel clock from the HDMI PHY. */
+	if (!priv->pixclk_from_phy)
+		mxs_set_lcdclk(priv->reg_base, PS2KHZ(mode->pixclock));
 
 	writel(CTRL_SW_RESET, (ulong)(priv->reg_base + LCDIFV3_CTRL_CLR));
 
@@ -264,6 +270,12 @@ static int lcdifv3_of_get_timings(struct udevice *dev,
 	}
 
 	debug("disp_dev %s\n", priv->disp_dev->name);
+	if (CONFIG_IS_ENABLED(DISPLAY) &&
+	    device_get_uclass_id(priv->disp_dev) == UCLASS_DISPLAY) {
+		ret = display_read_timing(priv->disp_dev, timings);
+		if (!ret)
+			return 0;
+	}
 
 	ret = video_link_get_display_timings(timings);
 	if (ret) {
@@ -341,12 +353,20 @@ static int lcdifv3_video_probe(struct udevice *dev)
 		dev_err(dev, "lcdif base address is not found\n");
 		return -EINVAL;
 	}
+	priv->pixclk_from_phy = priv->reg_base == 0x32fc6000;
 
 	ret = lcdifv3_of_get_timings(dev, &timings);
 	if (ret)
 		return ret;
 
 	lcdifv3_of_parse_thres(dev);
+
+	if (IS_ENABLED(CONFIG_VIDEO_IMX8MP_LVDS) && priv->disp_dev &&
+	    device_get_uclass_id(priv->disp_dev) == UCLASS_DISPLAY) {
+		ret = display_enable(priv->disp_dev, 32, &timings);
+		if (ret)
+			return ret;
+	}
 
 	if (priv->disp_dev) {
 #if IS_ENABLED(CONFIG_VIDEO_BRIDGE)
@@ -422,16 +442,19 @@ static int lcdifv3_video_remove(struct udevice *dev)
 
 	debug("%s\n", __func__);
 
-	if (priv->disp_dev)
-		device_remove(priv->disp_dev, DM_REMOVE_NORMAL);
-
+	/* Stop DMA before the display removes its pixel clock or power. */
 	lcdifv3_power_down(priv);
+
+	if (priv->disp_dev)
+		return device_remove(priv->disp_dev, DM_REMOVE_NORMAL);
 
 	return 0;
 }
 
 static const struct udevice_id lcdifv3_video_ids[] = {
 	{ .compatible = "fsl,imx8mp-lcdif1" },
+	{ .compatible = "fsl,imx8mp-lcdif2" },
+	{ .compatible = "fsl,imx8mp-lcdif3" },
 	{ .compatible = "fsl,imx93-lcdif" },
 	{ /* sentinel */ }
 };

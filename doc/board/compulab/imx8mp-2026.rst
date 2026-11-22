@@ -1,0 +1,93 @@
+CompuLab i.MX8MP on NXP U-Boot 2026.04
+=====================================
+
+This port carries the CompuLab i.MX8MP support from
+``u-boot-compulab_v2023.04-d1d8_d2d4-devel`` onto NXP's ``lf_v2026.04``.
+It keeps the board-specific hardware description, environment, EEPROM
+identification and firmware rather than substituting the NXP EVK configuration.
+
+Supported configurations
+------------------------
+
+* ``ucm-imx8m-plus_defconfig``
+* ``ucm-imx8m-plus-sbev_defconfig``
+* ``ucm-imx8m-plus_falcon_defconfig``
+* ``mcm-imx8m-plus_defconfig``
+* ``mcm-imx8pv2_defconfig``
+* ``som-imx8m-plus_defconfig``
+* ``iot-gate-imx8plus_defconfig``
+* ``iot-gate-imx8plus_falcon_defconfig``
+* ``iotdin-imx8p_defconfig``
+* ``iotdin-imx8p_falcon_defconfig``
+* ``iot-gate-imx8pv2_defconfig``
+
+The shared platform retains compact LPDDR4 timings, selectable D1/D2/D4/D8
+subsets, the optional MRR identification probe and verified EEPROM updates.
+The raw timing sources and the packer remain available under
+``board/compulab/plat/imx8mp/ddr/``. The expanded timing layout supplied to
+TF-A remains unchanged. With the NXP 2026.04 driver, trained CSR values are
+captured in controller initialization after the PHY finishes, and are not
+saved during the identification-only MRR pass.
+
+Board support includes the existing Ethernet/PHY setup, MMC, USB, SPI/I2C,
+TPM device descriptions, environment and capsule handling. The MCM-iMX8Pv2
+carrier board retains its micro-SD support, USB roles and HDMI/LVDS/MIPI
+boot displays, including the LVDS default and HDMI shutdown before Linux.
+Availability of each interface depends on the selected board configuration.
+
+Build
+-----
+
+Use a separate output directory. For example::
+
+    make O=build-mcm ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- mcm-imx8pv2_defconfig
+    make O=build-mcm ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- -j8 flash.bin
+
+The firmware helper extracts the bundled BL31, OP-TEE and 202006 LPDDR4
+training firmware into the output directory. Binman packages these files
+with SPL and U-Boot into ``flash.bin``. Firmware already supplied in the
+output directory can be used in place of the bundled files.
+
+To select all supported DRAM subsets and enable the optional MRR probe::
+
+    scripts/kconfig/merge_config.sh -m -O build-mcm build-mcm/.config \
+        configs/d0.config configs/d1.config configs/d2.config \
+        configs/d4.config configs/d8.config configs/lpddr_mrr_probe.config
+    make O=build-mcm ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
+    make O=build-mcm ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- -j8 flash.bin
+
+Do not reuse a configured 2023.04 output directory. The port uses the
+2026.04 SPL configuration names and device-tree ``bootph-*`` annotations.
+The Falcon configurations use ``CONFIG_SPL_PAYLOAD_ARGS_ADDR`` for the
+kernel arguments/device-tree load address.
+
+HAB
+---
+
+``CONFIG_IMX_HAB`` and ``CONFIG_IMX_SPL_FIT_FDT_SIGNATURE`` remain available.
+Enabling them builds authentication support; it does not sign ``flash.bin``.
+The port retains the existing CompuLab image layout. Using the newer binman
+CST entry types requires a separate image-description/signing integration.
+Private keys and signed production images are not included in this port.
+
+Validation
+----------
+
+Cross-compilation with GCC 13 completed for all eleven configurations,
+including their ``flash.bin`` images. The MCM-iMX8Pv2 all-DRAM, D1/D8 and
+D2/D4 combinations also built with MRR probing and HAB support enabled.
+The unmodified NXP i.MX8MP EVK configuration built U-Boot and SPL with
+CompuLab support disabled. The bundled firmware matches the source branch.
+
+Host-side DDR checks can be run with::
+
+    python3 board/compulab/plat/imx8mp/ddr/pack.py --check
+    python3 test/compulab/test_ddr_compact.py
+    python3 test/compulab/test_ddr_compact_phy.py
+
+These verify the generated compact tables, register traces, expanded saved
+timing layout and PHY identification/training paths. Cross-compilation
+checks do not replace hardware validation. Cold/warm boot, every required
+DRAM population, storage, Ethernet, USB, display handoff and Falcon boot
+need testing on their respective boards. A HAB-enabled image also requires
+signing and authentication testing on the target.

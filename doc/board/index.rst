@@ -24,6 +24,7 @@ Board-specific doc
    bsh/index
    canaan/index
    cloos/index
+   compulab/imx8mp-2026
    congatec/index
    coolpi/index
    coreboot/index

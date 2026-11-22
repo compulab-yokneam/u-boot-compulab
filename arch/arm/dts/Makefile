@@ -1274,3 +1274,14 @@ DTC_FLAGS += -a 0x8
 
 DTC_FLAGS_imx8mp-dhcom-som-overlay-rev100 += -Wno-avoid_default_addr_size -Wno-reg_format
 DTC_FLAGS_imx8mp-dhcom-pdk3-overlay-rev100 += -Wno-avoid_default_addr_size -Wno-reg_format
+
+dtb-$(CONFIG_TARGET_UCM_IMX8M_PLUS) += ucm-imx8m-plus.dtb
+
+dtb-$(CONFIG_TARGET_MCM_IMX8M_PLUS) += mcm-imx8m-plus.dtb
+dtb-$(CONFIG_TARGET_SOM_IMX8M_PLUS) += som-imx8m-plus.dtb
+
+dtb-$(CONFIG_SBEV_UCMIMX8PLUS) += ucm-imx8m-plus-sbev.dtb
+dtb-$(CONFIG_TARGET_MCM_IMX8PV2) += mcm-imx8pv2.dtb
+dtb-$(CONFIG_TARGET_IOT_GATE_IMX8PLUS) += iot-gate-imx8plus.dtb
+dtb-$(CONFIG_TARGET_IOTDIN_IMX8P) += iotdin-imx8p.dtb
+dtb-$(CONFIG_TARGET_IOT_GATE_IMX8PV2) += iot-gate-imx8pv2.dtb

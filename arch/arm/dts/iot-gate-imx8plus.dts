@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2022 CompuLab
+ */
+
+#include "ucm-imx8m-plus.dtsi"
+#ifdef CONFIG_VIDEO_IMX8MP_HDMI
+#include "compulab-imx8mp-hdmi.dtsi"
+#endif
+#include "sb-iotgimx8plus.dtsi"
+#include "iot-gate-imx8plus-m2tpm.dtsi"
+
+/ {
+	model = "CompuLab IOT-GATE-IMX8PLUS";
+	compatible = "compulab,iot-gate-imx8plus", "compulab,ucm-imx8m-plus-som", "fsl,imx8mp";
+};

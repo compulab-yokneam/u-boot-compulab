@@ -14,6 +14,7 @@ obj-$(CONFIG_VIDEO_SEC_MIPI_DSI) += sec_mipi_dsim.o
 obj-$(CONFIG_VIDEO_IMX_SEC_DSI) += sec_dsim_imx.o
 obj-$(CONFIG_VIDEO_IMX_LCDIFV3) += imx_lcdifv3.o
 obj-$(CONFIG_VIDEO_IMX_DCIF) += imx_dcif.o
+obj-$(CONFIG_VIDEO_IMX8MP_LVDS) += imx8mp_lvds.o
 obj-$(CONFIG_VIDEO_NW_MIPI_DSI) += mipi_dsi_northwest.o
 obj-$(CONFIG_VIDEO_IMX_NW_DSI) += nw_dsi_imx.o
 obj-$(CONFIG_VIDEO_IMX_DW_DSI) += dw_dsi_imx.o
@@ -26,3 +27,5 @@ obj-$(CONFIG_VIDEO_IMX95_LVDS) += imx95-ldb.o
 obj-$(CONFIG_VIDEO_IMX95_DW_DSI) += dw_dsi_imx95.o
 obj-$(CONFIG_VIDEO_IMX952_MIPI_DSI2) += imx952-mipi-dsi2.o
 obj-y += hdmi/
+
+obj-$(CONFIG_VIDEO_IMX8MP_HDMI) += imx8mp_hdmi.o

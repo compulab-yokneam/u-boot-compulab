@@ -53,6 +53,15 @@ config VIDEO_IMX8_LVDS
 	help
 	  Support for i.MX8 LDVS bridge controller for i.MX8 processors.
 
+config VIDEO_IMX8MP_LVDS
+	bool "i.MX8MP LDVS bridge support"
+	default n
+	depends on IMX8MP && VIDEO
+	select DISPLAY
+	select VIDEO_LINK
+	help
+	  Support for i.MX8MP LDVS bridge controller for i.MX8 processors.
+
 config VIDEO_IMX_HDP_LOAD
 	bool "i.MX8 HDMI/DP firmware loading"
 	default n
@@ -80,6 +89,17 @@ config VIDEO_IMX8M_HDMI
 	select VIDEO_NXP_HDP
 	help
 	  Support for HDMI on i.MX8MQ processors.
+
+config VIDEO_IMX8MP_HDMI
+	bool "i.MX8MP HDMI display support"
+	default n
+	depends on IMX8MP && VIDEO
+	select DISPLAY
+	select VIDEO_DW_HDMI
+	select VIDEO_LINK
+	help
+	  Enable the LCDIF3, HDMI PVI, DesignWare HDMI transmitter and
+	  Samsung HDMI PHY display pipeline found on i.MX8MP processors.
 
 config VIDEO_SEC_MIPI_DSI
 	bool

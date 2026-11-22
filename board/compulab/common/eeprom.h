@@ -1,4 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
+#ifdef CONFIG_TARGET_COMPULAB_IMX8MP
+#include "eeprom_imx8mp.h"
+#else
 /*
  * (C) Copyright 2011 CompuLab, Ltd. <www.compulab.co.il>
  *
@@ -30,3 +33,5 @@ static inline int cl_eeprom_get_product_name(uchar *buf, uint eeprom_bus)
 #endif
 
 #endif
+
+#endif /* CONFIG_TARGET_COMPULAB_IMX8MP */

@@ -1,6 +1,10 @@
 menu "i.MX8M DDR controllers"
 	depends on ARCH_IMX8M
 
+config IMX8M_DDR_COMPACT
+	bool "Compact CompuLab DDR timing tables"
+	depends on IMX8M_LPDDR4
+
 config IMX8M_DRAM
 	bool "imx8m dram"
 	select IMX_SNPS_DDR_PHY

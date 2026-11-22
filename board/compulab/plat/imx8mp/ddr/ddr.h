@@ -1,0 +1,201 @@
+/*
+ * Copyright 2017 NXP
+ *
+ * SPDX-License-Identifier:	GPL-2.0+
+ */
+
+#ifndef __DDR_H__
+#define __DDR_H__
+
+#include <imx8m_ddr_compact.h>
+
+#ifdef CONFIG_SPL_BUILD
+extern const struct dram_compact_timing ucm_dram_timing_01061010_2G;
+extern const struct dram_compact_timing ucm_dram_timing_ff000010;
+extern const struct dram_compact_timing ucm_dram_timing_01061010_4G;
+extern const struct dram_compact_timing ucm_dram_timing_13000210_2G;
+extern const struct dram_compact_timing ucm_dram_timing_ff070010_2G;
+extern const struct dram_compact_timing ucm_dram_timing_ff070010_kingston_2G;
+extern const struct dram_compact_timing ucm_dram_timing_ff070010_kingston_4G;
+extern const struct dram_compact_timing ucm_dram_timing_ff070018_4G;
+extern const struct dram_compact_timing ucm_dram_timing_1a000008_1G;
+extern const struct dram_compact_timing ucm_dram_timing_1b000008_1G;
+extern const struct dram_compact_timing ucm_dram_timing_01061010_1G;
+extern const struct dram_compact_timing ucm_dram_timing_01061010_1G_4000;
+extern const struct dram_compact_timing ucm_dram_timing_ff060018;
+extern const struct dram_compact_timing ucm_dram_timing_ff070018_8G;
+extern const struct dram_compact_timing ucm_dram_timing_13000518_4G;
+extern const struct dram_compact_timing ucm_dram_timing_13000518_8G;
+#endif
+
+void spl_dram_init(void);
+
+struct lpddr4_tcm_desc {
+	unsigned int size;
+	unsigned int sign;
+	unsigned int index;
+	unsigned int ddr_init_status;
+};
+
+struct lpddr4_desc {
+	char name[16];
+	unsigned int id;
+	unsigned int size;
+	unsigned int count;
+	/* an optional field
+	 * use it if default is not the
+	 * 1-st array entry */
+	unsigned int _default;
+	/* An optional field to distiguish DRAM chips that
+	 * have different geometry, though return the same MRR.
+	 * Default value 0xff
+	 */
+	u8	subind;
+	const struct dram_compact_timing *timing;
+	char *desc[4];
+};
+
+#ifdef CONFIG_SPL_OS_BOOT
+static const struct lpddr4_desc lpddr4_array[] = {
+	{ .name = "deadbeaf",	.id = 0xdeadbeef, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+	{ .name = "Nanya",	.id = 0x05000010, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+};
+
+#else /* CONFIG_SPL_OS_BOOT */
+
+static const struct lpddr4_desc lpddr4_array[] = {
+#ifdef CONFIG_DRAM_D8
+	{ .name = "Micron",	.id = 0xff060018, .subind = 0x8, .size = 8192, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff060018
+#endif
+	},
+	{ .name = "Micron",	.id = 0xff070018, .subind = 0x8, .size = 8192, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff070018_8G
+#endif
+	},
+	{ .name = "Rayson",	.id = 0x13000518, .subind = 0x8, .size = 8192, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_13000518_8G
+#endif
+	},
+#endif /* CONFIG_DRAM_D8 */
+#ifdef CONFIG_DRAM_D4
+	{ .name = "deadbeaf",	.id = 0xdeadbeef, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+	{ .name = "Rayson",	.id = 0x13000518, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_13000518_4G
+#endif
+	},
+	{ .name = "ISSI",	.id = 0x13000518, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff070018_4G
+#endif
+	},
+	{ .name = "Micron",	.id = 0xff000010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff000010
+#endif
+	},
+	{ .name = "Micron",	.id = 0xff000110, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff000010
+#endif
+	},
+	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_4G
+#endif
+	},
+	{ .name = "Etron",	.id = 0xff070018, .subind = 0x4, .size = 4096, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_ff070018_4G
+#endif
+	},
+#endif /* CONFIG_DRAM_D4 */
+#ifdef CONFIG_DRAM_D2
+	{ .name = "deadbeaf",	.id = 0xdeadbeef, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+	{ .name = "Nanya",	.id = 0x05000010, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+	{ .name = "Samsung",	.id = 0x01061010, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+	{ .name = "Samsung",	.id = 0x01080010, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+	{ .name = "Issi",	.id = 0x13000210, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_13000210_2G
+#endif
+	},
+	{ .name = "Kingston",	.id = 0xff070010, .subind = 0x2, .size = 2048, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_2G
+#endif
+	},
+#endif /* CONFIG_DRAM_D2 */
+#ifdef CONFIG_DRAM_D1
+	{ .name = "deadbeaf",	.id = 0xdeadbeaf, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_1G
+#endif
+	},
+	{ .name = "Samsung",	.id = 0x01050008, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_1G
+#endif
+	},
+	{ .name = "Samsung",	.id = 0x01060008, .subind = 0x1, .size = 1024, .count = 1,
+#ifdef CONFIG_SPL_BUILD
+		.timing = &ucm_dram_timing_01061010_1G_4000
+#endif
+	},
+#endif /* CONFIG_DRAM_D1 */
+};
+#endif /* CONFIG_SPL_OS_BOOT */
+
+unsigned int lpddr4_get_mr(void);
+int lpddr4_get_mr_probe(u32 *id, u32 *rank_mask);
+const struct lpddr4_desc *lpddr4_get_desc_by_id(unsigned int id);
+size_t lppdr4_get_ramsize(void);
+int lppdr4_get_ram_name(char *name);
+#endif

@@ -1510,3 +1510,8 @@ config VIDEO_WAVESHARE_DSI
 	  7.0inch-c-panel which is 1024x600.
 
 endmenu
+
+config VIDEO_LCD_STARTEK_ILI9881C
+	bool "Startek ILI9881C-based panels"
+	depends on VIDEO
+	select VIDEO_MIPI_DSI
