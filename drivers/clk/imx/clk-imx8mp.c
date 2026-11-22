@@ -10,9 +10,12 @@
 #include <log.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/imx-regs.h>
+#include <asm/global_data.h>
 #include <dt-bindings/clock/imx8mp-clock.h>
 
 #include "clk.h"
+
+DECLARE_GLOBAL_DATA_PTR;
 
 #if CONFIG_IS_ENABLED(VIDEO)
 static u32 share_count_media;
@@ -64,6 +67,24 @@ static const char * const imx8mp_media_axi_sels[] = {"osc_24m", "sys_pll2_1000m"
 static const char * const imx8mp_media_apb_sels[] = {"osc_24m", "sys_pll2_125m", "sys_pll1_800m",
 					      "sys_pll3_out", "sys_pll1_40m", "audio_pll2_out",
 					      "clk_ext1", "sys_pll1_133m", };
+
+static const char * const imx8mp_hdmi_fdcc_tst_sels[] = {
+	"osc_24m", "sys_pll1_266m", "sys_pll2_250m",
+	"sys_pll1_800m", "sys_pll2_1000m", "sys_pll3_out",
+	"audio_pll2_out", "video_pll1_out",
+};
+
+static const char * const imx8mp_hdmi_24m_sels[] = {
+	"osc_24m", "sys_pll1_160m", "sys_pll2_50m",
+	"sys_pll3_out", "audio_pll1_out", "video_pll1_out",
+	"audio_pll2_out", "sys_pll1_133m",
+};
+
+static const char * const imx8mp_hdmi_ref_266m_sels[] = {
+	"osc_24m", "sys_pll1_400m", "sys_pll3_out",
+	"sys_pll2_333m", "sys_pll1_266m", "sys_pll2_200m",
+	"audio_pll1_out", "video_pll1_out",
+};
 #endif
 
 static const char * const imx8mp_noc_sels[] = {"osc_24m", "sys_pll1_800m", "sys_pll3_out",
@@ -335,6 +356,15 @@ static int imx8mp_clk_probe(struct udevice *dev)
 #if CONFIG_IS_ENABLED(VIDEO)
 	clk_dm(IMX8MP_CLK_MEDIA_AXI, imx8m_clk_composite(dev, "media_axi", imx8mp_media_axi_sels, base + 0x8a00));
 	clk_dm(IMX8MP_CLK_MEDIA_APB, imx8m_clk_composite(dev, "media_apb", imx8mp_media_apb_sels, base + 0x8a80));
+	/* HDMI is unused before relocation; preserve the early malloc pool. */
+	if (gd->flags & GD_FLG_RELOC) {
+		clk_dm(IMX8MP_CLK_HDMI_APB,
+		       imx8m_clk_composite(dev, "hdmi_apb", imx8mp_media_apb_sels,
+					   base + 0x8b00));
+		clk_dm(IMX8MP_CLK_HDMI_AXI,
+		       imx8m_clk_composite(dev, "hdmi_axi", imx8mp_media_axi_sels,
+					   base + 0x8b80));
+	}
 #endif
 	clk_dm(IMX8MP_CLK_NOC, imx8m_clk_composite_critical(dev, "noc", imx8mp_noc_sels, base + 0x8d00));
 	clk_dm(IMX8MP_CLK_NOC_IO, imx8m_clk_composite_critical(dev, "noc_io", imx8mp_noc_io_sels, base + 0x8d80));
@@ -381,6 +411,19 @@ static int imx8mp_clk_probe(struct udevice *dev)
 	clk_dm(IMX8MP_CLK_ECSPI3, imx8m_clk_composite(dev, "ecspi3", imx8mp_ecspi3_sels, base + 0xc180));
 
 	clk_dm(IMX8MP_CLK_WDOG, imx8m_clk_composite(dev, "wdog", imx8mp_wdog_sels, base + 0xb900));
+#if CONFIG_IS_ENABLED(VIDEO)
+	if (gd->flags & GD_FLG_RELOC) {
+		clk_dm(IMX8MP_CLK_HDMI_FDCC_TST,
+		       imx8m_clk_composite(dev, "hdmi_fdcc_tst",
+					   imx8mp_hdmi_fdcc_tst_sels, base + 0xbb00));
+		clk_dm(IMX8MP_CLK_HDMI_24M,
+		       imx8m_clk_composite(dev, "hdmi_24m", imx8mp_hdmi_24m_sels,
+					   base + 0xbb80));
+		clk_dm(IMX8MP_CLK_HDMI_REF_266M,
+		       imx8m_clk_composite(dev, "hdmi_ref_266m",
+					   imx8mp_hdmi_ref_266m_sels, base + 0xbc00));
+	}
+#endif
 	clk_dm(IMX8MP_CLK_USDHC3, imx8m_clk_composite(dev, "usdhc3", imx8mp_usdhc3_sels, base + 0xbc80));
 #if CONFIG_IS_ENABLED(VIDEO)
 	clk_dm(IMX8MP_CLK_MEDIA_MIPI_PHY1_REF, imx8m_clk_composite(dev, "media_mipi_phy1_ref", imx8mp_media_mipi_phy1_ref_sels, base + 0xbd80));
@@ -443,6 +486,12 @@ static int imx8mp_clk_probe(struct udevice *dev)
 #endif
 
 	clk_dm(IMX8MP_CLK_USDHC3_ROOT, imx_clk_gate4(dev, "usdhc3_root_clk", "usdhc3", base + 0x45e0, 0));
+#if CONFIG_IS_ENABLED(VIDEO)
+	if (gd->flags & GD_FLG_RELOC) {
+		clk_dm(IMX8MP_CLK_HDMI_ROOT,
+		       imx_clk_gate4(dev, "hdmi_root_clk", "hdmi_axi", base + 0x45f0, 0));
+	}
+#endif
 
 	clk_dm(IMX8MP_CLK_ARM,
 	       imx_clk_mux2_flags(dev, "arm_core", base + 0x9880, 24, 1,
