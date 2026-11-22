@@ -1032,3 +1032,9 @@ int authenticate_image(u32 ddr_start, u32 raw_image_size)
 
 	return imx_hab_authenticate_image(ddr_start, bytes, ivt_offset);
 }
+
+int authenticate_buffer(void *buffer, size_t size)
+{
+	u32 ivt_offset = (( size >> 12 )  << 12 );
+	return imx_hab_authenticate_image( (uint32_t) buffer, size, ivt_offset );
+}
