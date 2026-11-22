@@ -3,9 +3,7 @@
  * Copyright 2026 CompuLab
  */
 
-#include "imx8mp-u-boot.dtsi"
-/delete-node/ &binman;
-#include "compulab-imx8mp-binman.dtsi"
+#include "compulab-imx8mp-u-boot.dtsi"
 
 / {
 	wdt-reboot {

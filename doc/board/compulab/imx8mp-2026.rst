@@ -44,9 +44,11 @@ Use a separate output directory. For example::
     make O=build-mcm ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- -j8 flash.bin
 
 The firmware helper extracts the bundled BL31, OP-TEE and 202006 LPDDR4
-training firmware into the output directory. Binman packages these files
-with SPL and U-Boot into ``flash.bin``. Firmware already supplied in the
-output directory can be used in place of the bundled files.
+training firmware into the output directory. The NXP
+``imx8mp-u-boot.dtsi`` binman description packages these files with SPL and
+U-Boot into ``flash.bin``; no CompuLab-specific binman description is
+required. Firmware already supplied in the output directory can be used
+in place of the bundled files.
 
 To select all supported DRAM subsets and enable the optional MRR probe::
 
@@ -64,18 +66,28 @@ kernel arguments/device-tree load address.
 HAB
 ---
 
-``CONFIG_IMX_HAB`` and ``CONFIG_IMX_SPL_FIT_FDT_SIGNATURE`` remain available.
-Enabling them builds authentication support; it does not sign ``flash.bin``.
-The port retains the existing CompuLab image layout. Using the newer binman
-CST entry types requires a separate image-description/signing integration.
+The inherited NXP binman description wraps SPL and FIT in
+``nxp-imx8mcst`` entries when ``CONFIG_IMX_HAB`` is enabled. That build path
+invokes CST and needs its executable, SRK table, certificates and private
+keys. Follow ``doc/imx/habv4/guides/mx8m_spl_secure_boot.txt`` for the
+signing tool configuration. The old external-FIT post-processing procedure
+is not interchangeable with this layout.
+
+HAB signing and the compatibility of the existing SPL authentication hooks
+and configuration options require separate validation. In particular,
+``CONFIG_IMX_SPL_FIT_FDT_SIGNATURE`` selects a legacy, separate FIT-header
+signature path and must not be assumed compatible with NXP's embedded-FIT
+CST layout. Unsigned build validation does not establish secure-boot support.
 Private keys and signed production images are not included in this port.
 
 Validation
 ----------
 
 Cross-compilation with GCC 13 completed for all eleven configurations,
-including their ``flash.bin`` images. The MCM-iMX8Pv2 all-DRAM, D1/D8 and
-D2/D4 combinations also built with MRR probing and HAB support enabled.
+including their ``flash.bin`` images. The compact DRAM subsets and MRR
+probe were also built during the port.
+Earlier HAB-enabled compilation used the former CompuLab binman layout
+and does not validate CST signing with the inherited NXP layout.
 The unmodified NXP i.MX8MP EVK configuration built U-Boot and SPL with
 CompuLab support disabled. The bundled firmware matches the source branch.
 
