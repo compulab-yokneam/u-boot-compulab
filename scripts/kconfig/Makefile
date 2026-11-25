@@ -105,10 +105,26 @@ configfiles=$(wildcard $(srctree)/kernel/configs/$@ \
 		$(srctree)/arch/$(SRCARCH)/configs/$@ \
 		$(shell find $(srctree)/board -name "$@"))
 
+# A marked targetless defconfig needs its first target fragment merged into
+# the raw input: its resolved .config has already lost dependent settings.
+# Once the target is selected, later fragments use the normal merge path.
 %.config: $(obj)/conf
 	$(if $(call configfiles),, $(error No configuration exists for this target on this architecture))
-	$(Q)$(CONFIG_SHELL) $(srctree)/scripts/kconfig/merge_config.sh -m .config $(configfiles)
-	+$(Q)yes "" | $(MAKE) -f $(srctree)/Makefile oldconfig
+	+$(Q)set -e; \
+	if grep -qx '# U-Boot fragment base' generated_defconfig 2>/dev/null; then \
+		if ! grep -q '^CONFIG_TARGET_.*=y$$' $(configfiles); then \
+			echo >&2 'Apply a target .config before capacity or feature fragments'; \
+			exit 1; \
+		fi; \
+		$(CONFIG_SHELL) $(srctree)/scripts/kconfig/merge_config.sh \
+			-m generated_defconfig $(configfiles); \
+		$(obj)/conf $(silent) --olddefconfig $(Kconfig); \
+		sed -i '/^# U-Boot fragment base$$/d' generated_defconfig; \
+	else \
+		$(CONFIG_SHELL) $(srctree)/scripts/kconfig/merge_config.sh \
+			-m .config $(configfiles); \
+		yes "" | $(MAKE) -f $(srctree)/Makefile oldconfig; \
+	fi
 
 PHONY += kvmconfig
 kvmconfig: kvm_guest.config

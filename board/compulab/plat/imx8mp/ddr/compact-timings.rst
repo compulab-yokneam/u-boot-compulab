@@ -222,7 +222,7 @@ toolchain. The optional ELF comparison also needs pyelftools.
 
        build_dir="$migration_dir/build-compact-d2d4"
        make O="$build_dir" CROSS_COMPILE=aarch64-linux-gnu- \
-           ucm-imx8m-plus-sbev_defconfig d2d4.config
+           compulab-imx8mp_defconfig ucm-imx8m-plus-sbev.config d2d4.config
        rg '^CONFIG_IMX8M_DDR_COMPACT=y$' "$build_dir/.config"
        make O="$build_dir" CROSS_COMPILE=aarch64-linux-gnu- \
            -j8 spl/u-boot-spl
@@ -355,7 +355,7 @@ Run all commands from the U-Boot source root. The example imports a new
 
        build_dir=/tmp/uboot-compact-check
        make O="$build_dir" CROSS_COMPILE=aarch64-linux-gnu- \
-           ucm-imx8m-plus_defconfig d2d4.config
+           compulab-imx8mp_defconfig ucm-imx8m-plus.config d2d4.config
        make O="$build_dir" CROSS_COMPILE=aarch64-linux-gnu- \
            -j8 spl/u-boot-spl
        aarch64-linux-gnu-size "$build_dir/spl/u-boot-spl"

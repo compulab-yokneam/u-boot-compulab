@@ -3,10 +3,12 @@
 CompuLab MCM-iMX8Pv2
 ====================
 
-Select ``mcm-imx8pv2_defconfig`` to build MCM-iMX8Pv2 with SBC-MCM8PV2.
+Merge ``compulab-imx8mp_defconfig`` with ``mcm-imx8pv2.config`` to build
+MCM-iMX8Pv2 with SBC-MCM8PV2.
 The target selects TARGET_COMPULAB_IMX8MP and uses the shared CompuLab SPL,
 PMIC initialization, compact LPDDR4 profiles and EEPROM discovery code.
-The experimental LPDDR4 MRR probe remains optional and disabled by default.
+The common defconfig enables all D1/D2/D4/D8 timing subsets and the
+experimental LPDDR4 MRR probe, including probing with a valid EEPROM ID.
 
 Schematic basis
 ---------------
@@ -150,7 +152,8 @@ Build and validation
 
 For a compile/link check, with an AArch64 cross compiler installed::
 
-    make O=/tmp/mcm-imx8pv2-build CROSS_COMPILE=aarch64-linux-gnu- mcm-imx8pv2_defconfig
+    make O=/tmp/mcm-imx8pv2-build CROSS_COMPILE=aarch64-linux-gnu- \
+        compulab-imx8mp_defconfig mcm-imx8pv2.config
     make O=/tmp/mcm-imx8pv2-build CROSS_COMPILE=aarch64-linux-gnu- -j8 u-boot.bin spl/u-boot-spl
 
 Use the BSP image packaging process with the matching LPDDR4 PHY firmware,

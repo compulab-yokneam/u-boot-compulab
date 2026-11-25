@@ -9,20 +9,31 @@ identification and firmware rather than substituting the NXP EVK configuration.
 Supported configurations
 ------------------------
 
-* ``ucm-imx8m-plus_defconfig``
-* ``ucm-imx8m-plus-sbev_defconfig``
-* ``ucm-imx8m-plus_falcon_defconfig``
-* ``mcm-imx8m-plus_defconfig``
-* ``mcm-imx8pv2_defconfig``
-* ``som-imx8m-plus_defconfig``
-* ``iot-gate-imx8plus_defconfig``
-* ``iot-gate-imx8plus_falcon_defconfig``
-* ``iotdin-imx8p_defconfig``
-* ``iotdin-imx8p_falcon_defconfig``
-* ``iot-gate-imx8pv2_defconfig``
+The standard boot configurations share ``compulab-imx8mp_defconfig``.
+Select exactly one lowercase target fragment:
 
-The shared platform retains compact LPDDR4 timings, selectable D1/D2/D4/D8
-subsets, the optional MRR identification probe and verified EEPROM updates.
+* ``ucm-imx8m-plus.config``
+* ``ucm-imx8m-plus-sbev.config``
+* ``mcm-imx8m-plus.config``
+* ``mcm-imx8pv2.config``
+* ``som-imx8m-plus.config``
+* ``iot-gate-imx8plus.config``
+* ``iotdin-imx8p.config``
+* ``iot-gate-imx8pv2.config``
+
+Each fragment preserves its target's existing drivers, boot command, RTC,
+display and other board-specific settings. The SBEV fragment selects the
+UCM target with ``CONFIG_SBEV_UCMIMX8PLUS=y``.
+
+Falcon boot retains its standalone configurations:
+
+* ``ucm-imx8m-plus_falcon_defconfig``
+* ``iot-gate-imx8plus_falcon_defconfig``
+* ``iotdin-imx8p_falcon_defconfig``
+
+The common defconfig enables all D1/D2/D4/D8 compact LPDDR4 timing subsets
+and the experimental MRR identification probe, including probing when the
+EEPROM already contains a valid identification. EEPROM updates are verified.
 The raw timing sources and the packer remain available under
 ``board/compulab/plat/imx8mp/ddr/``. The expanded timing layout supplied to
 TF-A remains unchanged. With the NXP 2026.04 driver, trained CSR values are
@@ -40,8 +51,19 @@ Build
 
 Use a separate output directory. For example::
 
-    make O=build-mcm ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- mcm-imx8pv2_defconfig
+    make O=build-mcm ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- \
+        compulab-imx8mp_defconfig mcm-imx8pv2.config
     make O=build-mcm ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- -j8 flash.bin
+
+Replace ``mcm-imx8pv2.config`` with the required target fragment. The
+common defconfig intentionally selects no target. Its first target fragment
+is merged into the raw common settings before Kconfig resolves the complete
+configuration, preserving the settings that depend on board selection.
+Apply the target fragment before any capacity or feature fragments. Later
+fragments use the normal resolved-configuration merge path. This also works
+with ``make -j8`` and when the target fragment is applied by a separate
+``make`` invocation. To change targets, reapply the common defconfig and
+the new target fragment.
 
 The firmware helper extracts the bundled BL31, OP-TEE and 202006 LPDDR4
 training firmware into the output directory. The NXP
@@ -50,12 +72,17 @@ U-Boot into ``flash.bin``; no CompuLab-specific binman description is
 required. Firmware already supplied in the output directory can be used
 in place of the bundled files.
 
-To select all supported DRAM subsets and enable the optional MRR probe::
+The common defconfig already includes the final settings obtained by merging
+``d0.config d1.config d2.config d4.config d8.config lpddr_mrr_probe.config``.
+Those fragments do not need to be added to the normal build command.
+The four DRAM subsets and both ``COMPULAB_LPDDR4_MRR_PROBE`` and
+``COMPULAB_LPDDR4_MRR_PROBE_ALWAYS`` are enabled by default.
 
-    scripts/kconfig/merge_config.sh -m -O build-mcm build-mcm/.config \
-        configs/d0.config configs/d1.config configs/d2.config \
-        configs/d4.config configs/d8.config configs/lpddr_mrr_probe.config
-    make O=build-mcm ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
+To restrict the timing subsets, merge a capacity fragment after the target.
+For example, to retain only D2/D4::
+
+    make O=build-mcm ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- \
+        compulab-imx8mp_defconfig mcm-imx8pv2.config d2d4.config
     make O=build-mcm ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- -j8 flash.bin
 
 Do not reuse a configured 2023.04 output directory. The port uses the
@@ -83,9 +110,18 @@ Private keys and signed production images are not included in this port.
 Validation
 ----------
 
+The common defconfig plus each of the eight target fragments resolves to
+the same Kconfig settings as its former standalone defconfig merged with
+all four DRAM subsets and the MRR probe fragment. All eight combinations
+build ``flash.bin``. The three Falcon defconfigs are unchanged by this split.
+
+Check the sequential defconfig/fragment workflow with::
+
+    python3 test/compulab/test_config_fragments.py
+
 Cross-compilation with GCC 13 completed for all eleven configurations,
-including their ``flash.bin`` images. The compact DRAM subsets and MRR
-probe were also built during the port.
+including their ``flash.bin`` images, during the initial port. The compact
+DRAM subsets and MRR probe were also built during the port.
 Earlier HAB-enabled compilation used the former CompuLab binman layout
 and does not validate CST signing with the inherited NXP layout.
 The unmodified NXP i.MX8MP EVK configuration built U-Boot and SPL with
